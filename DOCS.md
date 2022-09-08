@@ -38,6 +38,11 @@
 > Full Typescript Playlist (FR)
 > - https://www.youtube.com/playlist?list=PLjwdMgw5TTLX1tQ1qDNHTsy_lrkCt4VW3
 
+### Other doc
+
+> Understanding Javascript function invocation and "this". A must-read, `this` keyword in js is very confusing this helped a bit
+> - https://yehudakatz.com/2011/08/11/understanding-javascript-function-invocation-and-this/
+
 ***
 
 
