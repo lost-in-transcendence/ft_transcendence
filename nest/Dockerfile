@@ -6,6 +6,6 @@ COPY . .
 
 ENTRYPOINT ["./entrypoint.sh"]
 
-CMD ["npm", "run", "start:dev"]
+CMD ["npm", "run", "dev"]
 
 EXPOSE 3000

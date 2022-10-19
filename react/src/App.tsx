@@ -4,9 +4,26 @@ import './App.css'
 import process from 'dotenv'
 
 
-function App() {
-  const [count, setCount] = useState(0)
+// async function getSuperFetch(): Promise<string>
+// {
+//   const resp = await fetch('https://localhost:3000', {method: 'GET'});
+//   const data = await resp.json();
+//   return data;
+// }
 
+ function App() {
+   const [count, setCount] = useState(0);
+//   // const [amazingFetch, setAmazingFetch] = useState("ta Grosse Grand Mere");
+
+//   function superFetch() : string
+//   {
+//     const resp = getSuperFetch().then();
+//     return resp;
+//   }
+
+  // let data : string;
+  const [data, setData] = useState<string>("ta grand mere");
+  fetch('https://localhost:3000', {method: 'GET'}).then(resp => resp.json()).then(lol => {setData(lol)});
   return (
     <div className="App">
       <div>
@@ -30,7 +47,10 @@ function App() {
         Click on the Vite and React logos to learn more
       </p>
       <p>
-        Ta grosse reum.
+        Ta grosse reum elle sent le poisson.
+      </p>
+      <p>
+        {data}
       </p>
     </div>
   )

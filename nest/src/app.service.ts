@@ -5,6 +5,6 @@ import { env } from 'process';
 export class AppService {
   getHello(): string {
 
-    return env.PATH;
+    return "tes grands morts";
   }
 }
