@@ -1,0 +1,58 @@
+services:
+
+  postgres:
+    image: postgres:14.5
+    container_name: postgres
+    restart: always
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PW}
+      - POSTGRES_DB=${DB_NAME}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - transcendence_network
+
+  backend:
+    build: ./nest/
+    image: nest
+    container_name: nest
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - 3000:3000
+    volumes:
+      - ./nest:/usr/src/app
+    environment:
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PW}
+      - DB_DB=${DB_NAME}
+      - NETWORK_NAME=${NETWORK_NAME}
+      - DB_PORT=${DB_PORT}
+    networks:
+      - transcendence_network
+    
+      
+  frontend:
+    build: ./react/
+    image: react
+    container_name: react
+    restart: always
+    environment:
+      - PORT=8080
+    ports:
+      - 4200:8080
+    volumes:
+      - ./react:/usr/src/app
+    networks:
+      - transcendence_network
+
+networks:
+  transcendence_network:
