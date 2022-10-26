@@ -1,0 +1,22 @@
+.wrapper
+{
+    max-width: 1920px;
+    display: flex;
+    text-align: center;
+    justify-content: center;
+    margin: auto;
+}
+
+.game
+{
+    flex: 1 1 66%;
+    border: 5px white solid;
+    height: 1000px;
+}
+
+.chat
+{
+    flex: 1 1 33%;
+    border: 5px white solid;
+    height: 1000px;
+}

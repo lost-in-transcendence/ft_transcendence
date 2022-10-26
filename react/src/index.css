@@ -1,6 +1,54 @@
 :root {
   font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
   font-size: 16px;
+  /* line-height: 24px; */
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+
+  /* font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%; */
+}
+
+body
+{
+  margin: auto;
+}
+
+
+/*Consider something like this to remove annoying baseline styles*/
+* 
+{
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  font-size: 100%;
+  -ms-text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+  vertical-align: baseline;
+  background: transparent;
+}
+
+h2
+{
+  font-size: 32px;
+}
+
+a
+{
+  color: inherit;
+  text-decoration: none;
+}
+
+/*:root {
+  font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
+  font-size: 16px;
   line-height: 24px;
   font-weight: 400;
 
@@ -68,3 +116,4 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+*/

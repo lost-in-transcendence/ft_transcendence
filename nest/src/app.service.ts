@@ -3,8 +3,8 @@ import { env } from 'process';
 
 @Injectable()
 export class AppService {
-  getHello(): string {
+  async getHello() {
 
-    return "tes grands morts";
+  return {value: "tes grands morts"};
   }
 }

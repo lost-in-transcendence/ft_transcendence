@@ -1,0 +1,22 @@
+.login_row
+{
+    width: 100%;
+    height: 30px;
+    text-align: center;
+    display: block;
+}
+
+.login_wrap
+{
+    max-width: 1080px;
+    min-width: 880px;
+    margin: auto;
+    position: relative;
+}
+
+.login
+{
+    position:absolute;
+    top: 0;
+    right: 0;
+}

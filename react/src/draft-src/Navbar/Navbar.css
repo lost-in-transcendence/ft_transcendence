@@ -1,0 +1,81 @@
+/*
+What's a wrapper?
+A wrapper serves to "set fences" around an element. It can indicate its position,
+its max or min width... In precise positioning, the wrapper handles the element's
+position and size, everything inside of it will adapt to it if it gets resized.
+*/
+
+.navbar
+{
+    display: flex;
+    background-color: rgb(158, 160, 64);
+    text-align: center;
+}
+
+.menu
+{
+   /* width: 40%;*/
+    display: flex;
+    padding-left: 50px;
+
+
+}
+
+.menu_wrap
+{
+    max-width: 1080px;
+    margin: auto;
+    display: flex;
+} 
+
+.menu_logo_wrap
+{
+    display: flex;
+    flex: 0 1 auto;
+    align-items: center;
+}
+
+.menu_logo
+{
+    margin-right: 30px;
+}
+
+.menu_nav_wrap
+{
+    display: flex;
+    flex: 1 1 auto;
+    justify-content: center;
+}
+/*
+.menu_nav
+{
+}
+*/
+.menu_nav > nav > ul
+{
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    padding: 0;
+    margin: 0;
+    text-align: center;
+}
+
+.menu_nav > nav > ul > li
+{
+    display: flex;
+    flex: 1 1 auto;
+    min-width: 50px;
+    margin-left: 10px;
+    padding: 0 10px;
+}
+
+.menu_nav > nav >  ul > li:hover
+{
+    background-color: black;
+}
+
+.menu_nav > nav > ul > li > a
+{
+    padding: 24px 0 24px 0;
+}

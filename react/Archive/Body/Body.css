@@ -1,0 +1,17 @@
+.body_wrap
+{
+    display: flex;
+    width: 100%;
+    background-color: whitesmoke;
+    color: black;
+}
+
+.body
+{
+    max-width: 1080px;
+    min-width: 880px;
+    margin: 0px auto;
+    padding-top: 20px;
+    height: 5000px;
+    background-color: white;
+}
