@@ -5,7 +5,7 @@ services:
     container_name: postgres
     restart: always
     ports:
-      - 5432:5432
+      - ${DB_PORT}:${DB_PORT}
     environment:
       - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PW}
@@ -27,7 +27,7 @@ services:
       postgres:
         condition: service_healthy
     ports:
-      - 3000:3000
+      - ${BACK_PORT}:${BACK_PORT}
     volumes:
       - ./nest:/usr/src/app
     environment:
@@ -36,19 +36,22 @@ services:
       - DB_DB=${DB_NAME}
       - NETWORK_NAME=${NETWORK_NAME}
       - DB_PORT=${DB_PORT}
+      - FRONT_PORT=${FRONT_PORT}
+      - BACK_PORT=${BACK_PORT}
     networks:
       - transcendence_network
-    
-      
+
+
   frontend:
     build: ./react/
     image: react
     container_name: react
     restart: always
     environment:
-      - PORT=8080
+      - FRONT_PORT=${FRONT_PORT}
+      - BACK_PORT=${BACK_PORT}
     ports:
-      - 4200:8080
+      - ${FRONT_PORT}:${FRONT_PORT}
     volumes:
       - ./react:/usr/src/app
     networks:
