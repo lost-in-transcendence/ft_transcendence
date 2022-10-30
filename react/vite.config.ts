@@ -5,5 +5,5 @@ import {env} from 'process'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  server: { port: env.PORT }
+  server: { port: env.FRONT_PORT }
 })
