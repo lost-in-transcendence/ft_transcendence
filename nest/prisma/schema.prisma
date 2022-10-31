@@ -10,28 +10,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// model User {
-//   id        String @id @default(uuid())
-//   userName  String @unique
-//   email     String @unique
-//   passwordHash String
-//   avatar        String
-
-//   friendListId  String?
-//   friendList    FriendList? @relation(fields: [friendListId], references: [id])
-//   blackListId   String?
-//   blackList     BlackList? @relation(fields: [blackListId], references: [id])
-// }
-
-// model FriendList {
-//   id    String @id @default(uuid())
-//   users User[]
-// }
-
-// model BlackList {
-//   id    String @id @default(uuid())
-//   users User[]
-// }
+// Voici un commentaire pour expliquer mon THOT process
 
 enum StatusType {
   ONLINE
@@ -82,11 +61,11 @@ model PlayerGame {
 model PlayStats {
   user              User  @relation(fields: [userId], references: [id])
   userId            String  @unique
-  wins              Int
-  losses            Int
-  rank              Int
-  points            Int
-  achievement_point Int
+  wins              Int @default(0)
+  losses            Int @default(0)
+  rank              Int @default(0)
+  points            Int @default(0)
+  achievement_point Int @default(0)
 }
 // normalement ca ca marche
 
