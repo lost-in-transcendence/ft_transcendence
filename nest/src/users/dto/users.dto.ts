@@ -18,10 +18,6 @@ export class CreateUserDto
     @IsString()
     @IsNotEmpty()
     readonly avatar: string
-
-    @IsString()
-    @IsNotEmpty()
-    readonly createdAt: Date;
 }
 
 export class UpdateUserDto extends PartialType(CreateUserDto) {}

@@ -1,4 +1,5 @@
 import { createContext, JSXElementConstructor, useState } from "react";
+import { Navigate } from "react-router-dom";
 
 type AuthContextType =
 {
@@ -21,6 +22,7 @@ export function Auth({children}: AuthProps)
 	const login = () =>
 	{
 		setIsAuth(true);
+		window.open("http://localhost:3333/auth/login", "_self");
 	}
 
 	const logout = () =>

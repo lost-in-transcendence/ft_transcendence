@@ -24,13 +24,17 @@ const router = createBrowserRouter(
 			element: <Login />
 		},
 		{
+			path: '/home',
+			element: <HomePage />,
+		},
+		{
 			element: <ProtectedRoute />,
 			children:
 			[
-				{
-					path: '/home',
-					element: <HomePage />,
-				},
+				// {
+				// 	path: '/home',
+				// 	element: <HomePage />,
+				// },
 				{
 					path: '/profile',
 					element: <Profile />,
