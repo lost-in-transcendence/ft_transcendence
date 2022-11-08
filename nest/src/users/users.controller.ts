@@ -28,10 +28,7 @@ export class UsersController
     @Post()
     async create(@Body() dto: CreateUserDto)
     {
-        const {password, ...temp} = dto;
-        // const passwordHash = argon2.hash(password);
-        const passwordHash = password;
-        const data : Prisma.UserCreateInput = {...temp, passwordHash: passwordHash}
+        const data : Prisma.UserCreateInput = {...dto};
         data.playStats = { 
             create: {}
         }
@@ -42,18 +39,12 @@ export class UsersController
     @Patch(':userName')
     async update(@Body() dto: UpdateUserDto, @Param('userName') userName: string)
     {
-        const {password, ...temp} = dto;
-        const data: Prisma.UserUpdateInput = {...temp};
-        if (password)
-        {
-            const passwordHash = password;
-            data.passwordHash = passwordHash;
-        }
+        const data: Prisma.UserUpdateInput = {...dto};
         const res = await this.userService.updateUser({
             where: {userName},
             data
         });
-        //error handling
+        // error handling
         return res;
     }
 }

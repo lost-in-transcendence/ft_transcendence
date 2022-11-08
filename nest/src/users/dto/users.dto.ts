@@ -1,4 +1,4 @@
-import {IsNotEmpty, IsString} from "class-validator"
+import {IsNotEmpty, IsNumber, IsString} from "class-validator"
 import { PartialType } from "@nestjs/mapped-types"
 
 export class CreateUserDto
@@ -7,13 +7,13 @@ export class CreateUserDto
     @IsNotEmpty()
     readonly userName: string
 
-    @IsString()
+    @IsNumber()
     @IsNotEmpty()
-    readonly email: string
+    readonly id42: number
 
     @IsString()
     @IsNotEmpty()
-    readonly password: string
+    readonly email: string
 
     @IsString()
     @IsNotEmpty()
