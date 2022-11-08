@@ -8,6 +8,7 @@ async function bootstrap() {
   app.enableCors(
     {
       origin: ['http://localhost:' + env.FRONT_PORT, ],
+      credentials: true,
     }
     );
   app.useGlobalPipes(new ValidationPipe({whitelist: true}));
