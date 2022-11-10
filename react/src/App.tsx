@@ -26,7 +26,7 @@ const router = createBrowserRouter(
 		{
 			path: '/home',
 			element: <HomePage />,
-			loader: homepageLoader
+			loader: homepageLoader,
 		},
 		{
 			element: <ProtectedRoute />,

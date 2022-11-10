@@ -12,8 +12,8 @@ export class AuthController
     @Get('login')
     async login (@Req() req, @Res() response)
     {
-        const res = await this.authService.login(req.user);
+        const token = await this.authService.login(req.user);
+        response.cookie('jwt', token);
         response.status(302).redirect("http://localhost:3000/home");
-
     }
 }

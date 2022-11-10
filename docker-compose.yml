@@ -41,6 +41,7 @@ services:
       - FORTYTWO_ID=${FORTYTWO_API_ID}
       - FORTYTWO_SECRET=${FORTYTWO_API_SECRET}
       - FORTYTWO_CALLBACK=${FORTYTWO_API_CALLBACK}
+      - JWT_SECRET=${JWT_SECRET}
     networks:
       - transcendence_network
 
