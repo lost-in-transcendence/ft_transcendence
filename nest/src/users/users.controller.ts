@@ -1,5 +1,6 @@
 import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma, User } from '@prisma/client';
+import { GetUser } from './decorator';
 import {CreateUserDto, UpdateUserDto} from './dto/users.dto'
 import { UsersService } from './users.service';
 
@@ -7,6 +8,13 @@ import { UsersService } from './users.service';
 export class UsersController
 {
     constructor(private readonly userService: UsersService) {}
+
+    @Get('/me')
+    async getMe(@GetUser() user: User)
+    {
+        // console.log(user);
+        return (user);
+    }
 
     @Get()
     async findAll()

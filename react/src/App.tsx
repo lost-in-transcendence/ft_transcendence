@@ -6,7 +6,7 @@ import './App.css'
 
 import { Chat } from './routes/chat'
 import { Game } from './routes/game'
-import { HomePage } from './routes/home'
+import { HomePage, loader as homepageLoader } from './routes/home'
 import { LeaderBoard } from './routes/leaderboard'
 import { Login } from './routes/login'
 import { Profile, loader as profileLoader} from './routes/profile'
@@ -26,6 +26,7 @@ const router = createBrowserRouter(
 		{
 			path: '/home',
 			element: <HomePage />,
+			loader: homepageLoader
 		},
 		{
 			element: <ProtectedRoute />,

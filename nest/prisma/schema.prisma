@@ -40,6 +40,8 @@ model User {
   playStats     PlayStats?
   channels      ChannelMember[]
   messages      Message[]
+
+  
 }
 
 model Game {
