@@ -2,6 +2,7 @@ import { useLoaderData } from "react-router-dom";
 
 export async function loader()
 {
+	console.log("test2");
 	return (
 		{
 			userId: 1,
