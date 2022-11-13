@@ -25,7 +25,6 @@ export class AuthController
     @Get('logout')
     async logout (@Res() res)
     {
-        console.log(res.location);
         res.cookie('jwt', 'none',
         {
             expires: new Date(Date.now() /*+ 1 * 500*/)

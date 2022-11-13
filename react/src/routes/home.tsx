@@ -2,6 +2,7 @@ import { useContext } from "react";
 import { useLoaderData } from "react-router-dom";
 import { AuthContext } from "../auth/AuthContext";
 import { getCookie } from "../requests/cookies"
+import { Navigate } from "react-router-dom";
 
 export function loader()
 {
@@ -18,6 +19,14 @@ export function loader()
 export function HomePage()
 {
 	const user: any = useLoaderData();
+	console.log(user);
+	if (user.message === "Unauthorized") {
+		console.log("user ds le cul");
+		return (
+
+			<Navigate to={"/login"} />
+		);
+	}
 	const auth = useContext(AuthContext);
 	// const user = auth.currentUser;
 	return (
@@ -25,9 +34,6 @@ export function HomePage()
 			<h1>Home Page</h1>
 			<p>{user.userName}</p>
 			<img src={user.avatar} />
-			<div>
-				<button onClick={() => {auth.logout()}}>Logout</button>
-			</div>
 		</div>
 	);
 }
