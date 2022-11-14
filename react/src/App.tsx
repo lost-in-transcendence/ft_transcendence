@@ -4,10 +4,10 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import './App.css'
 // import '../src/components/Core.css'
 
-import { Chat } from './routes/chat'
-import { Game } from './routes/game'
+import { Chat, loader as chatLoader } from './routes/chat'
+import { Game, loader as gameLoader } from './routes/game'
 import { HomePage, loader as homepageLoader } from './routes/home'
-import { LeaderBoard } from './routes/leaderboard'
+import { LeaderBoard, loader as leaderboardLoader} from './routes/leaderboard'
 import { Login } from './routes/login'
 import { Profile, loader as profileLoader} from './routes/profile'
 import { ProtectedRoute } from './routes/protected-route/ProtectedRoute'
@@ -43,15 +43,18 @@ const router = createBrowserRouter(
 				},
 				{
 					path: '/game',
-					element: <Game />
+					element: <Game />,
+					loader: gameLoader,
 				},
 				{
 					path: "/chat",
-					element: <Chat />
+					element: <Chat />,
+					loader: chatLoader,
 				},
 				{
 					path: '/leaderboard',
-					element: <LeaderBoard />
+					element: <LeaderBoard />,
+					loader: leaderboardLoader,
 				}
 			]
 		}

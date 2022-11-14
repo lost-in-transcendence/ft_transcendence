@@ -16,7 +16,7 @@ export class AuthController
         const token = await this.authService.login(req.user);
         response.cookie('jwt', token,
         {
-            expires: new Date(Date.now() + 1 * 60 * 1000)
+            expires: new Date(Date.now() + /*365 * 24 * 60 * */ 60 * 1000)
         });
         response.status(302).redirect("http://localhost:3000/home");
     }
