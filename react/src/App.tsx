@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 
 import './App.css'
+import {Callback, loader as callbackLoader} from './routes/callback'
 // import '../src/components/Core.css'
 
-import { Chat } from './routes/chat'
-import { Game } from './routes/game'
-import { HomePage } from './routes/home'
-import { LeaderBoard } from './routes/leaderboard'
+import { Chat, loader as chatLoader } from './routes/chat'
+import { ErrorPage } from './routes/error'
+import { Game, loader as gameLoader } from './routes/game'
+import { HomePage, loader as homepageLoader } from './routes/home'
+import { LeaderBoard, loader as leaderboardLoader} from './routes/leaderboard'
 import { Login } from './routes/login'
 import { Profile, loader as profileLoader} from './routes/profile'
 import { ProtectedRoute } from './routes/protected-route/ProtectedRoute'
@@ -24,12 +26,19 @@ const router = createBrowserRouter(
 			element: <Login />
 		},
 		{
+			path: "/login/callback",
+			element: <Callback />,
+			loader: callbackLoader
+		},
+		{
 			element: <ProtectedRoute />,
+			errorElement: <ErrorPage />,
 			children:
 			[
 				{
 					path: '/home',
 					element: <HomePage />,
+					loader: homepageLoader,
 				},
 				{
 					path: '/profile',
@@ -38,15 +47,18 @@ const router = createBrowserRouter(
 				},
 				{
 					path: '/game',
-					element: <Game />
+					element: <Game />,
+					loader: gameLoader,
 				},
 				{
 					path: "/chat",
-					element: <Chat />
+					element: <Chat />,
+					loader: chatLoader,
 				},
 				{
 					path: '/leaderboard',
-					element: <LeaderBoard />
+					element: <LeaderBoard />,
+					loader: leaderboardLoader,
 				}
 			]
 		}

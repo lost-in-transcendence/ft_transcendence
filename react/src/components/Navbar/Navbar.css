@@ -5,10 +5,15 @@ its max or min width... In precise positioning, the wrapper handles the element'
 position and size, everything inside of it will adapt to it if it gets resized.
 */
 
+.activeStyle
+{
+	background-color: rgba(0, 0, 0, 0.5);
+}
+
 .navbar
 {
     display: flex;
-    background-color: rgb(158, 160, 64);
+    background-color: rgb(95, 126, 45);
     text-align: center;
 }
 
@@ -26,7 +31,7 @@ position and size, everything inside of it will adapt to it if it gets resized.
     max-width: 1080px;
     margin: auto;
     display: flex;
-} 
+}
 
 .menu_logo_wrap
 {

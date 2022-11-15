@@ -23,9 +23,9 @@ enum StatusType {
 
 model User {
   id            String @id @default(uuid())
+  id42          Int    @unique
   userName      String @unique
   email         String @unique
-  passwordHash  String
   avatar        String
 
   friends       User[] @relation("friendList")
@@ -40,6 +40,8 @@ model User {
   playStats     PlayStats?
   channels      ChannelMember[]
   messages      Message[]
+
+  
 }
 
 model Game {

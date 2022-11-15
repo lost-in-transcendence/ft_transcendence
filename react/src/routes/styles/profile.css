@@ -1,0 +1,88 @@
+.profilePage
+{
+	height: 100%;
+	width:100%;
+	/* display: flex; */
+	/* flex-direction: column; */
+}
+
+.profileTitle
+{
+	/* flex: 1 0 ; */
+	/* margin: auto; */
+	margin-left: auto;
+	margin-right: auto;
+	margin-top: 4%;
+	margin-bottom: 1%;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	/* justify-content: space-between; */
+	justify-items: flex-start;
+	/* border: 1px solid orange; */
+	/* width: 33vw; */
+	background-color: rgba(44, 44, 44, 0.658);
+	box-shadow: 0.1rem 0.1rem 10px rgba(0, 0, 0, 0.3);
+	/* position: relative; */
+	/* left: 33%; */
+}
+
+.profileImg
+{
+	flex: 1 1 33%;
+	margin: 1%;
+	/* border: 1px solid red; */
+}
+
+.profileImg img
+{
+	max-height: 7rem;
+	max-width: 7rem;
+	border-radius: 100%;
+}
+
+.profileInfo
+{
+	flex: 1 1 66%;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+}
+
+.profileInfo h3
+{
+	margin: auto;
+	font-size: 2.75rem;
+}
+
+.profilePong
+{
+	margin: auto;
+	margin-top: 7%;
+	display: flex;
+	flex-direction: row;
+	/* border: 1px solid orange; */
+	background-color: rgba(44, 44, 44, 0.658);
+	box-shadow: 0.1rem 0.1rem 10px rgba(0, 0, 0, 0.3);
+	width: 75%;
+	height: 50%;
+}
+
+
+.profileStatsContainer
+{
+	flex: 1 1 50%;
+}
+
+.profileStats
+{
+	text-align: left;
+	margin-left: 10%;
+}
+
+.profileHistoryContainer
+{
+	flex: 1 1 50%;
+	/* border-left: 1px solid wheat; */
+}

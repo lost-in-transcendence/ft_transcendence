@@ -7,7 +7,7 @@ export function ProtectedRoute()
 {
 	const auth = useContext(AuthContext)
 	return (
-		auth.isAuth ? (
+		auth.isLoggedIn ? (
 		<>
 			<Core />
 		</>
