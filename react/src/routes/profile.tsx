@@ -8,15 +8,17 @@ import './styles/profile.css'
 
 export async function loader()
 {
-	const user = await fetch(`http://localhost:3333/users/me/complete`,
+	const res = await fetch(`http://localhost:3333/users/me/complete`,
 	{
 		method: 'GET',
 		headers: {"Authorization": "Bearer " + getCookie('jwt')}
 	});
-	if (!user.ok)
-		redirect('/login');
+	if (!res.ok)
+	{
+		return redirect('/login');
+	}
 	// const ret = await user.json();
-	return (user);
+	return (res);
 }
 
 

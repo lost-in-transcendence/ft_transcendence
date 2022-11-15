@@ -3,7 +3,7 @@ import { Prisma, User } from '@prisma/client';
 import { NotFoundError } from 'rxjs';
 import { JwtGuard } from 'src/auth42/guard/jwt.guard';
 import { GetUser } from './decorator';
-import { CreateUserDto, UpdateUserDto } from './dto/users.dto'
+import { CreateUserDto, UpdateUserDto, UserIncludeQueryDto } from './dto/users.dto'
 import { UsersService } from './users.service';
 
 @UseGuards(JwtGuard)
@@ -27,22 +27,36 @@ export class UsersController
 	}
 
 	@Get('/me')
-	async getMe(@GetUser() user: User) {
+	async getMe(@GetUser() user: User)
+	{
 		// console.log(user);
 		return (user);
 	}
 
 	@Get('/me/complete')
-	async getFullProfile(@GetUser('id') id: string) {
-		const ret = await this.userService.getUserModal({ id }, this.userIncludeAll);
-		if (!ret) {
+	async getMeFullProfile(@GetUser('id') id: string)
+	{
+		const res = await this.userService.userModal({ id }, this.userIncludeAll);
+		if (!res) {
 			throw (new NotFoundException(`Cannot find user with id: ${id}`));
 		}
-		return (ret);
+		return (res);
+	}
+
+	@Get('/me/modal')
+	async getMeModalProfile(@GetUser('id') id: string, @Query() include: UserIncludeQueryDto)
+	{
+		console.log(include);
+		const res = await this.userService.userModal({id}, include)
+		if (!res) {
+			throw (new NotFoundException(`Cannot find user with id: ${id}`));
+		}
+		return (res);
 	}
 
 	@Get()
-	async findAll() {
+	async findAll()
+	{
 		const res = await this.userService.users({});
 		//if (!res)
 		// error handling
@@ -50,21 +64,26 @@ export class UsersController
 	}
 
 	@Get(':userName')
-	async findOne(@Param('userName') userName: string) {
+	async findOne(@Param('userName') userName: string)
+	{
 		const res = await this.userService.user({ userName });
 		// error handling
+		if (!res) {
+			throw (new NotFoundException(`Cannot find user with user name: ${userName}`));
+		}
 		return res;
 	}
 
 	@Post()
-	async create(@Body() dto: CreateUserDto) {
+	async create(@Body() dto: CreateUserDto)
+	{
 		const res = await this.userService.createUser(dto);
-		console.log({ res });
 		return res;
 	}
 
 	@Patch(':userName')
-	async update(@Body() dto: UpdateUserDto, @Param('userName') userName: string) {
+	async update(@Body() dto: UpdateUserDto, @Param('userName') userName: string)
+	{
 		const data: Prisma.UserUpdateInput = { ...dto };
 		const res = await this.userService.updateUser({
 			where: { userName },

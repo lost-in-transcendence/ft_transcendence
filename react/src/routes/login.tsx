@@ -6,14 +6,13 @@ function popupwindow(url: string , title: string, w: number, h: number)
 {
 	var left = Math.round(window.screenX + (window.outerWidth - w) / 2);
 	var top = Math.round(window.screenY + (window.outerHeight - h) / 2.5);
-	return window.open(url, title, 'toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width='+w+', height='+h+', top='+top+', left='+left);
+	return window.open(url, title, 'toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width=' + w + ', height=' + h + ', top=' + top + ', left=' + left);
   } 
 
 export function Login()
 {
 	const auth = useContext(AuthContext);
 	const [status, setStatus] = useState('waiting');
-
 
 	async function onMessage(event: MessageEvent)
 	{
@@ -67,9 +66,6 @@ export function Login()
 			{status === 'success' &&
 			<Navigate to={"/home"} />}
 			<h1>Login</h1>
-			{/* <Link to={"/home"}>
-				<button onClick={() => auth.login()}>Login</button>
-			</Link> */}
 			<button onClick={login}>
 				Log in
 			</button>
