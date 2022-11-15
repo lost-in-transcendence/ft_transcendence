@@ -18,6 +18,7 @@ export function loader()
 
 export function Game()
 {
+
 	const user: any = useLoaderData();
 	// user.catch( () => {return (<Navigate to={"/login"} />)});
 	// console.log(user);

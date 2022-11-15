@@ -14,14 +14,20 @@ export class AuthController
     async login (@Req() req, @Res() response)
     {
         const token = await this.authService.login(req.user);
+        const date: Date = new Date(Date.now() + /*7 * 24 * 60 *  60 (uncomment this and remove the 10 for prod)*/ 10 * 1000);
+        // console.log(date.getTime());
         response.cookie('jwt', token,
         {
-            expires: new Date(Date.now() + /*365 * 24 * 60 * */ 60 * 1000)
+            expires: date
+        });
+        response.cookie('jwtExpiration', date.getTime(),
+        {
+            expires: date
         });
         // console.log("what the fuck");
         // return response;
         // response.status(201);
-        response.send( "Cookie Set"
+        response.send( /*"Cookie Set"*/
             // {
             //     success: true,
             //     token,
@@ -35,6 +41,10 @@ export class AuthController
     async logout (@Res() res)
     {
         res.cookie('jwt', 'none',
+        {
+            expires: new Date(Date.now() /*+ 1 * 500*/)
+        });
+        res.cookie('jwtExpiration', 'none',
         {
             expires: new Date(Date.now() /*+ 1 * 500*/)
         });

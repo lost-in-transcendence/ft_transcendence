@@ -41,8 +41,17 @@ export function Auth({children}: AuthProps)
 	const isLoggedIn = () =>
 	{
 		//check le back
-		console.log("test");
-		return getCookie('jwt');
+		console.log('lol');
+		const jwtCookie = getCookie('jwt');
+		// if (!jwtCookie)
+		// 	return false;
+		//verif validite du token
+	
+		const expireCookie = getCookie('jwtExpiration');
+		if (Number(expireCookie) - new Date (Date.now()).getTime() < 24 * 60 * 60 * 1000) {
+			console.log('puduku');
+		}
+		return true;
 	}
 
 	// const value = useMemo( () =>
