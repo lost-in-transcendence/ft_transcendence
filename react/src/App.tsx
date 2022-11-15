@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 
 import './App.css'
+import {Callback, loader as callbackLoader} from './routes/callback'
 // import '../src/components/Core.css'
 
 import { Chat } from './routes/chat'
@@ -22,6 +23,11 @@ const router = createBrowserRouter(
 		{
 			path: "/login",
 			element: <Login />
+		},
+		{
+			path: "/login/callback",
+			element: <Callback />,
+			loader: callbackLoader
 		},
 		{
 			element: <ProtectedRoute />,

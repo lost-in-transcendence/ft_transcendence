@@ -22,10 +22,10 @@ export function HomePage()
 	console.log(user);
 	if (user.message === "Unauthorized") {
 		console.log("user ds le cul");
-		return (
+		// return (
 
-			<Navigate to={"/login"} />
-		);
+		// 	<Navigate to={"/login"} />
+		// );
 	}
 	const auth = useContext(AuthContext);
 	// const user = auth.currentUser;
