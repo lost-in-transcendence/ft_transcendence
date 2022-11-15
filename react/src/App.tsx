@@ -6,6 +6,7 @@ import {Callback, loader as callbackLoader} from './routes/callback'
 // import '../src/components/Core.css'
 
 import { Chat, loader as chatLoader } from './routes/chat'
+import { ErrorPage } from './routes/error'
 import { Game, loader as gameLoader } from './routes/game'
 import { HomePage, loader as homepageLoader } from './routes/home'
 import { LeaderBoard, loader as leaderboardLoader} from './routes/leaderboard'
@@ -31,12 +32,9 @@ const router = createBrowserRouter(
 		},
 		{
 			element: <ProtectedRoute />,
+			errorElement: <ErrorPage />,
 			children:
 			[
-				// {
-				// 	path: '/home',
-				// 	element: <HomePage />,
-				// },		
 				{
 					path: '/home',
 					element: <HomePage />,
