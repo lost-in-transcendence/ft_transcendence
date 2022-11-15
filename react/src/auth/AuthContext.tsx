@@ -1,16 +1,17 @@
 import { createContext, JSXElementConstructor, useMemo, useState } from "react";
 import { Navigate } from "react-router-dom";
+import { getCookie } from "../requests/cookies";
 
 type AuthContextType =
 {
 	// isAuth: boolean;
 	// currentUser: any;
-	// isLoggedIn: Function;
+	isLoggedIn: Function;
 	login: Function;
 	logout: Function;
 }
 
-export const AuthContext = createContext<AuthContextType>({login: () => {}, logout: () => {}});
+export const AuthContext = createContext<AuthContextType>({login: () => {}, logout: () => {}, isLoggedIn: () => {}});
 
 type AuthProps =
 {
@@ -41,10 +42,10 @@ export function Auth({children}: AuthProps)
 	{
 		//check le back
 		console.log("test");
-		return true;
+		return getCookie('jwt');
 	}
 
-	// const value = useMemo( () => 
+	// const value = useMemo( () =>
 	// (
 	// 	{
 	// 		// cookies,
@@ -55,7 +56,7 @@ export function Auth({children}: AuthProps)
 	// 	// [cookies])
 
 	return (
-		<AuthContext.Provider value={{login, logout}}>
+		<AuthContext.Provider value={{login, logout, isLoggedIn}}>
 			{children}
 		</AuthContext.Provider>
 	)
