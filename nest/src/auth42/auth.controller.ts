@@ -16,7 +16,7 @@ export class AuthController
         const token = await this.authService.login(req.user);
         response.cookie('jwt', token,
         {
-            expires: new Date(Date.now() + 10 * 60 * 1000)
+            expires: new Date(Date.now() + /*365 * 24 * 60 * */ 60 * 1000)
         });
         // console.log("what the fuck");
         // return response;

@@ -19,13 +19,13 @@ export function loader()
 export function HomePage()
 {
 	const user: any = useLoaderData();
-	console.log(user);
-	if (user.message === "Unauthorized") {
-		console.log("user ds le cul");
-		// return (
-
-		// 	<Navigate to={"/login"} />
-		// );
+	// user.catch( () => {return (<Navigate to={"/login"} />)});
+	// console.log(user);
+	if (user.statusCode) {
+		// console.log("user ds le cul");
+		return (
+			<Navigate to={"/login"} />
+		);
 	}
 	const auth = useContext(AuthContext);
 	// const user = auth.currentUser;
