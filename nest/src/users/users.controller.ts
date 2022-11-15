@@ -1,4 +1,4 @@
-import { Body, Controller, Get, NotFoundException, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, NotFoundException, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { Prisma, User } from '@prisma/client';
 import { NotFoundError } from 'rxjs';
 import { JwtGuard } from 'src/auth42/guard/jwt.guard';
@@ -33,6 +33,7 @@ export class UsersController
 	}
 
 	@Get('/me/complete')
+	@HttpCode(200)
 	async getFullProfile(@GetUser('id') id: string) {
 		const ret = await this.userService.getUserModal({ id }, this.userIncludeAll);
 		if (!ret) {
