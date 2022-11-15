@@ -10,7 +10,7 @@
 .game
 {
     flex: 1 1 66%;
-    border: 5px white solid;
+    border: 5px rgb(163, 163, 163) solid;
     height: 1000px;
 }
 
