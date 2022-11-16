@@ -12,7 +12,7 @@ import { HomePage, loader as homepageLoader } from './routes/home'
 import { LeaderBoard, loader as leaderboardLoader} from './routes/leaderboard'
 import { Login } from './routes/login'
 import { Profile, loader as profileLoader} from './routes/profile'
-import { ProtectedRoute } from './routes/protected-route/ProtectedRoute'
+import { ProtectedRoute, loader as protectedLoader } from './routes/protected-route/ProtectedRoute'
 import { WelcomePage } from './routes/welcome'
 
 const router = createBrowserRouter(
@@ -32,6 +32,7 @@ const router = createBrowserRouter(
 		},
 		{
 			element: <ProtectedRoute />,
+			loader: protectedLoader,
 			errorElement: <ErrorPage />,
 			children:
 			[

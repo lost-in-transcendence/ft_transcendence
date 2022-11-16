@@ -1,4 +1,6 @@
+import { useContext } from "react";
 import { Navigate, redirect, useLoaderData, useRouteLoaderData } from "react-router-dom"
+import { AuthContext } from "../auth/AuthContext";
 
 export async function loader()
 {
@@ -33,6 +35,11 @@ export async function loader()
 export function Callback()
 {
 	let something = useLoaderData();
+	// const auth = useContext(AuthContext);
+	// if (something === "ok")
+	// {
+	// 	auth.setIsAuth(true);
+	// }
 	// console.log(something);
     return (
         <>
