@@ -38,6 +38,23 @@ export function Auth({children}: AuthProps)
 		window.open("http://localhost:3333/auth/logout", "_self");
 	}
 
+	const refreshToken = async () =>
+	{
+		const token = (await fetch(`http://localhost:3333/auth/refresh`, 
+		{
+			method: 'GET',
+			headers: {"Authorization": "Bearer " + getCookie("jwt")},
+			credentials: 'include',
+		})
+		);
+		if (token.ok && token.status >= 200 && token.status <= 299) {
+			setIsAuth(() => true);
+		}
+		else {
+			setIsAuth(() => false);
+		}
+	}
+
 	const isLoggedIn = () =>
 	{
 		//check le back
@@ -48,10 +65,15 @@ export function Auth({children}: AuthProps)
 		//verif validite du token
 	
 		const expireCookie = getCookie('jwtExpiration');
-		if (Number(expireCookie) - new Date (Date.now()).getTime() < 24 * 60 * 60 * 1000) {
-			console.log('puduku');
+		const timeElapsed = Number(expireCookie) - Date.now();
+		console.log(`now : ${Date.now()} expire : ${Number(expireCookie)} elapsed : ${timeElapsed}`);
+		if ( timeElapsed < /*24 * 60 * 60 * */  (4 * 60 * 1000)  + (50 * 1000) && timeElapsed > 0) {
+			refreshToken();
 		}
-		return true;
+		else {
+			setIsAuth(() => true);
+		}
+		return isAuth;
 	}
 
 	// const value = useMemo( () =>
