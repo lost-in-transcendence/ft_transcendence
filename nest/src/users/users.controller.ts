@@ -37,7 +37,7 @@ export class UsersController
 	@Get('/me/complete')
 	@HttpCode(200)
 	async getFullProfile(@GetUser('id') id: string) {
-		const res = await this.userService.getUserModal({ id }, this.userIncludeAll);
+		const res = await this.userService.userModal({ id }, this.userIncludeAll);
 		if (!res) {
 			throw (new NotFoundException(`Cannot find user with id: ${id}`));
 		}
