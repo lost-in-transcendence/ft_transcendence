@@ -1,4 +1,4 @@
-import { Body, Controller, Get, NotFoundException, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, NotFoundException, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { Prisma, User } from '@prisma/client';
 import { NotFoundError } from 'rxjs';
 import { JwtGuard } from 'src/auth42/guard/jwt.guard';
@@ -27,6 +27,7 @@ export class UsersController
 	}
 
 	@Get('/me')
+	@HttpCode(200)
 	async getMe(@GetUser() user: User)
 	{
 		// console.log(user);
@@ -34,9 +35,9 @@ export class UsersController
 	}
 
 	@Get('/me/complete')
-	async getMeFullProfile(@GetUser('id') id: string)
-	{
-		const res = await this.userService.userModal({ id }, this.userIncludeAll);
+	@HttpCode(200)
+	async getFullProfile(@GetUser('id') id: string) {
+		const res = await this.userService.getUserModal({ id }, this.userIncludeAll);
 		if (!res) {
 			throw (new NotFoundException(`Cannot find user with id: ${id}`));
 		}
@@ -44,6 +45,7 @@ export class UsersController
 	}
 
 	@Get('/me/modal')
+	@HttpCode(200)
 	async getMeModalProfile(@GetUser('id') id: string, @Query() include: UserIncludeQueryDto)
 	{
 		console.log(include);

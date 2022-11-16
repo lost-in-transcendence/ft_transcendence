@@ -13,11 +13,8 @@ export async function loader()
 		method: 'GET',
 		headers: {"Authorization": "Bearer " + getCookie('jwt')}
 	});
-	if (!res.ok)
-	{
-		return redirect('/login');
-	}
-	// const ret = await user.json();
+	if (res.status !== 200)
+		return (redirect('/login'));
 	return (res);
 }
 
@@ -26,6 +23,14 @@ export function Profile()
 {
 	const user: any = useLoaderData();
 	const playerStats = user.playStats;
+
+	// if (user.statusCode)
+	// {
+	// 	console.log();
+	// 	return (
+	// 		<Navigate to={'/login'} />
+	// 	)
+	// }
 
 	return (
 		<div className="profilePage">

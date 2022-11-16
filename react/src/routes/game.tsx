@@ -11,7 +11,7 @@ export async function loader()
 		method: 'GET',
 		headers: {"Authorization": "Bearer " + getCookie("jwt")}
 	});
-	if (!res.ok)
+	if (res.status !== 200)
 	{
 		return redirect('/login');
 	}
@@ -20,6 +20,7 @@ export async function loader()
 
 export function Game()
 {
+
 	const user: any = useLoaderData();
 	const auth = useContext(AuthContext);
 	return (

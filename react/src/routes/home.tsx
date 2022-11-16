@@ -11,7 +11,7 @@ export async function loader()
 		method: 'GET',
 		headers: {"Authorization": "Bearer " + getCookie("jwt")}
 	});
-	if (!res.ok)
+	if (res.status !== 200)
 	{
 		return redirect('/login');
 	}
