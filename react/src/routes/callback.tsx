@@ -13,7 +13,7 @@ export async function loader()
 			method: 'GET',
 			credentials: 'include',
 		})
-		if (res.ok === false)
+		if (res.status !== 200)
 		{
 			console.log("there was an error");
 			window.opener.postMessage("error", "*");
@@ -21,8 +21,10 @@ export async function loader()
 		}
 		else
 		{
-			window.opener.postMessage("success", "*");
-			window.close();
+			// const json = await res.json();
+			// console.log(res);
+			// window.opener.postMessage("success", "*");
+			// window.close();
 		}
 		return res;
 	}
@@ -34,7 +36,18 @@ export async function loader()
 
 export function Callback()
 {
-	let something = useLoaderData();
+	const something: any = useLoaderData();
+	if (something.twoFaEnabled === true)
+	{
+		return(
+			<Navigate to='/login/twofa'/>
+		)
+	}
+	else
+	{
+		// window.opener.postMessage("success", "*");
+		window.close();
+	}
 	// const auth = useContext(AuthContext);
 	// if (something === "ok")
 	// {

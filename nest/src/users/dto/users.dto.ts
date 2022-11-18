@@ -32,8 +32,6 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {}
 
 export function toBoolean(value: string) : boolean
 {
-    // console.log(value);
-    // console.log(typeof value);
     if (typeof value === 'string')
         value = value.toLowerCase();
     if (typeof value === 'boolean')
@@ -46,40 +44,40 @@ export class UserIncludeQueryDto
     @Transform(({value}) => toBoolean(value))
     @IsBoolean()
     @IsOptional()
-    readonly friends
+    readonly friends: boolean
 
     @Transform(({value}) => toBoolean(value))
     @IsBoolean()
     @IsOptional()
-    readonly friendTo
+    readonly friendTo: boolean
 
     @Transform(({value}) => toBoolean(value))
     @IsBoolean()
     @IsOptional()
-    readonly blacklist
+    readonly blacklist: boolean
 
     @Transform(({value}) => toBoolean(value))
     @IsBoolean()
     @IsOptional()
-    readonly blacklistedBy
+    readonly blacklistedBy: boolean
 
     @Transform(({value}) => toBoolean(value))
     @IsBoolean()
     @IsOptional()
-    readonly matchHistory
+    readonly matchHistory: boolean
 
     @Transform(({value}) => toBoolean(value))
     @IsBoolean()
     @IsOptional()
-    readonly playStats
+    readonly playStats: boolean
 
     @Transform(({value}) => toBoolean(value))
     @IsBoolean()
     @IsOptional()
-    readonly channels
+    readonly channels: boolean
 
     @Transform(({value}) => toBoolean(value))
     @IsBoolean()
     @IsOptional()
-    readonly messages
+    readonly messages: boolean
 }

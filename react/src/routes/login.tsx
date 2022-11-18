@@ -1,5 +1,5 @@
 import { Link, Navigate, Outlet, useNavigate } from "react-router-dom";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../auth/AuthContext";
 
 function popupwindow(url: string , title: string, w: number, h: number) 
@@ -61,6 +61,18 @@ export function Login()
 			}, 100)
 		}
 	}
+
+	useEffect(() =>
+	{
+		if (status === 'success')
+			console.log('success');
+		else
+		{
+			console.log('failure')
+		}
+		return (() => {})
+	});
+
 	return (
 		<div>
 			{status === 'success' &&

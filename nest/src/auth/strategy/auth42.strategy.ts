@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import { validate } from 'class-validator';
 import { Strategy as Strategy42 } from 'passport-42'
 import { identity } from 'rxjs';
-import { AuthService } from '../auth.service';
+import { AuthService } from '../service/auth.service';
 
 export class Auth42Strategy extends PassportStrategy(Strategy42, '42')
 {

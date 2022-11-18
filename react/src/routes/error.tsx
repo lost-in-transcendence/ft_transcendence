@@ -4,7 +4,7 @@ export function ErrorPage()
 {
 	const error: any = useRouteError();
 	console.log('here', error)
-
+	
 	return (
 		<div id="error-page">
 			<h1>Oops</h1>

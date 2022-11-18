@@ -20,19 +20,7 @@ export async function loader()
 
 export function ProtectedRoute()
 {
-	// const auth = useContext(AuthContext)
-
-	const [isAuth, setIsAuth] = useState(false);
-	const res = useLoaderData();
-	if (res === true && !isAuth)
-	{
-		setIsAuth(true);
-	}
-	else if (res === false && isAuth)
-	{
-		setIsAuth(false);
-	}
-	console.log(isAuth);
+	const isAuth = useLoaderData();
 	return (
 		isAuth ? (
 		<>

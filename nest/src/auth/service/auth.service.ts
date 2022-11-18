@@ -2,6 +2,7 @@ import { Injectable, UseGuards } from '@nestjs/common';
 import { UsersService } from 'src/users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '@prisma/client';
+import { JwtPayload } from '../interface/jwtpayload.dto';
 
 @Injectable()
 export class AuthService
@@ -18,13 +19,12 @@ export class AuthService
         {
             user = await this.usersService.createUser({id42, userName, email, avatar});
         }
-        const token = await this.signToken(user.id)
-        return token;
+        const token = await this.signToken({id: user.id})
+        return {token, twoFaEnabled: user.twoFaEnabled};
     }
 
-    async signToken(userId: string) : Promise<string>
+    async signToken(payload: JwtPayload) : Promise<string>
     {
-        const payload = {sub: userId};
         const secret = process.env.JWT_SECRET;
         const token = await this.jwtService.signAsync(payload, 
             {
@@ -32,5 +32,20 @@ export class AuthService
                 secret: secret
             });
         return (token)
+    }
+
+    async setJwtCookies(res: any, token: any)
+    {
+        const date : Date = new Date (Date.now() + 7 * 24 * 60 * 60 * 1000);
+        res.cookie('jwt', token,
+        {
+            expires: date,
+            overwrite: true,
+        });
+        res.cookie('jwtExpiration', Number(date),
+        {
+            expires: date,
+            overwrite: true,
+        });
     }
 }
