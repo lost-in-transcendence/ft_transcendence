@@ -3,14 +3,11 @@ import { redirect, useLoaderData } from "react-router-dom";
 import { AuthContext } from "../auth/AuthContext";
 import { getCookie } from "../requests/cookies"
 import { Navigate } from "react-router-dom";
+import { getUserMeFull } from '../requests'
 
 export async function loader()
 {
-	const res = await fetch(`http://localhost:3333/users/me`, 
-	{
-		method: 'GET',
-		headers: {"Authorization": "Bearer " + getCookie("jwt")}
-	});
+	const res = await getUserMeFull();
 	if (res.status !== 200)
 	{
 		return redirect('/login');

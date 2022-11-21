@@ -35,9 +35,9 @@ export class TwofaController
     }
 
     @UseGuards(JwtGuard)
-    @Post('blablabla')
+    @Post('authenticate')
     @HttpCode(200)
-    async authenticate(@Res({passthrough: true}) res, @GetUser() user, @Body() twofaAuthenticationDto: TwofaAuthenticationDto)
+    async authenticate(@Res() res, @GetUser() user, @Body() twofaAuthenticationDto: TwofaAuthenticationDto)
     {
         console.log('authenticate')
         const authenticated = await this.twofaService.authenticate(twofaAuthenticationDto.token, user.twoFaSecret);
@@ -52,6 +52,5 @@ export class TwofaController
             await this.authService.setJwtCookies(res, token);
         }
         res.send();
-        // TODO send token via mail or whatever
     }
 }
