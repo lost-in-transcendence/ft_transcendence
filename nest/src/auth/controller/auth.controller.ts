@@ -68,11 +68,4 @@ export class AuthController
 	{
 		return (this.authService.fakeLogin(userName));
 	}
-
-	@Get('dev-lol')
-	lol()
-	{
-		return ('lol');
-	}
-
 }
