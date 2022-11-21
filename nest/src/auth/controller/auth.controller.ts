@@ -3,6 +3,7 @@ import { GetUser } from 'src/users/decorator';
 import { AuthService } from '../service/auth.service';
 import { Auth42Guard } from '../guard/auth42.guard';
 import { JwtGuard } from '../guard/jwt.guard';
+import { FAKE_IMG_URL } from 'asset';
 
 @Controller('auth')
 export class AuthController
@@ -64,8 +65,9 @@ export class AuthController
 	}
 
 	@Post('dev-signup')
-	devAuth(@Body('userName') userName: string)
+	devAuth(@Body() fakeInfos: {id42: number, userName: string, email: string, avatar: any})
 	{
-		return (this.authService.fakeLogin(userName));
+		fakeInfos.avatar = FAKE_IMG_URL;
+		return (this.authService.fakeLogin(fakeInfos));
 	}
 }

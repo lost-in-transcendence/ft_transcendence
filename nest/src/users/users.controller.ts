@@ -48,7 +48,7 @@ export class UsersController
 	@HttpCode(200)
 	async getMeModalProfile(@GetUser('id') id: string, @Query() include: UserIncludeQueryDto)
 	{
-		console.log(include);
+		// console.log(include);
 		const res = await this.userService.userModal({id}, include)
 		if (!res) {
 			throw (new NotFoundException(`Cannot find user with id: ${id}`));
