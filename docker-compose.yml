@@ -44,6 +44,8 @@ services:
       - FORTYTWO_SECRET=${FORTYTWO_API_SECRET}
       - FORTYTWO_CALLBACK=${FORTYTWO_API_CALLBACK}
       - JWT_SECRET=${JWT_SECRET}
+      - MAILERHOST_USER=${MAILERHOST_USER}
+      - MAILERHOST_PW=${MAILERHOST_PW}
     networks:
       - transcendence_network
 

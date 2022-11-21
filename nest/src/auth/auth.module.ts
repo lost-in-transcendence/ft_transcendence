@@ -7,9 +7,26 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './strategy/jwt.strategy';
 import { TwofaModule } from './twofa.module';
+import { MailerModule } from '@nestjs-modules/mailer';
+import { PugAdapter } from '@nestjs-modules/mailer/dist/adapters/pug.adapter';
+import { env } from 'process';
 
 @Module({
-  imports: [PassportModule, JwtModule.register({})],
+  imports: [PassportModule, JwtModule.register({}),
+    MailerModule.forRoot({
+      transport: 'smtps://' + env.MAILERHOST_USER + ':' + env.MAILERHOST_PW + '@smtp.gmail.com',
+      defaults: {
+        from : '"AmalGAm-transcendance" <no-reply@no-reply.com>',
+      },
+       template: {
+        dir: '/usr/src/app/src/auth/templates',
+        adapter : new PugAdapter(),
+        options: {
+          strict: false,
+        },
+      },
+    }),
+  ],
   providers: [AuthService, Auth42Strategy, UsersService, JwtStrategy],
   controllers: [AuthController],
   exports: [AuthService]

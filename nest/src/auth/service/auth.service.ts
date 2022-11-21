@@ -4,8 +4,6 @@ import { JwtService } from '@nestjs/jwt';
 import { User } from '@prisma/client';
 import { JwtPayload } from '../interface/jwtpayload.dto';
 
-import { FAKE_IMG_URL } from 'asset';
-
 @Injectable()
 export class AuthService
 {
@@ -25,12 +23,13 @@ export class AuthService
 		return { token, twoFaEnabled: user.twoFaEnabled };
 	}
 
-	async fakeLogin(userName: string)
+	async fakeLogin(fakeInfos: {id42: number, userName: string, email: string, avatar: string })
 	{
-		let user: User = await this.usersService.user({ userName });
+		const {userName} = fakeInfos;
+		let user: User = await this.usersService.user({userName});
 		if (!user)
 		{
-			user = await this.usersService.createUser({ id42: -1, userName, email: 'test@user.fake', avatar: FAKE_IMG_URL });
+			user = await this.usersService.createUser(fakeInfos);
 		}
 		const token = await this.signToken({ id: user.id })
 		return { token };

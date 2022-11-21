@@ -43,8 +43,6 @@ model User {
   playStats     PlayStats?
   channels      ChannelMember[]
   messages      Message[]
-
-  
 }
 
 model Game {
@@ -76,12 +74,15 @@ model PlayStats {
 
 
 model Channel {
-  id          String  @id @default(uuid())
-  channelName String? @unique
-  members     ChannelMember[]
-  messages    Message[]
-  mode        ChannelModeType
-  createdAt   DateTime @default(now())
+  id         	String  @id @default(uuid())
+  channelName	String? @unique
+
+  members    	ChannelMember[]
+  messages   	Message[]
+  mode       	ChannelModeType
+
+  hash			String?
+  createdAt   	DateTime @default(now())
 }
 
 enum ChannelModeType {

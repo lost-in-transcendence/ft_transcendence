@@ -25,7 +25,9 @@ export async function loader()
 
 async function submitTwoFa(code: string)
 {
+
     const res = await authenticateTwoFa(code);
+
     if (res.status !== 200)
     {
         throw new Error('Wrong code!');
@@ -58,6 +60,12 @@ export function TwoFa()
             setStatus('waiting');
             setError(err.message);
         }
+    }
+
+    if (status === 'success')
+    {
+        window.opener.postMessage('success', '*');
+        window.close();
     }
 
     return(
