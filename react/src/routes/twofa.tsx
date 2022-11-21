@@ -29,7 +29,7 @@ export async function loader()
 
 async function submitTwoFa(code: string)
 {
-    const res = await fetch('http://localhost:3333/twofa/blablabla',
+    const res = await fetch('http://localhost:3333/twofa/authenticate',
     {
         method: 'POST',
         credentials: 'include',
@@ -74,6 +74,12 @@ export function TwoFa()
             setStatus('waiting');
             setError(err.message);
         }
+    }
+
+    if (status === 'success')
+    {
+        window.opener.postMessage('success', '*');
+        window.close();
     }
 
     return(

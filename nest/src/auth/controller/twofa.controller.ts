@@ -15,7 +15,7 @@ export class TwofaController
     @UseGuards(JwtGuard)
     @Post('generate')
     @HttpCode(200)
-    async generate(@Res() res, @GetUser() user)
+    async generate(@GetUser() user)
     {
         const secret = await this.twofaService.generateSecret(user); // creates and logs secret in db
         authenticator.options =
@@ -25,21 +25,15 @@ export class TwofaController
             };
         const token = authenticator.generate(secret);
         const date: Date = new Date(Date.now() + 800 * 60 * 1000);
-        res.cookie('twofatoken', token,
-        {
-            expires: date,
-            overwrite: true,
-        });
-        res.send();
-        // later the token will be sent by mail
+        
+        await this.twofaService.sendMail(user, token);
     }
 
     @UseGuards(JwtGuard)
-    @Post('blablabla')
+    @Post('authenticate')
     @HttpCode(200)
     async authenticate(@Res({passthrough: true}) res, @GetUser() user, @Body() twofaAuthenticationDto: TwofaAuthenticationDto)
     {
-        console.log('authenticate')
         const authenticated = await this.twofaService.authenticate(twofaAuthenticationDto.token, user.twoFaSecret);
         if (!authenticated)
         {
@@ -52,6 +46,5 @@ export class TwofaController
             await this.authService.setJwtCookies(res, token);
         }
         res.send();
-        // TODO send token via mail or whatever
     }
 }

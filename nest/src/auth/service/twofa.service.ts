@@ -2,11 +2,13 @@ import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/commo
 import { User } from '@prisma/client';
 import { authenticator } from 'otplib';
 import { UsersService } from 'src/users/users.service';
+import { MailerService } from '@nestjs-modules/mailer';
+
 
 @Injectable()
 export class TwofaService 
 {
-    constructor(private readonly usersService: UsersService) {}
+    constructor(private readonly usersService: UsersService, private readonly mailerService: MailerService) {}
 
     async generateSecret(user: User)
     {
@@ -26,5 +28,19 @@ export class TwofaService
             throw new ForbiddenException("Bad credentials");
         }
         return authenticator.verify({token, secret});
+    }
+
+    async sendMail(user: User, token: string)
+    {
+        await this.mailerService.sendMail({
+            from: '"no-reply" <no-reply@no-reply.com>',
+            to: user.email,
+            subject: 'Transcendance Validation Token',
+            template: 'sendCode',
+            context: {
+                user: user.userName,
+                token: token,
+            }
+        })
     }
 }
