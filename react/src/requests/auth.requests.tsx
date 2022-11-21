@@ -3,6 +3,8 @@ import { getCookie } from "./cookies";
 
 export async function login(params: URLSearchParams)
 {
+    console.log(backURL);
+    const url = "http://localhost:3333"
     return fetch(`${backURL}/auth/login?` + params, 
     {
         method: 'GET',
@@ -22,7 +24,9 @@ export async function validateToken()
 
 export async function generateTwoFa()
 {
-    return fetch(`${backURL}/twofa/generate`,
+    console.log(backURL);
+    const url = "http://localhost:3333"
+    return fetch(`http://localhost:3333/twofa/generate`,
         {
             method: 'POST',
             credentials: 'include',
@@ -32,6 +36,7 @@ export async function generateTwoFa()
 
 export async function authenticateTwoFa(code: string)
 {
+    
     return fetch(`${backURL}/twofa/authenticate`,
     {
         method: 'POST',

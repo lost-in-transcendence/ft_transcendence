@@ -36,8 +36,6 @@ services:
       - DB_DB=${DB_NAME}
       - NETWORK_NAME=${NETWORK_NAME}
       - DB_PORT=${DB_PORT}
-      - PROTOCOL=${PROTOCOL}
-      - APP_HOST=${APP_HOST}
       - FRONT_PORT=${FRONT_PORT}
       - BACK_PORT=${BACK_PORT}
       - FORTYTWO_ID=${FORTYTWO_API_ID}
@@ -56,6 +54,10 @@ services:
     container_name: react
     restart: always
     environment:
+      - VITE_PROTOCOL=${VITE_PROTOCOL}
+      - VITE_APP_HOST=${VITE_APP_HOST}
+      - VITE_FRONT_PORT=${VITE_FRONT_PORT}
+      - VITE_BACK_PORT=${VITE_BACK_PORT}
       - FRONT_PORT=${FRONT_PORT}
       - BACK_PORT=${BACK_PORT}
     ports:

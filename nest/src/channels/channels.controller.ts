@@ -14,7 +14,7 @@ export class ChannelsController
 	@Post()
 	create(@Body() dto: CreateChannelDto, @GetUser('id', ParseUUIDPipe) user: string): Promise<Channel>
 	{
-		return this.channelsService.create(dto);
+		return this.channelsService.create(dto, user);
 	}
 
 	@Get()

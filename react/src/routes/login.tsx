@@ -1,7 +1,7 @@
 import { Link, Navigate, Outlet, useNavigate } from "react-router-dom";
 import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../auth/AuthContext";
-import { backURL } from "../requests";
+import { appURL, backURL } from "../requests/constants";
 
 function popupwindow(url: string , title: string, w: number, h: number) 
 {
@@ -44,6 +44,7 @@ export function Login()
 	{
 		setStatus('loading')
 		window.addEventListener('message', onMessage);
+		console.log(appURL);
 		const childWindow = popupwindow(`${backURL}/auth/login`, 'Log In', 400, 600);
 		if (childWindow) 
 		{

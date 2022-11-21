@@ -1,7 +1,7 @@
 import { useContext } from "react";
 import { Navigate, redirect, useLoaderData, useRouteLoaderData } from "react-router-dom"
 import { AuthContext } from "../auth/AuthContext";
-import { login } from "../requests";
+import { login } from "../requests/auth.requests";
 
 export async function loader()
 {

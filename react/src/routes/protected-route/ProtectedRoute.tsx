@@ -2,7 +2,7 @@ import { useContext, useEffect, useState } from "react";
 import { Navigate, useLoaderData } from "react-router-dom";
 import { AuthContext } from "../../auth/AuthContext";
 import Core from "../../components/Core/Core";
-import { validateToken } from "../../requests";
+import { validateToken } from "../../requests/auth.requests";
 import { getCookie } from "../../requests/cookies";
 
 export async function loader()

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { generatePath, redirect, useLoaderData } from "react-router-dom";
-import { generateTwoFa, authenticateTwoFa } from "../requests";
+import { generateTwoFa, authenticateTwoFa } from "../requests/auth.requests"
 import { getCookie } from "../requests/cookies";
 
 export async function loader()
@@ -8,13 +8,13 @@ export async function loader()
     if (window.opener)
 	{
         const res = await generateTwoFa()
+        console.log(res);
         if (res.status !== 200)
         {
             console.log("there was an error");
 			window.opener.postMessage("error", "*");
 			window.close();
         }
-        // console.log(res);
         return res;
     }
     else

@@ -3,7 +3,7 @@ import { redirect, useLoaderData } from "react-router-dom";
 import { AuthContext } from "../auth/AuthContext";
 import { getCookie } from "../requests/cookies"
 import { Navigate } from "react-router-dom";
-import { getUserMeModal } from "../requests";
+import { getUserMeModal } from "../requests/users.requests";
 
 export async function loader()
 {
