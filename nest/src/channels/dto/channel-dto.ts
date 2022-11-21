@@ -1,5 +1,5 @@
 import { ChannelMember, Message, ChannelModeType, Prisma, Channel } from "@prisma/client";
-import { IsArray, IsDate, IsEnum, isNotEmpty, IsNotEmpty, IsOptional, IsString, IsUUID } from "class-validator";
+import { IsArray, IsDate, IsEnum, isNotEmpty, IsNotEmpty, IsOptional, IsString, IsUUID, ValidateIf } from "class-validator";
 import { Exclude } from 'class-transformer'
 
 export class ChannelDto implements Channel
@@ -24,4 +24,15 @@ export class ChannelDto implements Channel
 
 	@IsDate()
 	createdAt: Date;
+}
+
+export class FindUniqueChannelDto
+{
+	@IsUUID()
+	@IsOptional()
+	id: string;
+
+	@IsString()
+	@IsOptional()
+	channelName: string;
 }

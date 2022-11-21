@@ -1,20 +1,24 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, NotFoundException, ParseUUIDPipe } from '@nestjs/common';
-import { Channel, User } from '@prisma/client';
-import { GetUser } from 'src/users/decorator';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, NotFoundException, ParseUUIDPipe, UseGuards, UsePipes } from '@nestjs/common';
+import { Channel, Prisma, User } from '@prisma/client';
 
+import { JwtGuard } from 'src/auth/guard/jwt.guard';
+import { GetUser } from 'src/users/decorator';
 import { ChannelsService } from './channels.service';
+import { FindUniqueChannelDto } from './dto/channel-dto';
 import { CreateChannelDto } from './dto/create-channel.dto';
 import { UpdateChannelDto } from './dto/update-channel.dto';
+import { FindUniqueChannelPipe } from './pipe';
 
+@UseGuards(JwtGuard)
 @Controller('channels')
 export class ChannelsController
 {
 	constructor(private readonly channelsService: ChannelsService) { }
 
 	@Post()
-	create(@Body() dto: CreateChannelDto, @GetUser('id', ParseUUIDPipe) user: string): Promise<Channel>
+	create(@Body() dto: CreateChannelDto, @GetUser('id', ParseUUIDPipe) id: string): Promise<Channel>
 	{
-		return this.channelsService.create(dto);
+		return this.channelsService.create(dto, id);
 	}
 
 	@Get()
@@ -23,24 +27,31 @@ export class ChannelsController
 		return this.channelsService.findAll();
 	}
 
-	@Get('/:id')
-	async findOne(@Param('id') id: string)
+	@Get('/one')
+	@UsePipes(new FindUniqueChannelPipe)
+	async findOne(@Body() where: FindUniqueChannelDto)
 	{
-		const channel = await this.channelsService.findOne(id);
+		const channel = this.channelsService.findOne(where);
 		if (!channel)
-			throw new NotFoundException(`Channel ${id} not found`);
+			throw new NotFoundException(`Channel ${where.channelName || where.id} not found`);
 		return (channel);
 	}
 
-	@Patch(':id')
-	update(@Param('id') id: string, @Body() updateChannelDto: UpdateChannelDto)
+	// @Patch(':id')
+	// update(@Param('id') id: string, @Body() updateChannelDto: UpdateChannelDto)
+	// {
+	// 	return this.channelsService.update(updateChannelDto);
+	// }
+
+	@Patch('ban/:id')
+	banUser(@Query('id', ParseUUIDPipe) id: string, @Query('chanId', ParseUUIDPipe) chanId: string)
 	{
-		return this.channelsService.update(id, updateChannelDto);
+
 	}
 
 	@Delete(':id')
 	remove(@Param('id') id: string)
 	{
-		return this.channelsService.remove(+id);
+		return this.channelsService.remove(id);
 	}
 }

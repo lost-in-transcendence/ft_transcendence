@@ -1,21 +1,17 @@
-import { ChannelModeType } from "@prisma/client";
+import { ChannelModeType, Prisma } from "@prisma/client";
 import { IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID } from "class-validator";
 
 export class CreateChannelDto
 {
 	@IsOptional()
 	@IsString()
-	channelName?: 	string;
+	channelName?: string;
 
 	@IsEnum(ChannelModeType)
 	@IsNotEmpty()
-	mode:			ChannelModeType;
+	mode: ChannelModeType;
 
 	@IsOptional()
 	@IsString()
-	password:		string;
-
-	@IsUUID()
-	@IsNotEmpty()
-	ownerId:		string;
+	password: string;
 }
