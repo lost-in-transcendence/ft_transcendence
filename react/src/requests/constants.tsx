@@ -1,7 +1,7 @@
 import { env } from 'process'
 
 
-export const host = env.APP_URL
+export const host = env.APP_HOST
 export const frontPort = env.FRONT_PORT
 export const backPort = env.BACK_PORT
 export const protocol = env.PROTOCOL

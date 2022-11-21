@@ -36,6 +36,8 @@ services:
       - DB_DB=${DB_NAME}
       - NETWORK_NAME=${NETWORK_NAME}
       - DB_PORT=${DB_PORT}
+      - PROTOCOL=${PROTOCOL}
+      - APP_HOST=${APP_HOST}
       - FRONT_PORT=${FRONT_PORT}
       - BACK_PORT=${BACK_PORT}
       - FORTYTWO_ID=${FORTYTWO_API_ID}
