@@ -32,9 +32,9 @@ export class TwofaService
 
     async sendMail(user: User, token: string)
     {
-        await this.mailerService.sendMail({
-            from: '"no-reply" <no-reply@no-reply.com>',
+        return await this.mailerService.sendMail({
             to: user.email,
+            from: '"AmalGAm-transcendance" <no-reply@no-reply.com>',
             subject: 'Transcendance Validation Token',
             template: 'sendCode',
             context: {

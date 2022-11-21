@@ -16,7 +16,7 @@ import { env } from 'process';
     MailerModule.forRoot({
       transport: 'smtps://' + env.MAILERHOST_USER + ':' + env.MAILERHOST_PW + '@smtp.gmail.com',
       defaults: {
-        from : '"no-reply" <ft.transcendance.amalgam@gmail.com>',
+        from : '"AmalGAm-transcendance" <no-reply@no-reply.com>',
       },
        template: {
         dir: '/usr/src/app/src/auth/templates',

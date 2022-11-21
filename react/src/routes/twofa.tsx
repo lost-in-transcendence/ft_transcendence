@@ -45,7 +45,7 @@ async function submitTwoFa(code: string)
     {
         throw new Error('Wrong code!');
     }
-    console.log(res);
+    // console.log(res);
 }
 
 export function TwoFa()
