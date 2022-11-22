@@ -11,7 +11,6 @@ export async function loader()
         console.log(res);
         if (res.status !== 200)
         {
-            console.log("there was an error");
 			window.opener.postMessage("error", "*");
 			// window.close();
         }

@@ -43,4 +43,24 @@ export class TwofaService
             }
         })
     }
+
+    async toggle2fa(user: User)
+    {
+        if (user.twoFaEnabled)
+        {
+            const res = this.usersService.updateUser({where: {id: user.id}, data: {...user, twoFaEnabled: false}});
+            if (!res)
+            {
+                throw new NotFoundException("User not found (2-FA)");
+            }
+        }
+        else
+        {
+            const res = this.usersService.updateUser({where: {id: user.id}, data: {...user, twoFaEnabled: true}});
+            if (!res)
+            {
+                throw new NotFoundException("User not found (2-FA)");
+            }
+        }
+    }
 }

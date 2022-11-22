@@ -47,4 +47,12 @@ export class TwofaController
         }
         res.send();
     }
+
+    @UseGuards(JwtGuard)
+    @Post('toggle')
+    @HttpCode(200)
+    async toggleTwoFa(@GetUser() user)
+    {
+        await this.twofaService.toggle2fa(user);
+    }
 }

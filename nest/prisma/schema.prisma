@@ -28,7 +28,7 @@ model User {
   email         String @unique
   avatar        String
 
-  twoFaEnabled  Boolean @default(true)
+  twoFaEnabled  Boolean @default(false)
   twoFaSecret   String?
 
   friends       User[] @relation("friendList")

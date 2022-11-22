@@ -55,3 +55,12 @@ export async function authenticateTwoFa(code: string)
         body: JSON.stringify({token: code}),
     });
 }
+
+export async function toggleTwoFa() {
+    return fetch(`${backURL}/twofa/toggle`,
+        {
+            method: 'POST',
+            credentials: 'include',
+            headers: {"Authorization": "Bearer " + getCookie("jwt")}
+        })
+}
