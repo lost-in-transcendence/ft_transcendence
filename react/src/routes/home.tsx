@@ -3,7 +3,7 @@ import { redirect, useLoaderData } from "react-router-dom";
 import { AuthContext } from "../auth/AuthContext";
 import { getCookie } from "../requests/cookies"
 import { Navigate } from "react-router-dom";
-import { getUserMeFull } from '../requests/users.requests'
+import { getUserMeFull } from '../requests'
 
 export async function loader()
 {

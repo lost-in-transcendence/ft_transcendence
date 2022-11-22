@@ -1,7 +1,7 @@
 import { Link, Navigate, Outlet, useNavigate } from "react-router-dom";
 import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../auth/AuthContext";
-import { appURL, backURL } from "../requests/constants";
+import { appURL, backURL } from "../requests";
 
 function popupwindow(url: string , title: string, w: number, h: number) 
 {
