@@ -44,7 +44,6 @@ export function Login()
 	{
 		setStatus('loading')
 		window.addEventListener('message', onMessage);
-		console.log(appURL);
 		const childWindow = popupwindow(`${backURL}/auth/login`, 'Log In', 400, 600);
 		if (childWindow) 
 		{
@@ -64,16 +63,16 @@ export function Login()
 		}
 	}
 
-	useEffect(() =>
-	{
-		if (status === 'success')
-			console.log('success');
-		else
-		{
-			console.log('failure')
-		}
-		return (() => {})
-	});
+	// useEffect(() =>
+	// {
+	// 	if (status === 'success')
+	// 		console.log('success');
+	// 	else
+	// 	{
+	// 		console.log('failure')
+	// 	}
+	// 	return (() => {})
+	// });
 
 	return (
 		<div>
