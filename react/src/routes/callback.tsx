@@ -1,7 +1,7 @@
 import { useContext } from "react";
 import { Navigate, redirect, useLoaderData, useRouteLoaderData } from "react-router-dom"
 import { AuthContext } from "../auth/AuthContext";
-import { login } from "../requests/auth.requests";
+import { login } from "../requests";
 
 export async function loader()
 {
@@ -13,7 +13,7 @@ export async function loader()
 		if (res.status !== 200)
 		{
 			window.opener.postMessage("error", "*");
-			window.close();
+			// window.close();
 		}
 		return res;
 	}

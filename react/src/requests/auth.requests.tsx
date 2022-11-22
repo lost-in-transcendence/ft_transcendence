@@ -3,13 +3,20 @@ import { getCookie } from "./cookies";
 
 export async function login(params: URLSearchParams)
 {
-    console.log(backURL);
-    const url = "http://localhost:3333"
     return fetch(`${backURL}/auth/login?` + params, 
     {
         method: 'GET',
         credentials: 'include',
-    })
+    });
+}
+
+export async function logout()
+{
+    return fetch(`${backURL}/auth/logout`,
+    {
+        method: 'GET',
+        credentials: 'include',
+    });
 }
 
 export async function validateToken()
@@ -24,9 +31,7 @@ export async function validateToken()
 
 export async function generateTwoFa()
 {
-    console.log(backURL);
-    const url = "http://localhost:3333"
-    return fetch(`http://localhost:3333/twofa/generate`,
+    return fetch(`${backURL}/twofa/generate`,
         {
             method: 'POST',
             credentials: 'include',

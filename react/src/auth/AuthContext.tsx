@@ -1,5 +1,6 @@
 import { createContext, JSXElementConstructor, useMemo, useState } from "react";
 import { Navigate } from "react-router-dom";
+import { backURL } from "../requests";
 import { getCookie } from "../requests/cookies";
 
 type AuthContextType =
@@ -7,13 +8,12 @@ type AuthContextType =
 	// isAuth: boolean;
 	// currentUser: any;
 	isLoggedIn: Function;
-	login: Function;
 	logout: Function;
 	isAuth: boolean;
 	setIsAuth: Function;
 }
 
-export const AuthContext = createContext<AuthContextType>({login: () => {}, logout: () => {}, isLoggedIn: () => {}, isAuth: true, setIsAuth: () => {}});
+export const AuthContext = createContext<AuthContextType>({logout: () => {}, isLoggedIn: () => {}, isAuth: true, setIsAuth: () => {}});
 
 type AuthProps =
 {
@@ -24,14 +24,11 @@ export function Auth({children}: AuthProps)
 {
 	const [isAuth, setIsAuth] = useState(false);
 
-	const login = () =>
-	{
-		window.open("http://localhost:3333/auth/login", "_self");
-	}
 
-	const logout = () =>
+	const logout = async () =>
 	{
-		window.open("http://localhost:3333/auth/logout", "_self");
+		
+		// `${backURL}/auth/logout`, "_self");
 	}
 
 	const isLoggedIn = () =>
@@ -40,7 +37,7 @@ export function Auth({children}: AuthProps)
 	}
 
 	return (
-		<AuthContext.Provider value={{login, logout, isLoggedIn, isAuth, setIsAuth}}>
+		<AuthContext.Provider value={{logout, isLoggedIn, isAuth, setIsAuth}}>
 			{children}
 		</AuthContext.Provider>
 	)

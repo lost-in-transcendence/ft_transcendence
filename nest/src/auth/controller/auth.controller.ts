@@ -4,6 +4,7 @@ import { AuthService } from '../service/auth.service';
 import { Auth42Guard } from '../guard/auth42.guard';
 import { JwtGuard } from '../guard/jwt.guard';
 import { FAKE_IMG_URL } from 'asset';
+import { env } from 'process';
 
 @Controller('auth')
 export class AuthController
@@ -55,13 +56,14 @@ export class AuthController
 	{
 		res.cookie('jwt', 'none',
 			{
-				expires: new Date(Date.now())
+				expires: new Date(Date.now() + 1 * 1000)
 			});
 		res.cookie('jwtExpiration', 'none',
 			{
-				expires: new Date(Date.now())
+				expires: new Date(Date.now() + 1 * 1000)
 			});
-		res.status(302).redirect("http://localhost:3000/");
+		res.send();
+		// res.status(302).redirect(`${env.PROTOCOL}${env.APP_HOST}:${env.FRONT_PORT}/`);
 	}
 
 	@Post('dev-signup')
