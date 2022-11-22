@@ -18,7 +18,7 @@ export class Auth42Strategy extends PassportStrategy(Strategy42, '42')
                 id42: 'id',
                 userName: 'login',
                 email: 'email',
-                avatar: 'image_url',
+                image: 'image',
             }
 
         });

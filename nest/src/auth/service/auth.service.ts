@@ -13,11 +13,12 @@ export class AuthService
 
 	async login(profile42: any)
 	{
-		const { id42, userName, email, avatar } = profile42;
+		const { id42, userName, email, image } = profile42;
+		const avatar = image.link;
 		let user: User = await this.usersService.user({ id42 });
 		if (!user)
 		{
-			user = await this.usersService.createUser({ id42, userName, email, avatar });
+			user = await this.usersService.createUser({ id42, userName, email, avatar});
 		}
 		const token = await this.signToken({ id: user.id })
 		return { token, twoFaEnabled: user.twoFaEnabled };

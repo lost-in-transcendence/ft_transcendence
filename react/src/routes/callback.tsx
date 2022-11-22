@@ -12,7 +12,6 @@ export async function loader()
 		const res = await login(params);
 		if (res.status !== 200)
 		{
-			console.log("there was an error");
 			window.opener.postMessage("error", "*");
 			window.close();
 		}
