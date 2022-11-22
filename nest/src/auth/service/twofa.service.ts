@@ -43,4 +43,29 @@ export class TwofaService
             }
         })
     }
+
+    async toggle2fa(user: User)
+    {
+        console.log('toggle2fa service');
+        if (user.twoFaEnabled)
+        {
+            console.log('disabling');
+            const res = this.usersService.updateUser({where: {id: user.id}, data: {...user, twoFaEnabled: false}});
+            if (!res)
+            {
+                throw new NotFoundException("User not found (2-FA)");
+            }
+        }
+        else
+        {
+            console.log('enabling');
+            //need to check email validity
+            const res = this.usersService.updateUser({where: {id: user.id}, data: {...user, twoFaEnabled: true}});
+            if (!res)
+            {
+                throw new NotFoundException("User not found (2-FA)");
+            }
+        }
+        console.log('end');
+    }
 }

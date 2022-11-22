@@ -8,7 +8,7 @@ function popupwindow(url: string , title: string, w: number, h: number)
 	var left = Math.round(window.screenX + (window.outerWidth - w) / 2);
 	var top = Math.round(window.screenY + (window.outerHeight - h) / 2.5);
 	return window.open(url, title, 'toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width=' + w + ', height=' + h + ', top=' + top + ', left=' + left);
-  } 
+} 
 
 export function Login()
 {

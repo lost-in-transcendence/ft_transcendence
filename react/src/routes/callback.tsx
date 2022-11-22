@@ -34,6 +34,7 @@ export function Callback()
 	}
 	else
 	{
+		window.opener.postMessage('success', '*');
 		window.close();
 	}
     return (
