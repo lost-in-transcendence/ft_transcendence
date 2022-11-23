@@ -1,18 +1,19 @@
 import { Body, Controller, Get, HttpCode, Post, Res, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { GetUser } from 'src/users/decorator';
-import { JwtGuard } from '../guard/jwt.guard';
+import { FirstStepAuthGuard } from '../guard/first-step-auth.guard';
 import { TwofaService } from '../service/twofa.service';
 import { authenticator } from 'otplib';
 import { TwofaAuthenticationDto } from '../interface/twofa-authentication.dto';
 import { JwtPayload } from '../interface/jwtpayload.dto';
 import { AuthService } from '../service/auth.service';
+import { FullAuthGuard } from '../guard/full-auth.guard';
 
 @Controller('twofa')
 export class TwofaController 
 {
     constructor(private readonly twofaService: TwofaService, private readonly authService: AuthService) {}
 
-    @UseGuards(JwtGuard)
+    @UseGuards(FirstStepAuthGuard)
     @Post('generate')
     @HttpCode(200)
     async generate(@GetUser() user)
@@ -29,7 +30,7 @@ export class TwofaController
         await this.twofaService.sendMail(user, token);
     }
 
-    @UseGuards(JwtGuard)
+    @UseGuards(FirstStepAuthGuard)
     @Post('authenticate')
     @HttpCode(200)
     async authenticate(@Res() res, @GetUser() user, @Body() twofaAuthenticationDto: TwofaAuthenticationDto)
@@ -48,7 +49,7 @@ export class TwofaController
         res.send();
     }
 
-    @UseGuards(JwtGuard)
+    @UseGuards(FullAuthGuard)
     @Post('toggle')
     @HttpCode(200)
     async toggleTwoFa(@GetUser() user)

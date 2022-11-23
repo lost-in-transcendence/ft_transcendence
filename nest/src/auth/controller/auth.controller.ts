@@ -2,9 +2,9 @@ import { Controller, Get, UseGuards, Req, Res, HttpCode, Body, Post } from '@nes
 import { GetUser } from 'src/users/decorator';
 import { AuthService } from '../service/auth.service';
 import { Auth42Guard } from '../guard/auth42.guard';
-import { JwtGuard } from '../guard/jwt.guard';
 import { FAKE_IMG_URL } from 'asset';
 import { env } from 'process';
+import { FullAuthGuard } from '../guard/full-auth.guard';
 
 @Controller('auth')
 export class AuthController
@@ -18,25 +18,14 @@ export class AuthController
 	{
 		const { token, twoFaEnabled } = await this.authService.login(req.user);
 		await this.authService.setJwtCookies(res, token);
-		// const date: Date = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-		// res.cookie('jwt', token,
-		// {
-		//     expires: date
-		// });
-		// res.cookie('jwtExpiration', date.getTime(),
-		// {
-		//     expires: date
-		// });
-		// return twoFaEnabled;
 		res.send(
 			{
 				twoFaEnabled,
 			}
 		)
-		// return ({twoFA: twoFaEnabled});
 	}
 
-	@UseGuards(JwtGuard)
+	@UseGuards(FullAuthGuard)
 	@HttpCode(200)
 	@Get('validate')
 	async refresh(@Req() req, @Res() res, @GetUser() user)
@@ -63,7 +52,6 @@ export class AuthController
 				expires: new Date(Date.now() + 1 * 1000)
 			});
 		res.send();
-		// res.status(302).redirect(`${env.PROTOCOL}${env.APP_HOST}:${env.FRONT_PORT}/`);
 	}
 
 	@Post('dev-signup')

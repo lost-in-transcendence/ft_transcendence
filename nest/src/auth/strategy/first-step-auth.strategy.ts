@@ -7,7 +7,7 @@ import { PrismaService } from "../../prisma/prisma.service";
 import { JwtPayload } from "../interface/jwtpayload.dto";
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') 
+export class FirstStepAuthStrategy extends PassportStrategy(Strategy, 'first-step') 
 {
 		constructor(private prisma: PrismaService) {
 			super(
