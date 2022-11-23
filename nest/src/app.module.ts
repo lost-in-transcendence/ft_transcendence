@@ -5,7 +5,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { ChatModule } from './chat/chat.module';
-import { ChannelsModule } from './channels/channels.module';
+import { ChannelsModule } from './chat/channels/channels.module';
 import { TwofaModule } from './auth/twofa.module';
 
 @Module({

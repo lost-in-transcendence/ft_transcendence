@@ -15,7 +15,7 @@ import { User } from '@prisma/client';
 import { JwtService } from '@nestjs/jwt';
 import { env } from 'process';
 
-import { ChannelsService } from 'src/channels/channels.service';
+import { ChannelsService } from 'src/chat/channels/channels.service';
 import { ChatService } from './chat.service';
 import { UpdateChatDto } from './dto/update-chat.dto';
 import { CreateChatDto } from './dto';

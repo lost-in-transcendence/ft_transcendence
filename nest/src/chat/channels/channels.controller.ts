@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Query, NotFoundException, ParseUUIDPipe, UseGuards, UsePipes } from '@nestjs/common';
 import { Channel, Prisma, User } from '@prisma/client';
+import { FullAuthGuard } from 'src/auth/guard/full-auth.guard';
 
-import { JwtGuard } from 'src/auth/guard/jwt.guard';
 import { GetUser } from 'src/users/decorator';
 import { ChannelsService } from './channels.service';
 import { FindUniqueChannelDto } from './dto/channel-dto';
@@ -9,7 +9,7 @@ import { CreateChannelDto } from './dto/create-channel.dto';
 import { UpdateChannelDto } from './dto/update-channel.dto';
 import { FindUniqueChannelPipe } from './pipe';
 
-@UseGuards(JwtGuard)
+@UseGuards(FullAuthGuard)
 @Controller('channels')
 export class ChannelsController
 {
