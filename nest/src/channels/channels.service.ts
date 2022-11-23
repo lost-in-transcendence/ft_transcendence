@@ -64,45 +64,50 @@ export class ChannelsService
 		return (allChannels);
 	}
 
-	async findOne(id: string): Promise<Channel>
+	async findOne(where: Prisma.ChannelWhereUniqueInput): Promise<Channel>
 	{
-		const chanByName = await this.prisma.channel.findUnique({ where: { channelName: id } });
-		const chanById = await this.prisma.channel.findUnique({ where: { id: id } });
-		return (chanByName || chanById);
+		return (this.prisma.channel.findUnique({where}));
 	}
 
-	async update(id: string, dto: UpdateChannelDto): Promise<Channel>
+	async update( where: Prisma.ChannelWhereUniqueInput, data: Prisma.ChannelUpdateInput) : Promise<Channel>
 	{
-		let data: Prisma.ChannelUpdateInput = {mode: dto.mode};
-
-		if (dto.password)
-		{
-			const hash: string = await bcrypt.hash(dto.password, 10);
-			// data.hash = hash;
-			data.mode = 'PROTECTED';
-		}
-		try
-		{
-			const updatedChannel = await this.prisma.channel.update({
-				where: {channelName: id},
-				data
-			});
-			// delete updatedChannel.hash;
-			return (updatedChannel);
-		}
-		catch (error)
-		{
-			if (error instanceof PrismaClientKnownRequestError)
-			{
-				if (error.code === 'P2025')
-					throw new NotFoundException(`Channel ${id} does not exist`);
-			}
-			throw new ForbiddenException('Unknown error has happened');
-		}
+		const updatedChannel = await this.prisma.channel.update({ data, where })
+		return (updatedChannel);
 	}
 
-	remove(id: number)
+	// async update(id: string, dto: UpdateChannelDto): Promise<Channel>
+	// {
+	// 	let data: Prisma.ChannelUpdateInput = {mode: dto.mode};
+
+	// 	if (dto.password)
+	// 	{
+	// 		const hash: string = await bcrypt.hash(dto.password, 10);
+	// 		data.hash = hash;
+	// 		data.mode = 'PROTECTED';
+	// 	}
+	// 	try
+	// 	{
+	// 		const updatedChannel = await this.prisma.channel.update({
+	// 			where: {channelName: id},
+	// 			data
+	// 		});
+	// 		delete updatedChannel.hash;
+	// 		return (updatedChannel);
+	// 	}
+	// 	catch (error)
+	// 	{
+	// 		if (error instanceof PrismaClientKnownRequestError)
+	// 		{
+	// 			if (error.code === 'P2025')
+	// 				throw new NotFoundException(`Channel ${id} does not exist`);
+	// 		}
+	// 		throw new ForbiddenException('Unknown error has happened');
+	// 	}
+	// }
+
+	async remove(id: string)
 	{
-		return `This action removes a #${id} channel`;
+		await this.prisma.channelMember.deleteMany({where: {channelId: id}});
+		return this.prisma.channel.delete({where: {id: id}});
 	}
 }
