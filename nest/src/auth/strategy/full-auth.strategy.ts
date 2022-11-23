@@ -6,7 +6,7 @@ import { PrismaService } from "../../prisma/prisma.service";
 import { JwtPayload } from "../interface/jwtpayload.dto";
 
 @Injectable()
-export class TwoFaStrategy extends PassportStrategy(Strategy, 'twofa') 
+export class FullAuthStrategy extends PassportStrategy(Strategy, 'full') 
 {
 		constructor(private prisma: PrismaService) {
 			super(
@@ -19,7 +19,7 @@ export class TwoFaStrategy extends PassportStrategy(Strategy, 'twofa')
 		async validate(payload: JwtPayload)
         {
 			const user : User = await this.prisma.user.findUnique(
-                {
+            {
 				where:
                 {
 					id: payload.id

@@ -12,7 +12,7 @@ export async function loader()
         if (res.status !== 200)
         {
 			window.opener.postMessage("error", "*");
-			// window.close();
+			window.close();
         }
         return res;
     }
@@ -64,7 +64,7 @@ export function TwoFa()
     if (status === 'success')
     {
         window.opener.postMessage('success', '*');
-        // window.close();
+        window.close();
     }
 
     return(

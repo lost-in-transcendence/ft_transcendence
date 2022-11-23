@@ -1,12 +1,12 @@
 import { Body, Controller, Get, HttpCode, NotFoundException, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { Prisma, User } from '@prisma/client';
 import { NotFoundError } from 'rxjs';
-import { JwtGuard } from 'src/auth/guard/jwt.guard';
+import { FullAuthGuard } from 'src/auth/guard/full-auth.guard';
 import { GetUser } from './decorator';
 import { CreateUserDto, UpdateUserDto, UserIncludeQueryDto } from './dto/users.dto'
 import { UsersService } from './users.service';
 
-@UseGuards(JwtGuard)
+@UseGuards(FullAuthGuard)
 @Controller('users')
 export class UsersController
 {
