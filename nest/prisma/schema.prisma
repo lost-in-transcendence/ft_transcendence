@@ -117,5 +117,6 @@ model Message {
   userId    String
   channel   Channel @relation(fields: [channelId], references: [id])
   channelId String
+  createdAt DateTime @default(now())
   content   String @db.VarChar(2000)
 }
