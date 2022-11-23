@@ -19,7 +19,7 @@ export class ChannelsService
 		if (dto.mode === 'PROTECTED')
 		{
 			const hash = await bcrypt.hash(dto.password || '', 10);
-			data.hash = hash;
+			// data.hash = hash;
 		}
 		try
 		{
@@ -43,7 +43,7 @@ export class ChannelsService
 					}
 				},
 			})
-			delete newChannel.hash; // Best workaround I could find
+			// delete newChannel.hash; // Best workaround I could find
 			return (newChannel);
 		}
 		catch (error)

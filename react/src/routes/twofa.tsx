@@ -1,24 +1,19 @@
 import { useState } from "react";
-import { redirect, useLoaderData } from "react-router-dom";
+import { generatePath, redirect, useLoaderData } from "react-router-dom";
+import { generateTwoFa, authenticateTwoFa } from "../requests"
 import { getCookie } from "../requests/cookies";
 
 export async function loader()
 {
     if (window.opener)
 	{
-        const res = await fetch('http://localhost:3333/twofa/generate',
-        {
-            method: 'POST',
-            credentials: 'include',
-            headers: {"Authorization": "Bearer " + getCookie("jwt")}
-        })
+        const res = await generateTwoFa()
+        console.log(res);
         if (res.status !== 200)
         {
-            console.log("there was an error");
 			window.opener.postMessage("error", "*");
 			window.close();
         }
-        // console.log(res);
         return res;
     }
     else
@@ -29,23 +24,13 @@ export async function loader()
 
 async function submitTwoFa(code: string)
 {
-    const res = await fetch('http://localhost:3333/twofa/blablabla',
-    {
-        method: 'POST',
-        credentials: 'include',
-        headers: 
-        {
-            "Authorization": "Bearer " + getCookie("jwt"),
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({token: code}),
-    });
+
+    const res = await authenticateTwoFa(code);
+
     if (res.status !== 200)
     {
         throw new Error('Wrong code!');
     }
-    console.log(res);
 }
 
 export function TwoFa()
@@ -74,6 +59,12 @@ export function TwoFa()
             setStatus('waiting');
             setError(err.message);
         }
+    }
+
+    if (status === 'success')
+    {
+        window.opener.postMessage('success', '*');
+        window.close();
     }
 
     return(

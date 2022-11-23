@@ -1,13 +1,14 @@
 import { Link, Navigate, Outlet, useNavigate } from "react-router-dom";
 import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../auth/AuthContext";
+import { appURL, backURL } from "../requests";
 
 function popupwindow(url: string , title: string, w: number, h: number) 
 {
 	var left = Math.round(window.screenX + (window.outerWidth - w) / 2);
 	var top = Math.round(window.screenY + (window.outerHeight - h) / 2.5);
 	return window.open(url, title, 'toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width=' + w + ', height=' + h + ', top=' + top + ', left=' + left);
-  } 
+} 
 
 export function Login()
 {
@@ -43,7 +44,7 @@ export function Login()
 	{
 		setStatus('loading')
 		window.addEventListener('message', onMessage);
-		const childWindow = popupwindow("http://localhost:3333/auth/login", 'Log In', 400, 600);
+		const childWindow = popupwindow(`${backURL}/auth/login`, 'Log In', 400, 600);
 		if (childWindow) 
 		{
 			const timerId = setInterval(() => 
@@ -62,16 +63,16 @@ export function Login()
 		}
 	}
 
-	useEffect(() =>
-	{
-		if (status === 'success')
-			console.log('success');
-		else
-		{
-			console.log('failure')
-		}
-		return (() => {})
-	});
+	// useEffect(() =>
+	// {
+	// 	if (status === 'success')
+	// 		console.log('success');
+	// 	else
+	// 	{
+	// 		console.log('failure')
+	// 	}
+	// 	return (() => {})
+	// });
 
 	return (
 		<div>

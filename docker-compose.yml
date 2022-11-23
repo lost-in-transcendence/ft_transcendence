@@ -36,12 +36,16 @@ services:
       - DB_DB=${DB_NAME}
       - NETWORK_NAME=${NETWORK_NAME}
       - DB_PORT=${DB_PORT}
+      - PROTOCOL=${PROTOCOL}
+      - APP_HOST=${APP_HOST}
       - FRONT_PORT=${FRONT_PORT}
       - BACK_PORT=${BACK_PORT}
       - FORTYTWO_ID=${FORTYTWO_API_ID}
       - FORTYTWO_SECRET=${FORTYTWO_API_SECRET}
       - FORTYTWO_CALLBACK=${FORTYTWO_API_CALLBACK}
       - JWT_SECRET=${JWT_SECRET}
+      - MAILERHOST_USER=${MAILERHOST_USER}
+      - MAILERHOST_PW=${MAILERHOST_PW}
     networks:
       - transcendence_network
 
@@ -52,8 +56,10 @@ services:
     container_name: react
     restart: always
     environment:
-      - FRONT_PORT=${FRONT_PORT}
-      - BACK_PORT=${BACK_PORT}
+      - VITE_PROTOCOL=${PROTOCOL}
+      - VITE_APP_HOST=${APP_HOST}
+      - VITE_FRONT_PORT=${FRONT_PORT}
+      - VITE_BACK_PORT=${BACK_PORT}
     ports:
       - ${FRONT_PORT}:${FRONT_PORT}
     volumes:

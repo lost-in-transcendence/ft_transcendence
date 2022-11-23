@@ -1,21 +1,22 @@
 import { Body, Controller, Get, HttpCode, Post, Res, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { GetUser } from 'src/users/decorator';
-import { JwtGuard } from '../guard/jwt.guard';
+import { FirstStepAuthGuard } from '../guard/first-step-auth.guard';
 import { TwofaService } from '../service/twofa.service';
 import { authenticator } from 'otplib';
 import { TwofaAuthenticationDto } from '../interface/twofa-authentication.dto';
 import { JwtPayload } from '../interface/jwtpayload.dto';
 import { AuthService } from '../service/auth.service';
+import { FullAuthGuard } from '../guard/full-auth.guard';
 
 @Controller('twofa')
 export class TwofaController 
 {
     constructor(private readonly twofaService: TwofaService, private readonly authService: AuthService) {}
 
-    @UseGuards(JwtGuard)
+    @UseGuards(FirstStepAuthGuard)
     @Post('generate')
     @HttpCode(200)
-    async generate(@Res() res, @GetUser() user)
+    async generate(@GetUser() user)
     {
         const secret = await this.twofaService.generateSecret(user); // creates and logs secret in db
         authenticator.options =
@@ -25,21 +26,15 @@ export class TwofaController
             };
         const token = authenticator.generate(secret);
         const date: Date = new Date(Date.now() + 800 * 60 * 1000);
-        res.cookie('twofatoken', token,
-        {
-            expires: date,
-            overwrite: true,
-        });
-        res.send();
-        // later the token will be sent by mail
+        
+        await this.twofaService.sendMail(user, token);
     }
 
-    @UseGuards(JwtGuard)
-    @Post('blablabla')
+    @UseGuards(FirstStepAuthGuard)
+    @Post('authenticate')
     @HttpCode(200)
-    async authenticate(@Res({passthrough: true}) res, @GetUser() user, @Body() twofaAuthenticationDto: TwofaAuthenticationDto)
+    async authenticate(@Res() res, @GetUser() user, @Body() twofaAuthenticationDto: TwofaAuthenticationDto)
     {
-        console.log('authenticate')
         const authenticated = await this.twofaService.authenticate(twofaAuthenticationDto.token, user.twoFaSecret);
         if (!authenticated)
         {
@@ -52,6 +47,13 @@ export class TwofaController
             await this.authService.setJwtCookies(res, token);
         }
         res.send();
-        // TODO send token via mail or whatever
+    }
+
+    @UseGuards(FullAuthGuard)
+    @Post('toggle')
+    @HttpCode(200)
+    async toggleTwoFa(@GetUser() user)
+    {
+        await this.twofaService.toggle2fa(user);
     }
 }

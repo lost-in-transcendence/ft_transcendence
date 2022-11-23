@@ -1,6 +1,7 @@
 import { MouseEventHandler, useContext, useState } from 'react'
-import { Link, NavLink } from 'react-router-dom';
+import { Link, NavLink, redirect, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../auth/AuthContext';
+import { logout } from '../../requests';
 import './Navbar.css'
 
 export default function Navbar() {
@@ -9,7 +10,7 @@ export default function Navbar() {
 	// <Nav> component could have multiple <NavItem> components...
 
 	const auth = useContext(AuthContext);
-
+	const navigate = useNavigate();
 	return (
 		<div className="navbar">
 			<div className="menu_wrap">
@@ -61,7 +62,9 @@ export default function Navbar() {
 										<a
 										style={{ color: 'brown' }}
 										href="#"
-										onClick={() => auth.logout()}
+										onClick={ () =>{
+											logout();
+											navigate('/login');}}
 										>
 											LOGOUT
 										</a>
