@@ -1,4 +1,4 @@
-import { Logger } from '@nestjs/common';
+import { Logger, UsePipes, ValidationPipe } from '@nestjs/common';
 import {
 	WebSocketGateway,
 	SubscribeMessage,
@@ -10,10 +10,9 @@ import {
 	OnGatewayDisconnect,
 	OnGatewayInit
 } from '@nestjs/websockets';
-import { Server, Socket, Namespace } from 'socket.io';
+import { Socket, Namespace } from 'socket.io';
 import { User } from '@prisma/client';
 import { JwtService } from '@nestjs/jwt';
-import { env } from 'process';
 
 import { ChannelsService } from 'src/chat/channels/channels.service';
 import { ChatService } from './chat.service';
@@ -21,7 +20,10 @@ import { UpdateChatDto } from './dto/update-chat.dto';
 import { CreateChatDto } from './dto';
 import { GetUserWs } from 'src/users/decorator/get-user-ws';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { CreateMessageDto } from './messages/dto';
+import { WsValidationPipe } from '../websocket-server/pipes';
 
+@UsePipes(new WsValidationPipe({whitelist: true}))
 @WebSocketGateway({ cors: true, namespace: 'chat' })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit
 {
@@ -41,29 +43,15 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 		this.logger.log('Chat Gateway initialized');
 	}
 
-	async handleConnection(client: Socket)
+	handleConnection(client: Socket, @GetUserWs() user: User)
 	{
-		this.logger.log('in connection');
-		// try
-		// {
-		// 	const token = client.handshake.headers.authorization.split(' ')[1];
-		// 	const ret = this.jwt.verify(token, { secret: env.JWT_SECRET });
-		// 	const user: User = await this.prisma.user.findUnique({ where: { id: ret.id } });
-		// 	// console.log({ret});
-		// 	client.data.user = user;
-		// 	// console.log(client.data.user);
-		// }
-		// catch (err)
-		// {
-		// 	this.logger.error('oki', {err});
-		// 	client.disconnect();
-		// }
+		this.logger.log(`Client ${client.data.user.userName} connected to chat server`);
 	}
 
 	handleDisconnect(client: Socket)
 	{
-		console.log('lol', client.data.user);
-		console.log('disco');
+		const user: User = client.data.user;
+		this.logger.log(`Client ${user.userName} disconnected from chat server`);
 	}
 
 	@SubscribeMessage('message')
@@ -74,13 +62,26 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 		this.server.emit('message', text);
 	}
 
+	/*************************/
+	/*        TESTING        */
+	/*************************/
+	@SubscribeMessage('test')
+	test()
+	{
+		this.logger.debug('DEBUG');
+		this.logger.error('ERROR');
+		this.logger.log('LOG');
+		this.logger.verbose('VERBOSE');
+		this.logger.warn('WARN');
+	}
+	/******************************************************************************************/
+
 	@SubscribeMessage('joinRoom')
 	join(@MessageBody('channel') channel: string, @ConnectedSocket() client: Socket, @GetUserWs() user: User)
 	{
-		console.log(`client: ${client.id} join room ${channel}`, { user });
+		this.logger.log(`client: ${user.userName} has joined channel ${channel}`);
+		this.logger.debug({user});
 		client.join(channel);
-		throw new WsException('test exception');
-		console.log(`client rooms :`, client.rooms.keys());
 	}
 
 	@SubscribeMessage('toRoom')
