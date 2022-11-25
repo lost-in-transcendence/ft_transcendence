@@ -83,12 +83,13 @@ export class UsersController
 		return res;
 	}
 
-	@Patch(':userName')
-	async update(@Body() dto: UpdateUserDto, @Param('userName') userName: string)
+	@Patch()
+	async update(@Body() dto: UpdateUserDto, @GetUser('id') id) 
 	{
+		console.log(dto);
 		const data: Prisma.UserUpdateInput = { ...dto };
 		const res = await this.userService.updateUser({
-			where: { userName },
+			where: { id },
 			data
 		});
 		// error handling
