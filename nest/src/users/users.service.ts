@@ -109,4 +109,10 @@ export class UsersService {
 				where
 			});
 	}
+
+	async deleteUser(where: Prisma.UserWhereUniqueInput)
+	{
+		const deletedUser = await this.prisma.user.delete({where});
+		return (deletedUser);
+	}
 }
