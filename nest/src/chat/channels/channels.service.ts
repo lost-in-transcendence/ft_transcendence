@@ -1,11 +1,13 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { Channel, Prisma, RoleType, User } from '@prisma/client';
+import { ForbiddenException, ImATeapotException, Injectable, NotFoundException, PreconditionFailedException } from '@nestjs/common';
+import { Channel, ChannelModeType, Prisma, RoleType, User } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 import { PrismaService } from 'src/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 
 import { CreateChannelDto } from './dto';
 import { UpdateChannelDto } from './dto';
+import { ChannelDto } from './dto/channel-dto';
+import { CreateUserDto, UserIncludeQueryDto } from 'src/users/dto';
 
 @Injectable()
 export class ChannelsService
@@ -55,6 +57,30 @@ export class ChannelsService
 			}
 			console.error(error);
 			throw new ForbiddenException('Unknown error has happened');
+		}
+	}
+	
+	async	joinChannel(channel: ChannelDto, user: CreateUserDto, role: RoleType)
+	{
+		try
+		{
+			const newChannelMember = await this.prisma.channelMember.create({
+				data: {
+					channel: 	{connect: {id: channel.id}},
+					user:		{connect: {id42: user.id42}},
+					role
+				},
+			});
+			return (newChannelMember);
+		}
+		catch (error)
+		{
+			if (error instanceof PrismaClientKnownRequestError)
+			{
+				if (error.code === 'P2025')
+					throw new PreconditionFailedException('Record not found');
+			}
+			throw new ImATeapotException('something unexpected happened');
 		}
 	}
 

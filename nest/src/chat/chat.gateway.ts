@@ -11,7 +11,7 @@ import {
 	OnGatewayInit
 } from '@nestjs/websockets';
 import { Socket, Namespace } from 'socket.io';
-import { User } from '@prisma/client';
+import { Channel, User } from '@prisma/client';
 import { JwtService } from '@nestjs/jwt';
 
 import { ChannelsService } from 'src/chat/channels/channels.service';
@@ -60,6 +60,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 		console.log("args", { text });
 		console.log(`sending text: ${text}`);
 		this.server.emit('message', text);
+	}
+
+	@SubscribeMessage('join')
+	joinChannel(@MessageBody('channel') channel: Channel, ) {
+		
 	}
 
 	/*************************/
