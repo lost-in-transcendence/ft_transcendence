@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, NotFoundException, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, NotFoundException, Param, ParseUUIDPipe, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { Prisma, User } from '@prisma/client';
 import { NotFoundError } from 'rxjs';
 import { FullAuthGuard } from 'src/auth/guard/full-auth.guard';
@@ -93,5 +93,11 @@ export class UsersController
 		});
 		// error handling
 		return res;
+	}
+
+	@Delete()
+	async delete(@GetUser('id', ParseUUIDPipe) userId: string)
+	{
+		return this.userService.deleteUser({id: userId});
 	}
 }
