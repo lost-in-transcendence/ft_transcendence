@@ -1,7 +1,7 @@
 import { ChannelModeType, Prisma } from "@prisma/client";
 import { IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID } from "class-validator";
 
-import { SharedCreateChannelDto } from "../../../../../shared/dtos";
+import { SharedCreateChannelDto } from "shared/dtos";
 
 export class CreateChannelDto implements SharedCreateChannelDto
 {
