@@ -1,5 +1,5 @@
 import { IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength, MinLength } from "class-validator";
-import { SharedCreateMessageDto } from '../../../../../shared/dtos'
+import { SharedCreateMessageDto } from 'shared/dtos'
 
 export class CreateMessageDto implements SharedCreateMessageDto
 {

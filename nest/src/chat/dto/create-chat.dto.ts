@@ -1,4 +1,4 @@
-import { SharedCreateChatDto } from "../../../../shared/dtos";
+import { SharedCreateChatDto } from "shared/dtos";
 
 export class CreateChatDto implements SharedCreateChatDto
 {
