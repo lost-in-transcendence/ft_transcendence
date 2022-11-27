@@ -13,7 +13,7 @@ import { LeaderBoard, loader as leaderboardLoader} from './routes/leaderboard'
 import { Login } from './routes/login'
 import { Profile, loader as profileLoader} from './routes/profile'
 import { ProtectedRoute, loader as protectedLoader } from './routes/protected-route/ProtectedRoute'
-import { TwoFa, loader as twofaLoader } from './routes/twofa'
+import { TwoFa } from './routes/twofa'
 import { WelcomePage } from './routes/welcome'
 
 const router = createBrowserRouter(
@@ -31,11 +31,11 @@ const router = createBrowserRouter(
 			element: <Callback />,
 			loader: callbackLoader
 		},
-		{
-			path: "/login/twofa",
-			element: <TwoFa />,
-			loader: twofaLoader
-		},
+		// {
+		// 	path: "/login/twofa",
+		// 	element: <TwoFa onSuccess={() => {}}/>,
+		// 	loader: twofaLoader
+		// },
 		{
 			element: <ProtectedRoute />,
 			loader: protectedLoader,

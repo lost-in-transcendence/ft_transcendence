@@ -1,7 +1,9 @@
-import { Link, Navigate, Outlet, useNavigate } from "react-router-dom";
+import { Link, Navigate, Outlet, redirect, useNavigate } from "react-router-dom";
 import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../auth/AuthContext";
-import { appURL, backURL } from "../requests";
+import { appURL, backURL, generateTwoFa } from "../requests";
+import Modal from "../components/Modal/modal";
+import { TwoFa } from "./twofa";
 
 function popupwindow(url: string , title: string, w: number, h: number) 
 {
@@ -29,6 +31,7 @@ export function Login()
 			}
 			case 'error':
 			case 'success':
+			case 'next':
 			{
 				done = true;
 				break;
@@ -74,8 +77,35 @@ export function Login()
 	// 	return (() => {})
 	// });
 
+	const [isModalOpen, setIsModalOpen] = useState(false);
+	if (status === 'next')
+	{
+		setIsModalOpen(true);
+		setStatus('waiting');
+	}
+
+	async function onModalOpen()
+	{
+		const res = await generateTwoFa()
+		console.log(res);
+        if (res.status !== 200)
+        {
+			return "error"
+        }
+        return res;
+	}
+
+	async function onTwofaSuccess()
+	{
+		return redirect('/home');
+	}
+
 	return (
 		<div>
+			<button onClick={() => setIsModalOpen(true)}>Open Modal</button>
+			<Modal isOpen={isModalOpen} onOpen={onModalOpen} onClose={() => {setIsModalOpen(false)}}>
+				<TwoFa onSuccess={() => {setIsModalOpen(false); setStatus('success')}} />
+			</Modal>
 			{status === 'success' &&
 			<Navigate to={"/home"} />}
 			<h1>Login</h1>

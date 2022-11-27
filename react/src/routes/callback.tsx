@@ -28,9 +28,8 @@ export function Callback()
 	const something: any = useLoaderData();
 	if (something.twoFaEnabled === true)
 	{
-		return(
-			<Navigate to='/login/twofa'/>
-		)
+		window.opener.postMessage('next', '*')
+		window.close();
 	}
 	else
 	{
