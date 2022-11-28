@@ -1,4 +1,4 @@
-import { INestApplicationContext, Logger } from "@nestjs/common";
+import { INestApplicationContext, Logger, UseFilters, UseGuards } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { IoAdapter } from "@nestjs/platform-socket.io";
 import { User } from "@prisma/client";
@@ -40,13 +40,23 @@ const wsAuthMiddleWare = (jwt: JwtService, prisma: PrismaService, logger: Logger
 		{
 			const token = socket.handshake.headers.authorization.split(' ')[1];
 			const decoded = jwt.verify(token, {secret: env.JWT_SECRET});
-			const user: User = await prisma.user.findUnique({where: { id: decoded.id }});
+			const user: User = await prisma.user.findUnique({
+				where: { id: decoded.id },
+				include:
+				{
+					channels:
+					{
+						include: { channel: true }
+					}
+				}
+			});
+			if (!user)
+				throw new Error('Invalid user');
 			socket.data.user = user;
 			next();
 		}
 		catch (err)
 		{
-			logger.error('ERROR')
 			next(new Error('Forbidden'));
 		}
 	}
