@@ -90,14 +90,9 @@ export function Login()
 		console.log(res);
         if (res.status !== 200)
         {
-			return "error"
+			setStatus('error');
         }
         return res;
-	}
-
-	async function onTwofaSuccess()
-	{
-		return redirect('/home');
 	}
 
 	return (

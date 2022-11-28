@@ -1,4 +1,5 @@
 import { ReactNode, useEffect, useState } from 'react'
+import ReactDOM from 'react-dom';
 import './modal.css'
 
 export default function Modal(props: {isOpen : boolean, onOpen: any, onClose: any, children: any})
@@ -6,12 +7,11 @@ export default function Modal(props: {isOpen : boolean, onOpen: any, onClose: an
     const [displayChild, setDisplayChild] = useState(false);
     useEffect(() =>
     {
-        let security = true;
         async function openEvent()
         {
              console.log("bbbbbbbb")
             const res = await props.onOpen();
-            if (res.ok === true && security === true)
+            if (res.ok === true)
                 setDisplayChild(true);
             
            }
@@ -26,7 +26,8 @@ export default function Modal(props: {isOpen : boolean, onOpen: any, onClose: an
     // {
     //     return (<></>);
     // }
-    return (
+    return ReactDOM.createPortal(
+
         <div className={`modal-overlay ${props.isOpen ? 'modal-open' : ''}`} onClick={props.onClose}>
             <div className="modal-content" onClick={e => e.stopPropagation()}>
                 <div className="modal-body">
@@ -34,6 +35,7 @@ export default function Modal(props: {isOpen : boolean, onOpen: any, onClose: an
                 </div>
                 <button onClick={props.onClose}>Close</button>
             </div>
-        </div>
-    )
+        </div>,
+        document.getElementById('root')!
+        )
 }
