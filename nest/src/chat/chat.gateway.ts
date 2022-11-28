@@ -13,10 +13,7 @@ import
 		BaseWsExceptionFilter
 	} from '@nestjs/websockets';
 import { Socket, Namespace } from 'socket.io';
-<<<<<<< Updated upstream
 import { Channel, RoleType } from '@prisma/client';
-=======
->>>>>>> Stashed changes
 import { Message, Prisma, User } from '@prisma/client';
 import { JwtService } from '@nestjs/jwt';
 
@@ -94,7 +91,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 	@SubscribeMessage('joinRoom')
 	join(@MessageBody('channelName') channelName: string, @ConnectedSocket() client: Socket, @GetUserWs() user: User)
 	{
-<<<<<<< Updated upstream
 		const dto: joinChannelDto = {
 			channelName: channelName,
 			userId: user.id,
@@ -106,11 +102,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 		this.channelService.joinChannel(dto);
 		this.server.to(channelName).emit('message', {text: `${user.userName} has joined ${channelName} ! Welcome ! lol`});
 		client.join(channelName);
-=======
-		this.logger.log(`client: ${user.userName} has joined channel ${channel}`);
-		this.logger.debug({ user });
-		client.join(channel);
->>>>>>> Stashed changes
 	}
 
 	@SubscribeMessage('toRoom')
