@@ -8,6 +8,7 @@ import { CreateChannelDto } from './dto';
 import { UpdateChannelDto } from './dto';
 import { ChannelDto } from './dto/channel-dto';
 import { CreateUserDto, UserIncludeQueryDto } from 'src/users/dto';
+import { joinChannelDto } from './dto/join-channel.dto';
 
 @Injectable()
 export class ChannelsService
@@ -60,15 +61,15 @@ export class ChannelsService
 		}
 	}
 	
-	async	joinChannel(channel: ChannelDto, user: CreateUserDto, role: RoleType)
+	async	joinChannel(dto: joinChannelDto)
 	{
 		try
 		{
 			const newChannelMember = await this.prisma.channelMember.create({
 				data: {
-					channel: 	{connect: {id: channel.id}},
-					user:		{connect: {id42: user.id42}},
-					role
+					channel: 	{connect: {channelName: dto.channelName}},
+					user:		{connect: {id: dto.userId}},
+					role: dto.role
 				},
 			});
 			return (newChannelMember);

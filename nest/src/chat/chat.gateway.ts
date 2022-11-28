@@ -11,7 +11,7 @@ import {
 	OnGatewayInit
 } from '@nestjs/websockets';
 import { Socket, Namespace } from 'socket.io';
-import { Channel, User } from '@prisma/client';
+import { Channel, RoleType, User } from '@prisma/client';
 import { JwtService } from '@nestjs/jwt';
 
 import { ChannelsService } from 'src/chat/channels/channels.service';
@@ -22,6 +22,9 @@ import { GetUserWs } from 'src/users/decorator/get-user-ws';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateMessageDto } from './messages/dto';
 import { WsValidationPipe } from '../websocket-server/pipes';
+import { ChannelDto } from './channels/dto/channel-dto';
+import { CreateUserDto } from 'src/users/dto';
+import { joinChannelDto } from './channels/dto/join-channel.dto';
 
 @UsePipes(new WsValidationPipe({whitelist: true}))
 @WebSocketGateway({ cors: true, namespace: 'chat' })
@@ -62,11 +65,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 		this.server.emit('message', text);
 	}
 
-	@SubscribeMessage('join')
-	joinChannel(@MessageBody('channel') channel: Channel, ) {
-		
-	}
-
 	/*************************/
 	/*        TESTING        */
 	/*************************/
@@ -82,17 +80,26 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 	/******************************************************************************************/
 
 	@SubscribeMessage('joinRoom')
-	join(@MessageBody('channel') channel: string, @ConnectedSocket() client: Socket, @GetUserWs() user: User)
+	join(@MessageBody('channelName') channelName: string, @ConnectedSocket() client: Socket, @GetUserWs() user: User)
 	{
-		this.logger.log(`client: ${user.userName} has joined channel ${channel}`);
+		const dto: joinChannelDto = {
+			channelName: channelName,
+			userId: user.id,
+			role: 'MEMBER'
+		}
+		this.logger.log(`client: ${user.userName} has joined channel ${channelName}`);
 		this.logger.debug({user});
-		client.join(channel);
+
+		this.channelService.joinChannel(dto);
+		this.server.to(channelName).emit('message', {text: `${user.userName} has joined ${channelName} ! Welcome ! lol`});
+		client.join(channelName); 
 	}
 
 	@SubscribeMessage('toRoom')
-	toRoom(@MessageBody() body: CreateChatDto, @ConnectedSocket() client: Socket)
+	toRoom(@MessageBody() body: any, @ConnectedSocket() client: Socket)
 	{
 		console.log('in toRoom', { body });
+		this.logger.debug('sockets', this.server.sockets);
 		client.to(body.channel).emit('message', body);
 	}
 
