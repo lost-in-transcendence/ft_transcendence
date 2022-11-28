@@ -93,9 +93,9 @@ enum ChannelModeType {
 }
 
 model ChannelMember {
-    channel     Channel   @relation(fields: [channelId], references: [id])
+    channel     Channel   @relation(fields: [channelId], references: [id], onDelete: Cascade)
     channelId   String
-    user        User      @relation(fields: [userId], references: [id])
+    user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
     userId      String
     role        RoleType
     banExpires  DateTime? @default(now())
@@ -115,9 +115,9 @@ enum RoleType {
 
 model Message {
     id        String   @id @default(uuid())
-    sender    User     @relation(fields: [userId], references: [id])
+    sender    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
     userId    String
-    channel   Channel  @relation(fields: [channelId], references: [id])
+    channel   Channel  @relation(fields: [channelId], references: [id], onDelete: Cascade)
     channelId String
     createdAt DateTime @default(now())
     content   String   @db.VarChar(2000)

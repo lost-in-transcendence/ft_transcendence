@@ -134,7 +134,6 @@ export class ChannelsService
 
 	async remove(id: string)
 	{
-		await this.prisma.channelMember.deleteMany({where: {channelId: id}});
 		return this.prisma.channel.delete({where: {id: id}});
 	}
 }
