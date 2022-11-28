@@ -1,9 +1,9 @@
 import { Link, Navigate, Outlet, redirect, useNavigate } from "react-router-dom";
 import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../auth/AuthContext";
-import { appURL, backURL, generateTwoFa } from "../requests";
+import { appURL, backURL, generateTwoFa, getCookie, validateToken } from "../requests";
 import Modal from "../components/Modal/modal";
-import { TwoFa } from "./twofa";
+import { TwoFa } from "../components/TwoFa/twofa";
 
 function popupwindow(url: string , title: string, w: number, h: number) 
 {
@@ -11,6 +11,20 @@ function popupwindow(url: string , title: string, w: number, h: number)
 	var top = Math.round(window.screenY + (window.outerHeight - h) / 2.5);
 	return window.open(url, title, 'toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width=' + w + ', height=' + h + ', top=' + top + ', left=' + left);
 } 
+
+async function tryValidateToken()
+{
+	if (!getCookie('jwt'))
+	{
+		return false;
+	}
+	const res = await validateToken();
+	if (res.status !== 200)
+	{
+		return false;
+	}
+	return true;
+}
 
 export function Login()
 {
@@ -46,6 +60,12 @@ export function Login()
 	async function login()
 	{
 		setStatus('loading')
+		const tokenValid = await tryValidateToken();
+		if (tokenValid === true)
+		{
+			setStatus('success');
+			return;
+		}
 		window.addEventListener('message', onMessage);
 		const childWindow = popupwindow(`${backURL}/auth/login`, 'Log In', 400, 600);
 		if (childWindow) 
@@ -65,17 +85,6 @@ export function Login()
 			}, 100)
 		}
 	}
-
-	// useEffect(() =>
-	// {
-	// 	if (status === 'success')
-	// 		console.log('success');
-	// 	else
-	// 	{
-	// 		console.log('failure')
-	// 	}
-	// 	return (() => {})
-	// });
 
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	if (status === 'next')
