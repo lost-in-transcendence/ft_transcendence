@@ -9,7 +9,6 @@ export default function Modal(props: {isOpen : boolean, onOpen: any, onClose: an
     {
         async function openEvent()
         {
-             console.log("bbbbbbbb")
             const res = await props.onOpen();
             if (res.ok === true)
                 setDisplayChild(true);
@@ -19,21 +18,23 @@ export default function Modal(props: {isOpen : boolean, onOpen: any, onClose: an
         {
             openEvent();
         }
-        // return () => {security = false};
 
     }, [props.isOpen])
-    // if (props.isOpen !== true)
-    // {
-    //     return (<></>);
-    // }
+
+    function closeModal()
+    {
+        setDisplayChild(false);
+        props.onClose()
+    }
+    
     return ReactDOM.createPortal(
 
-        <div className={`modal-overlay ${props.isOpen ? 'modal-open' : ''}`} onClick={props.onClose}>
+        <div className={`modal-overlay ${props.isOpen ? 'modal-open' : ''}`} onClick={closeModal}>
             <div className="modal-content" onClick={e => e.stopPropagation()}>
                 <div className="modal-body">
                     {displayChild ? props.children : null}
                 </div>
-                <button onClick={props.onClose}>Close</button>
+                <button onClick={closeModal}>Close</button>
             </div>
         </div>,
         document.getElementById('root')!

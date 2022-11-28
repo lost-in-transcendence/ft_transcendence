@@ -12,7 +12,7 @@ import { LeaderBoard, loader as leaderboardLoader} from './routes/leaderboard'
 import { Login } from './routes/login'
 import { Profile, loader as profileLoader} from './routes/profile'
 import { ProtectedRoute, loader as protectedLoader } from './routes/protected-route/ProtectedRoute'
-import { TwoFa } from './routes/twofa'
+import { TwoFa } from './components/TwoFa/twofa'
 import { WelcomePage } from './routes/welcome'
 
 const router = createBrowserRouter(

@@ -5,7 +5,7 @@ import { generateTwoFa, toggleTwoFa } from "../requests/auth.requests"
 import './styles/profile.css'
 import { getUserMeFull } from "../requests/users.requests";
 import Modal from "../components/Modal/modal";
-import { TwoFa } from "./twofa";
+import { TwoFa } from "../components/TwoFa/twofa";
 
 export async function loader() {
 	const res = await getUserMeFull();
