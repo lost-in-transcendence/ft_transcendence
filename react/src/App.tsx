@@ -3,7 +3,6 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 
 import './App.css'
 import {Callback, loader as callbackLoader} from './routes/callback'
-// import '../src/components/Core.css'
 
 import { Chat, loader as chatLoader } from './routes/chat'
 import { ErrorPage } from './routes/error'
@@ -31,11 +30,6 @@ const router = createBrowserRouter(
 			element: <Callback />,
 			loader: callbackLoader
 		},
-		// {
-		// 	path: "/login/twofa",
-		// 	element: <TwoFa onSuccess={() => {}}/>,
-		// 	loader: twofaLoader
-		// },
 		{
 			element: <ProtectedRoute />,
 			loader: protectedLoader,
