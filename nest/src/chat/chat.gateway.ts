@@ -13,7 +13,7 @@ import
 		BaseWsExceptionFilter
 	} from '@nestjs/websockets';
 import { Socket, Namespace } from 'socket.io';
-import { Channel, RoleType } from '@prisma/client';
+import { Channel, ChannelMember, RoleType } from '@prisma/client';
 import { Message, Prisma, User } from '@prisma/client';
 import { JwtService } from '@nestjs/jwt';
 
@@ -50,9 +50,24 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 		this.logger.log('Chat Gateway initialized');
 	}
 
-	handleConnection(client: Socket, @GetUserWs() user: User)
+	handleConnection(client: Socket)
 	{
-		this.logger.log(`Client ${client.data.user.userName} connected to chat server`);
+		this.logger.debug('In chat connection');
+		try
+		{
+			const channels = client.data.user.channels;
+
+			for (let chan of channels)
+				client.join(chan.channel.channelName);
+				// this.logger.debug(chan.channel.channelName);
+			// this.logger.debug('Channel[]: channels ', channels);
+			this.logger.log(`Client ${client.data.user.userName} connected to chat server`);
+		}
+		catch (err)
+		{
+			this.logger.error({err});
+			client.disconnect();
+		}
 	}
 
 	handleDisconnect(client: Socket)
@@ -96,9 +111,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 			userId: user.id,
 			role: 'MEMBER'
 		}
+
 		this.logger.log(`client: ${user.userName} has joined channel ${channelName}`);
 		this.logger.debug({user});
-
 		this.channelService.joinChannel(dto);
 		this.server.to(channelName).emit('message', {text: `${user.userName} has joined ${channelName} ! Welcome ! lol`});
 		client.join(channelName);
