@@ -45,17 +45,10 @@ type UpdateUserDto =
     readonly userName?: string
 
     readonly email?: string
-
-    readonly avatar?: string
 }
 
 export async function updateUser(params : UpdateUserDto)
 {
-
-	const {userName, email, avatar} = params;
-	console.log(userName);
-	// console.log(params);
-	console.log(JSON.stringify(params));
 	return fetch(`${backURL}/users`, 
 	{
 		method: 'PATCH',
@@ -63,6 +56,19 @@ export async function updateUser(params : UpdateUserDto)
 			"Authorization": "Bearer " + getCookie("jwt"),
 			"Content-Type": "application/json"
 		},
-		body: JSON.stringify({userName, email, avatar})
+		body: JSON.stringify(params)
+	});
+}
+
+
+export async function updateAvatar(formData : any, id: string)
+{
+	return await fetch(`${backURL}/users/avatar/${id}`,
+	{
+		method: 'POST',
+		headers: {
+			"Authorization": "Bearer " + getCookie("jwt"),
+		},
+		body: formData,
 	});
 }

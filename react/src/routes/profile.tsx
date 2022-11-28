@@ -21,7 +21,8 @@ export function Profile() {
 			<div className="profilePage">
 				<div className="profileTitle">
 					<div className="profileImg">
-						<img src={user.avatar} />
+						<img src={user.avatarURL}/>
+						{/* <img src={`http://localhost:3333/users/avatar/${user.id}`} /> */}
 					</div>
 					<div className="profileInfo">
 						<h3>{user.userName}</h3>

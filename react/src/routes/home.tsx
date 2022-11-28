@@ -24,7 +24,7 @@ export function HomePage()
 		<div className="home-page">
 			<h1>Home Page</h1>
 			<p>{user.userName}</p>
-			<img src={user.avatar} />
+			<img src={user.avatarURL} />
 		</div>
 	);
 }

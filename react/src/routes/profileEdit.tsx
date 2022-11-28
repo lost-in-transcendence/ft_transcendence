@@ -7,7 +7,7 @@ import { toggleTwoFa } from "../requests/auth.requests"
 import { frontURL } from "../requests/constants";
 
 import './styles/profile.css'
-import { getUserMeFull, updateUser } from "../requests/users.requests";
+import { getUserMeFull, updateUser, updateAvatar } from "../requests/users.requests";
 
 function popupwindow(url: string, title: string, w: number, h: number) {
 	var left = Math.round(window.screenX + (window.outerWidth - w) / 2);
@@ -26,6 +26,7 @@ export async function action({request}: any) {
 	console.log('profileEditAction');
 	// console.log({request});
 	const formData = await request.formData();
+	// console.log({formData});
 	const updates = Object.fromEntries(formData);
 	console.log({updates});
 	const res = await updateUser(updates);
@@ -35,6 +36,7 @@ export async function action({request}: any) {
 	}
 	return {status: "updated"};
 }
+
 
 async function handleToggleTwoFa() {
 
@@ -53,22 +55,14 @@ export function ProfileEdit() {
 	const [twoFa, setTwoFa] = useState<boolean>(user.twoFaEnabled);
 	const [error, setError] = useState(null);
 	const [edit, setEdit] = useState(false);
+	const [file, setFile] = useState(null);
 	const action: any = useActionData();
 	
-	useEffect(() => 
-	{
-		if (action?.status == "updated" && edit == true)
-		{
-			console.log('tamere');
-			setEdit(false);
-			action.status = "pending";
-		}
-	});
-		
+	
 	async function onMessage(event: MessageEvent) 
 	{
 		if (status === "loading")
-			return;
+		return;
 		let done = false;
 		switch (event.data) 
 		{
@@ -86,36 +80,36 @@ export function ProfileEdit() {
 					done = true;
 					break;
 				}
+			}
+			if (done) {
+				window.removeEventListener('message', onMessage);
+			}
+			setStatus(event.data);
 		}
-		if (done) {
-			window.removeEventListener('message', onMessage);
-		}
-		setStatus(event.data);
-	}
-
-	async function enableTwoFa() 
-	{
-		setStatus('loading')
-		window.addEventListener('message', onMessage);
-		const childWindow = popupwindow(`${frontURL}/login/twofa`, 'Log In', 400, 600);
-		if (childWindow) 
+		
+		async function enableTwoFa() 
 		{
-			const timerId = setInterval(async () => 
+			setStatus('loading')
+			window.addEventListener('message', onMessage);
+			const childWindow = popupwindow(`${frontURL}/login/twofa`, 'Log In', 400, 600);
+			if (childWindow) 
 			{
-				if (childWindow.closed) 
+				const timerId = setInterval(async () => 
+				{
+					if (childWindow.closed) 
 				{
 					clearInterval(timerId)
 					setStatus((prevState) => 
 					{
 						if (prevState === 'loading')
-							return 'waiting';
+						return 'waiting';
 						return prevState;
 					});
 				}
 			}, 100)
 		}
 	}
-
+	
 	async function disableTwoFa()
 	{
 		try 
@@ -140,38 +134,75 @@ export function ProfileEdit() {
 			enableTwoFa();
 		}
 	}
-
+	
 	useEffect(() =>
 	{
 		if (status === 'success')
+		{
+			setStatus('waiting');
+			try 
 			{
-				setStatus('waiting');
-				try 
-				{
-					handleToggleTwoFa()
-					setTwoFa(true);
-				}
-				catch(err: any)
-				{
-					setError(err.message);
-				}
-
+				handleToggleTwoFa()
+				setTwoFa(true);
 			}
+			catch(err: any)
+			{
+				setError(err.message);
+			}
+			
+		}
 		return (() => {})
 	});
 
+	useEffect(() => 
+	{
+		if (action?.status == "updated" && edit == true)
+		{
+			setEdit(false);
+			action.status = "pending";
+		}
+	});
+
+	const uploadFile = async (file : any) =>
+	{
+		const formData = new FormData();
+		formData.append("avatar", file);
+		return await updateAvatar(formData, user.id);
+	}
+	const handleOnChange = (e: any) =>
+	{
+		setFile(e.target.files[0]);
+	}
+	
+	const handleSubmit = async (e: any) =>
+	{
+		e.preventDefault();
+
+		let res = await uploadFile(file);
+	}
 
 	return (
 		<div>
 			<div className="profileEditPage">
 				<div className="profileTitle">
 					<div className="profileImg">
-						<img src={user.avatar} />
+						<img src={user.avatarURL} />
+						<form id="userAvatarForm" encType="multipart/form-data" method='post' onSubmit={handleSubmit}>
+							<input
+								id="avatar"
+								name="avatar"
+								aria-label="userIcon"
+								type="file"
+								accept="image/*"
+								onChange={handleOnChange}
+							/>
+							<button type="submit">Upload</button>
+						</form>
 					</div>
 					<div className="profileInfo">
 						{
 							edit == true ?
-								(<Form id="nameForm" method="post" action="/profile/edit">
+								(<Form id="userInfosForm" method="post" action="/profile/edit">
 									<input
 										id="userName"
 										name="userName"

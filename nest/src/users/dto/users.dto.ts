@@ -18,7 +18,11 @@ export class CreateUserDto
 
     @IsString()
     @IsNotEmpty()
-    readonly avatar: string
+    readonly avatarURL: string
+
+    @IsString()
+    @IsNotEmpty()
+    readonly avatarPath?: string
 }
 
 export class UpdateUserDto extends PartialType(CreateUserDto) {}
