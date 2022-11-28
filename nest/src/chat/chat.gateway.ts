@@ -1,4 +1,4 @@
-import { Logger, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Logger, UseFilters, UsePipes, ValidationPipe } from '@nestjs/common';
 import {
 	WebSocketGateway,
 	SubscribeMessage,
@@ -8,7 +8,8 @@ import {
 	OnGatewayConnection,
 	WsException,
 	OnGatewayDisconnect,
-	OnGatewayInit
+	OnGatewayInit,
+	BaseWsExceptionFilter
 } from '@nestjs/websockets';
 import { Socket, Namespace } from 'socket.io';
 import { Channel, RoleType, User } from '@prisma/client';
@@ -19,13 +20,14 @@ import { ChatService } from './chat.service';
 import { UpdateChatDto } from './dto/update-chat.dto';
 import { CreateChatDto } from './dto';
 import { GetUserWs } from 'src/users/decorator/get-user-ws';
-import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateMessageDto } from './messages/dto';
 import { WsValidationPipe } from '../websocket-server/pipes';
 import { ChannelDto } from './channels/dto/channel-dto';
 import { CreateUserDto } from 'src/users/dto';
 import { joinChannelDto } from './channels/dto/join-channel.dto';
+import { MessagesService } from './messages/messages.service';
 
+@UseFilters(new BaseWsExceptionFilter())
 @UsePipes(new WsValidationPipe({whitelist: true}))
 @WebSocketGateway({ cors: true, namespace: 'chat' })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit
@@ -35,8 +37,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 	constructor(
 		private readonly chatService: ChatService,
 		private readonly channelService: ChannelsService,
-		private readonly jwt: JwtService,
-		private readonly prisma: PrismaService) { }
+		private readonly messageService: MessagesService) { }
 
 	@WebSocketServer()
 	server: Namespace;
@@ -58,11 +59,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 	}
 
 	@SubscribeMessage('message')
-	sendMessage(@MessageBody('text') text: string)
+	async sendMessage(@MessageBody() dto: CreateMessageDto)
 	{
-		console.log("args", { text });
-		console.log(`sending text: ${text}`);
-		this.server.emit('message', text);
+		this.logger.debug('in message event', {dto});
+		const newMessage = await this.messageService.create(dto);
+		this.logger.debug({newMessage});
+		// this.server.emit('message', text);
 	}
 
 	/*************************/

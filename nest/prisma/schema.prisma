@@ -62,7 +62,7 @@ model PlayerGame {
 }
 
 model PlayStats {
-    user              User   @relation(fields: [userId], references: [id])
+    user              User   @relation(onDelete: Cascade, fields: [userId], references: [id])
     userId            String @unique
     wins              Int    @default(0)
     losses            Int    @default(0)
