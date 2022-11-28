@@ -1,19 +1,11 @@
 import { useContext, useEffect, useState } from "react";
 import { redirect, useLoaderData } from "react-router-dom";
-import { AuthContext } from "../auth/AuthContext";
-import { getCookie } from "../requests/cookies"
-import { Navigate } from "react-router-dom";
-import { toggleTwoFa } from "../requests/auth.requests"
-import { frontURL } from "../requests/constants";
+import { generateTwoFa, toggleTwoFa } from "../requests/auth.requests"
 
 import './styles/profile.css'
 import { getUserMeFull } from "../requests/users.requests";
-
-function popupwindow(url: string, title: string, w: number, h: number) {
-	var left = Math.round(window.screenX + (window.outerWidth - w) / 2);
-	var top = Math.round(window.screenY + (window.outerHeight - h) / 2.5);
-	return window.open(url, title, 'toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width=' + w + ', height=' + h + ', top=' + top + ', left=' + left);
-}
+import Modal from "../components/Modal/modal";
+import { TwoFa } from "./twofa";
 
 export async function loader() {
 	const res = await getUserMeFull();
@@ -37,57 +29,25 @@ export function Profile() {
 	const playerStats = user.playStats;
 	const [status, setStatus] = useState('waiting');
 	const [twoFa, setTwoFa] = useState<boolean>(user.twoFaEnabled);
-	const [error, setError] = useState(null);
+	const [error, setError] = useState<string | null>(null);
 
-	async function onMessage(event: MessageEvent) 
+	const [isModalOpen, setIsModalOpen] = useState(false);
+
+	async function onModalOpen()
 	{
-		if (status === "loading")
-			return;
-		let done = false;
-		switch (event.data) 
-		{
-			case 'loading':
-				{
-					break;
-				}
-			case 'error':
-				{
-					done = true;
-					break;
-				}
-			case 'success':
-				{
-					done = true;
-					break;
-				}
-		}
-		if (done) {
-			window.removeEventListener('message', onMessage);
-		}
-		setStatus(event.data);
+		const res = await generateTwoFa()
+		console.log(res);
+        if (res.status !== 200)
+        {
+			setError("Error generating OTP");
+        }
+        return res;
 	}
 
 	async function enableTwoFa() 
 	{
-		setStatus('loading')
-		window.addEventListener('message', onMessage);
-		const childWindow = popupwindow(`${frontURL}/login/twofa`, 'Log In', 400, 600);
-		if (childWindow) 
-		{
-			const timerId = setInterval(async () => 
-			{
-				if (childWindow.closed) 
-				{
-					clearInterval(timerId)
-					setStatus((prevState) => 
-					{
-						if (prevState === 'loading')
-							return 'waiting';
-						return prevState;
-					});
-				}
-			}, 100)
-		}
+		setStatus('loading');
+		setIsModalOpen(true);
 	}
 
 	async function disableTwoFa()
@@ -100,6 +60,7 @@ export function Profile() {
 		catch(err: any)
 		{
 			setError(err.message);
+			setStatus('error');
 		}
 	}
 
@@ -122,17 +83,19 @@ export function Profile() {
 				setStatus('waiting');
 				try 
 				{
-					handleToggleTwoFa()
+					handleToggleTwoFa();
 					setTwoFa(true);
+
 				}
 				catch(err: any)
 				{
 					setError(err.message);
+					setStatus('error');
 				}
 
 			}
 		return (() => {})
-	});
+	}, [status]);
 
 	return (
 		<div>
@@ -180,7 +143,10 @@ export function Profile() {
 				</div>
 			</div>
 			<>
-				<button onClick={handleOnClick}>{twoFa === true ? ('Disable') : ('Enable')} 2fa</button>
+				<button onClick={handleOnClick} disabled={status === 'loading'}>{twoFa === true ? ('Disable') : ('Enable')} 2fa</button>
+				<Modal isOpen={isModalOpen} onOpen={onModalOpen} onClose={() => {setIsModalOpen(false); setStatus(prevEvent => {if (prevEvent === 'loading') {return 'waiting'} return prevEvent;})}}>
+					<TwoFa onSuccess={() => {setIsModalOpen(false); setStatus('success')}} />
+				</Modal>
 				<p>status = {status}</p>
 				<p>twoFa = {twoFa === true ? 'true' : 'false'}</p>
 				<p>user.twoFaEnabled = {user.twoFaEnabled === true ? 'true' : 'false'}</p>
