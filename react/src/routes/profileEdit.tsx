@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from "react";
-import { Form, redirect, useActionData, useLoaderData } from "react-router-dom";
+import { Form, redirect, useActionData, useLoaderData, useNavigate } from "react-router-dom";
 import { AuthContext } from "../auth/AuthContext";
 import { getCookie } from "../requests/cookies"
 import { Navigate } from "react-router-dom";
@@ -47,6 +47,10 @@ async function handleToggleTwoFa() {
 	}
 	return res;
 }
+// function useForceUpdate(){
+//     const [value, setValue] = useState(0); // integer state
+//     return () => setValue(value => value + 1); // update state to force render
+// }
 
 export function ProfileEdit() {
 	const user: any = useLoaderData();
@@ -56,7 +60,9 @@ export function ProfileEdit() {
 	const [error, setError] = useState(null);
 	const [edit, setEdit] = useState(false);
 	const [file, setFile] = useState(null);
+	const [lol, setLol] = useState('idle');
 	const action: any = useActionData();
+	const navigate = useNavigate();
 	
 	
 	async function onMessage(event: MessageEvent) 
@@ -163,22 +169,38 @@ export function ProfileEdit() {
 		}
 	});
 
-	const uploadFile = async (file : any) =>
+	useEffect(() =>
 	{
-		const formData = new FormData();
-		formData.append("avatar", file);
-		return await updateAvatar(formData, user.id);
+		if (lol === 'fetched')
+		{
+			console.log('useEffect lol time = ' + Date.now());
+			setLol('idle');
+		}
+	},[lol]);
+
+	async function uploadFile(file : any)
+	{
+		if (file)
+		{
+			const formData = new FormData();
+			formData.append("avatar", file);
+			return await updateAvatar(formData, user.id);
+		}
 	}
-	const handleOnChange = (e: any) =>
+
+	function handleOnChange(e: any)
 	{
 		setFile(e.target.files[0]);
 	}
 	
-	const handleSubmit = async (e: any) =>
+	async function handleSubmit(e: any)
 	{
 		e.preventDefault();
 
+		setLol(()=>'fetching')
 		let res = await uploadFile(file);
+		console.log('front end of handleSubmit time = ' + Date.now())
+		setLol(() => 'fetched');
 	}
 
 	return (
@@ -186,7 +208,7 @@ export function ProfileEdit() {
 			<div className="profileEditPage">
 				<div className="profileTitle">
 					<div className="profileImg">
-						<img src={user.avatarURL} />
+						{user.avatarPath ? (<img src={user.avatarURL + '?prout=' + Date.now()} />) : (<img src={user.avatarURL} />)}
 						<form id="userAvatarForm" encType="multipart/form-data" method='post' onSubmit={handleSubmit}>
 							<input
 								id="avatar"
@@ -230,11 +252,10 @@ export function ProfileEdit() {
 									<>
 										<h3>{user.userName}</h3>
 										<p>{user.email}</p>
-										<button onClick={() => {setEdit(true)}}>Edit</button>
+										<button onClick={() => {setEdit(true);}}>Edit</button>
 									</>
 								)
 						}
-						{/* <h3>{user.userName}</h3> */}
 						
 					</div>
 				</div>

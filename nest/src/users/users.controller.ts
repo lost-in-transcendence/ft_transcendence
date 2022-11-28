@@ -111,6 +111,7 @@ export class UsersController {
 			where: { id : user.id },
 			data
 		});
+		this.logger.debug('uploadFile time = ' + Date.now());
 		//check la validité du fichier puis rm
 		
 	}
