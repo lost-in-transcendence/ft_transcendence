@@ -8,6 +8,7 @@ import { CreateUserDto, UpdateUserDto, UserIncludeQueryDto } from './dto/users.d
 import { UsersService } from './users.service';
 import { Express, Response } from 'express'
 import { diskStorage } from 'multer';
+import * as fs from 'fs'
 
 // @UseGuards(FullAuthGuard)
 @Controller('users')
@@ -106,6 +107,7 @@ export class UsersController {
 	async uploadFile(@UploadedFile() avatar: Express.Multer.File, @GetUser() user, @Body() dto: UpdateUserDto) {
 		console.log(avatar);
 		this.logger.debug(`avatarPath : ${avatar.path}`);
+		const oldAvatar = user.avatarPath;
 		const data: Prisma.UserUpdateInput = { ...dto, avatarURL: 'http://localhost:3333/users/avatars/' + user.id, avatarPath : avatar.path};
 		const res = await this.userService.updateUser({
 			where: { id : user.id },
@@ -113,7 +115,7 @@ export class UsersController {
 		});
 		this.logger.debug('uploadFile time = ' + Date.now());
 		//check la validité du fichier puis rm
-		
+		fs.unlinkSync(oldAvatar);
 	}
 
 	@Get('/avatars/:id')

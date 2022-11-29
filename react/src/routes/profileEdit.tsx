@@ -208,7 +208,7 @@ export function ProfileEdit() {
 			<div className="profileEditPage">
 				<div className="profileTitle">
 					<div className="profileImg">
-						{user.avatarPath ? (<img src={user.avatarURL + '?prout=' + Date.now()} />) : (<img src={user.avatarURL} />)}
+						<img src={user.avatarURL + '?prout=' + Date.now()} />
 						<form id="userAvatarForm" encType="multipart/form-data" method='post' onSubmit={handleSubmit}>
 							<input
 								id="avatar"

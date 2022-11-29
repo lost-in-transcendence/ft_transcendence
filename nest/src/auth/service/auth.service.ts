@@ -1,10 +1,10 @@
 import { Injectable, UseGuards } from '@nestjs/common';
 import { UsersService } from 'src/users/users.service';
 import { JwtService } from '@nestjs/jwt';
-import { User } from '@prisma/client';
 import { JwtPayload } from '../interface/jwtpayload.dto';
 import * as fs from 'fs';
 import { HttpService } from '@nestjs/axios';
+import { Prisma, User } from '@prisma/client';
 
 @Injectable()
 export class AuthService
@@ -12,7 +12,8 @@ export class AuthService
 	constructor(
 		private readonly usersService: UsersService,
 		private readonly jwtService: JwtService,
-		private httpService: HttpService) { }
+		private httpService: HttpService
+		) { }
 
 	async login(profile42: any)
 	{
@@ -22,18 +23,20 @@ export class AuthService
 		if (!user)
 		{
 			user = await this.usersService.createUser({ id42, userName, email, avatarURL});
-			// let dir = './asset/avatars/' + user.id.toString();
-			// if (!fs.existsSync(dir))
-			// {
-			// 	fs.mkdirSync(dir, { recursive: true});
-			// }
-			// console.log(this.httpService.get(avatar));
-			// let writeStream = fs.createWriteStream(dir + '/avatar.jpg');
-			// writeStream.write(this.httpService.get(avatar).pipe());
-			// this.httpService.get(avatar).pipe();
-
-			// resp.pipe(writeStream);
-			// const lol = fs.writeFile(dir + '/avatar.png', this.httpService.get(avatar).pipe(), () => {});
+			const url = avatarURL;
+			const filename = `./asset/avatars/${user.id}_${Date.now().toString()}_avatar.png`;
+			const fileWriterStream = fs.createWriteStream(filename);
+			const response = await this.httpService.axiosRef({
+				url : url,
+				method: 'GET',
+				responseType: 'stream',
+			});
+			await response.data.pipe(fileWriterStream);
+			const data: Prisma.UserUpdateInput = { id42, userName, email, avatarURL: 'http://localhost:3333/users/avatars/' + user.id, avatarPath : filename};
+			const res = await this.usersService.updateUser({
+				where: { id : user.id },
+				data
+			});
 		}
 		
 		const token = await this.signToken({ id: user.id })
