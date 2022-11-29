@@ -9,19 +9,21 @@ import { TwoFa } from "../components/TwoFa/twofa";
 
 export async function loader() {
 	const res = await getUserMeFull();
-	if (res.status !== 200)
-		return (redirect('/login'));
 	return (res);
 }
 
 async function handleToggleTwoFa() {
-
-	const res = await toggleTwoFa();
-
-	if (res.status !== 200) {
-		throw new Error('Wrong code!');
+	try {
+		const res = await toggleTwoFa();
+		return res;
 	}
-	return res;
+	catch (e: any)
+	{
+		if (e.status !== 200)
+		{
+			throw new Error('Wrong code!');
+		}
+	}
 }
 
 export function Profile() {

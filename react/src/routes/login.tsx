@@ -1,4 +1,4 @@
-import { Link, Navigate, Outlet, redirect, useNavigate } from "react-router-dom";
+import { Link, Navigate, Outlet, redirect, useLocation, useNavigate } from "react-router-dom";
 import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../auth/AuthContext";
 import { appURL, backURL, generateTwoFa, getCookie, validateToken } from "../requests";
@@ -29,7 +29,10 @@ async function tryValidateToken()
 export function Login()
 {
 	const auth = useContext(AuthContext);
+	const loc = useLocation();
 	const [status, setStatus] = useState('waiting');
+
+	const error = (loc?.state?.error ? <p>{loc.state.error}</p> : <></>)
 
 	async function onMessage(event: MessageEvent)
 	{
@@ -106,7 +109,7 @@ export function Login()
 
 	return (
 		<div>
-			<button onClick={() => setIsModalOpen(true)}>Open Modal</button>
+			{error}
 			<Modal isOpen={isModalOpen} onOpen={onModalOpen} onClose={() => {setIsModalOpen(false)}}>
 				<TwoFa onSuccess={() => {setIsModalOpen(false); setStatus('success')}} />
 			</Modal>
@@ -116,11 +119,11 @@ export function Login()
 			<button onClick={login}>
 				Log in
 			</button>
+			
 			{status === 'loading' &&
 			<p>Loading</p>}
 			{status === 'error' &&
 			<p>BIG ERROR!!!</p>}
-			{/* <button */}
 			<p>state = {status}</p>
 
 		</div>
