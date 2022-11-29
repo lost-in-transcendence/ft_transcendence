@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 
 import './App.css'
@@ -12,15 +11,9 @@ import { LeaderBoard, loader as leaderboardLoader} from './routes/leaderboard'
 import { Login } from './routes/login'
 import { Profile, loader as profileLoader} from './routes/profile'
 import { ProtectedRoute, loader as protectedLoader } from './routes/protected-route/ProtectedRoute'
-import { TwoFa } from './components/TwoFa/twofa'
-import { WelcomePage } from './routes/welcome'
 
 const router = createBrowserRouter(
 	[
-		{
-			path: "/",
-			element: <WelcomePage />
-		},
 		{
 			path: "/login",
 			element: <Login />
@@ -37,7 +30,7 @@ const router = createBrowserRouter(
 			children:
 			[
 				{
-					path: '/home',
+					path: '/',
 					element: <HomePage />,
 					loader: homepageLoader,
 				},

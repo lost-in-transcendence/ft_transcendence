@@ -114,7 +114,7 @@ export function Login()
 				<TwoFa onSuccess={() => {setIsModalOpen(false); setStatus('success')}} />
 			</Modal>
 			{status === 'success' &&
-			<Navigate to={"/home"} />}
+			<Navigate to={"/"} />}
 			<h1>Login</h1>
 			<button onClick={login}>
 				Log in
