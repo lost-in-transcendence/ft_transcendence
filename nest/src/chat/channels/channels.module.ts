@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
 import { ChannelsService } from './channels.service';
 import { ChannelsController } from './channels.controller';
-import { ChannelGateway } from './channel.gateway';
+import { ChannelsGateway } from './channels.gateway';
 
 @Module({
 	controllers: [ChannelsController],
-	providers: [ChannelsService, ChannelGateway],
+	providers: [ChannelsService, ChannelsGateway],
 	exports: [ChannelsService]
 })
 export class ChannelsModule { }

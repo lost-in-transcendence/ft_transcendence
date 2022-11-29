@@ -29,8 +29,9 @@ import { CreateUserDto } from 'src/users/dto';
 import { joinChannelDto } from './channels/dto/join-channel.dto';
 import { MessagesService } from './messages/messages.service';
 import path from 'path';
+import { CustomWsFilter } from 'src/websocket-server/filters';
 
-@UseFilters(new BaseWsExceptionFilter())
+@UseFilters(new CustomWsFilter())
 @UsePipes(new WsValidationPipe({ whitelist: true }))
 @WebSocketGateway({ cors: true, namespace: 'chat' })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit
@@ -104,7 +105,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 	/******************************************************************************************/
 
 	@SubscribeMessage('joinRoom')
-	join(@MessageBody('channelName') channelName: string, @ConnectedSocket() client: Socket, @GetUserWs() user: User)
+	async join(@MessageBody('channelName') channelName: string, @ConnectedSocket() client: Socket, @GetUserWs() user: User)
 	{
 		const dto: joinChannelDto = {
 			channelName: channelName,
@@ -114,7 +115,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
 		this.logger.log(`client: ${user.userName} has joined channel ${channelName}`);
 		this.logger.debug({user});
-		this.channelService.joinChannel(dto);
+		await this.channelService.joinChannel(dto);
 		this.server.to(channelName).emit('message', {text: `${user.userName} has joined ${channelName} ! Welcome ! lol`});
 		client.join(channelName);
 	}
@@ -125,23 +126,5 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 		console.log('in toRoom', { body });
 		this.logger.debug('sockets', this.server.sockets);
 		client.to(body.channel).emit('message', body);
-	}
-
-	@SubscribeMessage('findOneChat')
-	findOne(@MessageBody() id: number)
-	{
-		return this.chatService.findOne(id);
-	}
-
-	@SubscribeMessage('updateChat')
-	update(@MessageBody() updateChatDto: UpdateChatDto)
-	{
-		return this.chatService.update(updateChatDto.id, updateChatDto);
-	}
-
-	@SubscribeMessage('removeChat')
-	remove(@MessageBody() id: number)
-	{
-		return this.chatService.remove(id);
 	}
 }
