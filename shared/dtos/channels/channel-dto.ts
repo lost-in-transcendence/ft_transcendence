@@ -3,8 +3,7 @@ export class SharedChannelDto
 	id: string;
 	channelName: string;
 	mode: string;
-	hash: string;
-	ownerId: string;
+	hash?: string;
 	createdAt: Date;
 }
 
