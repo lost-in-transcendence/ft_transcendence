@@ -74,12 +74,13 @@ model PlayStats {
 // normalement ca ca marche
 
 model Channel {
-    id          String  @id @default(uuid())
-    channelName String? @unique
+    id          String @id @default(uuid())
+    channelName String
 
-    members  ChannelMember[]
-    messages Message[]
-    mode     ChannelModeType
+    members   ChannelMember[]
+    messages  Message[]
+    mode      ChannelModeType
+    whitelist String[]
 
     hash      String?
     createdAt DateTime @default(now())
