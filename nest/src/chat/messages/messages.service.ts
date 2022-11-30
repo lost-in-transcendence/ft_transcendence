@@ -12,14 +12,8 @@ export class MessagesService
 
 	constructor(private readonly prisma: PrismaService) {}
 
-	async create(dto: CreateMessageDto): Promise<Message>
+	async create(data: Prisma.MessageCreateInput): Promise<Message>
 	{
-		const data: Prisma.MessageCreateInput =
-		{
-			content: dto.content,
-			sender: { connect: { id: dto.userId } },
-			channel: { connect: { id: dto.channelId } }
-		}
 		try
 		{
 			const newMessage = await this.prisma.message.create({

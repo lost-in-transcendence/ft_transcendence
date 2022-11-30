@@ -91,6 +91,7 @@ export class ChannelsService
 							id: true,
 							channelName: true,
 							mode: true,
+							members: true
 						}
 					}
 				}
@@ -138,9 +139,15 @@ export class ChannelsService
 			});
 	}
 
+	async channelSelect(params: Prisma.ChannelFindUniqueArgsBase)
+	{
+		const {where, select} = params;
+		return this.prisma.channel.findUnique({ where, select });
+	}
+
 	async channel(params: Prisma.ChannelFindUniqueArgsBase)
 	{
-		const {where, select, include} = params;
+		const {where, include} = params;
 		return this.prisma.channel.findUnique({
 			where,
 			include,

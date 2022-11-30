@@ -66,8 +66,10 @@ export class ChannelsGateway
 					.then((c) => c.channel)
 			);
 		this.logger.debug({ joinedChannel });
+		const members = joinedChannel.members;
+		this.server.to(joinedChannel.id).emit('users', {users: members});
 		client.join(joinedChannel.id);
-		client.to(joinedChannel.id).emit('message', { text: `${user.userName} has joined ${joinedChannel.channelName} ! Welcome ! lol` });
+		this.notify(joinedChannel.id, `${user.userName} has joined ${joinedChannel.channelName} !`)
 	}
 
 	@SubscribeMessage('leaveChannel')
@@ -123,6 +125,17 @@ export class ChannelsGateway
 		}
 		await this.channelService.leaveChannel({userId_channelId: {userId: user.id, channelId}});
 		client.leave(channelId);
+		this.notify(channelId, `${user.userName} has left the channel`);
+		const res: {members?: ChannelMember[]} = await this.channelService.channelSelect({
+			where: { id: channelId },
+			select:
+			{
+				members: true
+			}
+		});
+		const members = res.members;
+		this.logger.debug({members});
+		this.server.to(channelId).emit('users', {members});
 		// TODO Handle leave message
 	}
 
@@ -165,5 +178,15 @@ export class ChannelsGateway
 
 		this.channelService.remove(channelId);
 		this.server.socketsLeave(channelId);
+	}
+
+	notify(channelId: string, content: string)
+	{
+		this.server.to(channelId).emit('notify', content);
+	}
+
+	alert(channelId: string, content: string)
+	{
+		this.server.to(channelId).emit('alert', content);
 	}
 }

@@ -1,6 +1,6 @@
 export class SharedCreateMessageDto
 {
-	userId: string;
+	// userId: string;
 	channelId: string;
 	content: string;
 }
