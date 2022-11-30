@@ -4,7 +4,7 @@ import { AuthContext } from "../auth/AuthContext";
 import { getCookie } from "../requests/cookies"
 import { Navigate } from "react-router-dom";
 import { toggleTwoFa } from "../requests/auth.requests"
-import { frontURL } from "../requests/constants";
+import { backURL, frontURL } from "../requests/constants";
 
 import './styles/profile.css'
 import { getUserMeFull, updateUser, updateAvatar } from "../requests/users.requests";
@@ -190,7 +190,14 @@ export function ProfileEdit() {
 
 	function handleOnChange(e: any)
 	{
-		setFile(e.target.files[0]);
+		// console.log(e.target.files[0]);
+		if (e?.target?.files[0]?.size > 4 && e?.target?.files[0]?.size <= 1048576)
+		{
+			setFile(e.target.files[0]);
+		}
+		else {
+			e.target.value = "";
+		}
 	}
 	
 	async function handleSubmit(e: any)
@@ -208,7 +215,7 @@ export function ProfileEdit() {
 			<div className="profileEditPage">
 				<div className="profileTitle">
 					<div className="profileImg">
-						<img src={user.avatarURL + '?prout=' + Date.now()} />
+						<img src={`${backURL}/users/avatars/${user.id}?time=${Date.now()}`} />
 						<form id="userAvatarForm" encType="multipart/form-data" method='post' onSubmit={handleSubmit}>
 							<input
 								id="avatar"

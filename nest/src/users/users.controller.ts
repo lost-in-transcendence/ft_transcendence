@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, Logger, NotFoundException, Param, Patch, Post, Query, Res, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, FileTypeValidator, Get, HttpCode, Logger, MaxFileSizeValidator, NotFoundException, Param, ParseFilePipe, Patch, Post, Query, Res, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Prisma, User } from '@prisma/client';
 import { NotFoundError } from 'rxjs';
@@ -97,7 +97,8 @@ export class UsersController {
 	@UseInterceptors(FileInterceptor('avatar', {
 		storage: diskStorage({
 			filename: (req, file, cb) => {
-				const userId: string = req.params.id;
+				const userId: string = req.params.id.split('-').join('');
+				console.debug('lol');
 				console.debug({ file });
 				return (cb(null, `${userId}_${Date.now().toString()}_${file.originalname}`));
 			},
@@ -106,15 +107,15 @@ export class UsersController {
 	}))
 	async uploadFile(@UploadedFile() avatar: Express.Multer.File, @GetUser() user, @Body() dto: UpdateUserDto) {
 		console.log(avatar);
+		console.log(user.id42);
 		this.logger.debug(`avatarPath : ${avatar.path}`);
 		const oldAvatar = user.avatarPath;
-		const data: Prisma.UserUpdateInput = { ...dto, avatarURL: 'http://localhost:3333/users/avatars/' + user.id, avatarPath : avatar.path};
+		const data: Prisma.UserUpdateInput = { ...dto, avatarPath : avatar.path};
 		const res = await this.userService.updateUser({
 			where: { id : user.id },
 			data
 		});
 		this.logger.debug('uploadFile time = ' + Date.now());
-		//check la validité du fichier puis rm
 		fs.unlinkSync(oldAvatar);
 	}
 

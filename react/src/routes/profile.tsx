@@ -2,6 +2,7 @@ import { redirect, useLoaderData, useNavigate } from "react-router-dom";
 
 import './styles/profile.css'
 import { getUserMeFull } from "../requests/users.requests";
+import { backURL } from "../requests/constants";
 
 
 export async function loader() {
@@ -21,7 +22,7 @@ export function Profile() {
 			<div className="profilePage">
 				<div className="profileTitle">
 					<div className="profileImg">
-						<img src={user.avatarURL}/>
+						<img src={`${backURL}/users/avatars/${user.id}?time=${Date.now()}`} />
 						{/* <img src={`http://localhost:3333/users/avatar/${user.id}`} /> */}
 					</div>
 					<div className="profileInfo">

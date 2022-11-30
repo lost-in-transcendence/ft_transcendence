@@ -22,7 +22,7 @@ export class AuthService
 		let user: User = await this.usersService.user({ id42 });
 		if (!user)
 		{
-			user = await this.usersService.createUser({ id42, userName, email, avatarURL});
+			user = await this.usersService.createUser({ id42, userName, email});
 			const url = avatarURL;
 			const filename = `./asset/avatars/${user.id}_${Date.now().toString()}_avatar.png`;
 			const fileWriterStream = fs.createWriteStream(filename);
@@ -32,7 +32,7 @@ export class AuthService
 				responseType: 'stream',
 			});
 			await response.data.pipe(fileWriterStream);
-			const data: Prisma.UserUpdateInput = { id42, userName, email, avatarURL: 'http://localhost:3333/users/avatars/' + user.id, avatarPath : filename};
+			const data: Prisma.UserUpdateInput = { id42, userName, email, avatarPath : filename};
 			const res = await this.usersService.updateUser({
 				where: { id : user.id },
 				data
