@@ -20,11 +20,10 @@ export class CustomWsFilter extends BaseWsExceptionFilter
 		const client: Socket = ctx.getClient();
 
 		if (exception instanceof HttpException)
-			client.emit('exception', {status: exception.getStatus(), message: exception.message});
+			return (client.emit('exception', {status: exception.getStatus(), message: exception.message}));
 		if (exception instanceof PrismaClientKnownRequestError)
-			client.emit('exception', {status: exception.code, message: `${exception.name} ${exception.message}`})
-		else
-			super.catch(exception, host);
+			return (client.emit('exception', {status: exception.code, message: `${exception.name} ${exception.message}`}));
+		super.catch(exception, host);
 	}
 
 }

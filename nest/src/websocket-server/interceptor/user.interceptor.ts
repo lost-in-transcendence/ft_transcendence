@@ -21,7 +21,20 @@ export class UserInterceptor implements NestInterceptor
 			{
 				channels:
 				{
-					include: { channel: true }
+					include:
+					{
+						channel:
+						{
+							select:
+							{
+								id: true,
+								channelName: true,
+								mode: true,
+								whitelist: true,
+								createdAt: true,
+							}
+						}
+					}
 				}
 			}
 		})

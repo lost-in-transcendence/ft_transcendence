@@ -46,10 +46,24 @@ const wsAuthMiddleWare = (jwt: JwtService, prisma: PrismaService, logger: Logger
 				{
 					channels:
 					{
-						include: { channel: true }
+						include:
+						{
+							channel:
+							{
+								select:
+								{
+									id: true,
+									channelName: true,
+									mode: true,
+									whitelist: true,
+									createdAt: true,
+								}
+							}
+						}
 					}
 				}
-			});
+			})
+
 			if (!user)
 				throw new Error('Invalid user');
 			socket.data.user = user;
