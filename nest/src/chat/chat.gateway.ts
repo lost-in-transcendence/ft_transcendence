@@ -1,17 +1,17 @@
-import { Logger, UseFilters, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Logger, UseFilters, UseInterceptors, UsePipes, ValidationPipe } from '@nestjs/common';
 import
-	{
-		WebSocketGateway,
-		SubscribeMessage,
-		MessageBody,
-		WebSocketServer,
-		ConnectedSocket,
-		OnGatewayConnection,
-		WsException,
-		OnGatewayDisconnect,
-		OnGatewayInit,
-		BaseWsExceptionFilter
-	} from '@nestjs/websockets';
+{
+	WebSocketGateway,
+	SubscribeMessage,
+	MessageBody,
+	WebSocketServer,
+	ConnectedSocket,
+	OnGatewayConnection,
+	WsException,
+	OnGatewayDisconnect,
+	OnGatewayInit,
+	BaseWsExceptionFilter
+} from '@nestjs/websockets';
 import { Socket, Namespace } from 'socket.io';
 import { Channel, ChannelMember, RoleType } from '@prisma/client';
 import { Message, Prisma, User } from '@prisma/client';
@@ -30,7 +30,9 @@ import { joinChannelDto } from './channels/dto/join-channel.dto';
 import { MessagesService } from './messages/messages.service';
 import path from 'path';
 import { CustomWsFilter } from 'src/websocket-server/filters';
+import { UserInterceptor } from 'src/websocket-server/interceptor';
 
+@UseInterceptors(UserInterceptor)
 @UseFilters(new CustomWsFilter())
 @UsePipes(new WsValidationPipe({ whitelist: true }))
 @WebSocketGateway({ cors: true, namespace: 'chat' })
@@ -46,6 +48,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 	@WebSocketServer()
 	server: Namespace;
 
+	/*************************/
+	/*      Init Stuff       */
+	/*************************/
+
 	afterInit()
 	{
 		this.logger.log('Chat Gateway initialized');
@@ -59,14 +65,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 			const channels = client.data.user.channels;
 
 			for (let chan of channels)
-				client.join(chan.channel.channelName);
-				// this.logger.debug(chan.channel.channelName);
-			// this.logger.debug('Channel[]: channels ', channels);
+				client.join(chan.channel.id);
 			this.logger.log(`Client ${client.data.user.userName} connected to chat server`);
 		}
 		catch (err)
 		{
-			this.logger.error({err});
+			this.logger.error({ err });
 			client.disconnect();
 		}
 	}
@@ -77,6 +81,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 		this.logger.log(`Client ${user.userName} disconnected from chat server`);
 	}
 
+	/******************************************************************************************/
+
+
 	@SubscribeMessage('message')
 	async sendMessage(@MessageBody() dto: CreateMessageDto)
 	{
@@ -86,15 +93,23 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 		this.server.emit('message', dto);
 	}
 
+	@SubscribeMessage('toChannel')
+	toRoom(@MessageBody() body: any, @ConnectedSocket() client: Socket)
+	{
+		console.log('in toChannel', { body });
+		client.to(body.channel).emit('message', body);
+	}
+
+
 	/*************************/
 	/*        TESTING        */
 	/*************************/
 	@SubscribeMessage('test')
-	async test(@MessageBody() body: {channelId: string, nb: number}, @ConnectedSocket() client: Socket)
+	async test(@GetUserWs() user, @ConnectedSocket() client: Socket)
 	{
-		this.logger.debug('in test event', {body});
-		const test = await this.messageService.getMany(body.channelId, body.nb);
-		this.server.to(client.id).emit('testMsg', test)
+		client.data.prout = { prout: 'prout', lol: 'lol' }
+		this.logger.debug(client.data);
+		this.logger.debug({user});
 	}
 
 	@SubscribeMessage('testMsg')
@@ -103,28 +118,4 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 		this.server.emit('testMsg', body);
 	}
 	/******************************************************************************************/
-
-	@SubscribeMessage('joinRoom')
-	async join(@MessageBody('channelName') channelName: string, @ConnectedSocket() client: Socket, @GetUserWs() user: User)
-	{
-		const dto: joinChannelDto = {
-			channelName: channelName,
-			userId: user.id,
-			role: 'MEMBER'
-		}
-
-		this.logger.log(`client: ${user.userName} has joined channel ${channelName}`);
-		this.logger.debug({user});
-		await this.channelService.joinChannel(dto);
-		this.server.to(channelName).emit('message', {text: `${user.userName} has joined ${channelName} ! Welcome ! lol`});
-		client.join(channelName);
-	}
-
-	@SubscribeMessage('toRoom')
-	toRoom(@MessageBody() body: any, @ConnectedSocket() client: Socket)
-	{
-		console.log('in toRoom', { body });
-		this.logger.debug('sockets', this.server.sockets);
-		client.to(body.channel).emit('message', body);
-	}
 }
