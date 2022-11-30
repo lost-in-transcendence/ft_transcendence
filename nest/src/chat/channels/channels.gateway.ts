@@ -17,7 +17,12 @@ import { UsersService } from "src/users/users.service";
 @UseInterceptors(UserInterceptor)
 @UseFilters(new CustomWsFilter())
 @UsePipes(new WsValidationPipe({ whitelist: true }))
-@WebSocketGateway({ cors: true, namespace: 'chat' })
+@WebSocketGateway({ cors:
+	{
+		origin: "http://localhost:3000",
+		allowedHeaders: ['Authorization'],
+		credentials: true
+	}, namespace: 'chat' })
 export class ChannelsGateway
 {
 	private readonly logger = new Logger(ChannelsGateway.name);
@@ -142,8 +147,9 @@ export class ChannelsGateway
 	@SubscribeMessage('channels')
 	async channels(@ConnectedSocket() client: Socket)
 	{
+		this.logger.debug('CHANNEEEEEELLS', client.id);
 		const visibleChans = await this.getVisibleChannels();
-		this.server.to(client.id).emit('channels', visibleChans);
+		this.server.to(client.id).emit('channels', JSON.stringify(visibleChans));
 	}
 
 

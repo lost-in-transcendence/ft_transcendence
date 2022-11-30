@@ -38,6 +38,7 @@ const wsAuthMiddleWare = (jwt: JwtService, prisma: PrismaService, logger: Logger
 
 		try
 		{
+			logger.debug(socket.handshake.headers);
 			const token = socket.handshake.headers.authorization.split(' ')[1];
 			const decoded = jwt.verify(token, {secret: env.JWT_SECRET});
 			const user: User = await prisma.user.findUnique({
@@ -71,6 +72,7 @@ const wsAuthMiddleWare = (jwt: JwtService, prisma: PrismaService, logger: Logger
 		}
 		catch (err)
 		{
+			logger.error({err});
 			next(new Error('Forbidden'));
 		}
 	}

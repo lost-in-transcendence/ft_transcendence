@@ -25,7 +25,13 @@ import { UserInterceptor } from 'src/websocket-server/interceptor';
 @UseInterceptors(UserInterceptor)
 @UseFilters(new CustomWsFilter())
 @UsePipes(new WsValidationPipe({ whitelist: true }))
-@WebSocketGateway({ cors: true, namespace: 'chat' })
+@WebSocketGateway({ cors:
+	{
+		origin: "http://localhost:3000",
+		allowedHeaders: ['Authorization'],
+		credentials: true,
+		exposedHeaders: ['Authorization']
+	}, namespace: 'chat' })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit
 {
 	private readonly logger = new Logger(ChatGateway.name);
@@ -47,7 +53,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 		this.logger.log('Chat Gateway initialized');
 	}
 
-	handleConnection(client: Socket)
+	async handleConnection(client: Socket)
 	{
 		this.logger.debug('In chat connection');
 		try
@@ -65,7 +71,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 		}
 	}
 
-	handleDisconnect(client: Socket)
+	async handleDisconnect(client: Socket)
 	{
 		const user: User = client.data.user;
 		this.logger.log(`Client ${user.userName} disconnected from chat server`);
