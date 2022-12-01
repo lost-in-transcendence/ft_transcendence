@@ -39,8 +39,8 @@ const wsAuthMiddleWare = (jwt: JwtService, prisma: PrismaService, logger: Logger
 		try
 		{
 			logger.debug(socket.handshake.headers);
-			// const token = socket.handshake.headers.authorization.split(' ')[1];
-			const token = socket.handshake.auth.token;
+			const token = socket.handshake.headers.authorization.split(' ')[1];
+			// const token = socket.handshake.auth.token;
 			const decoded = jwt.verify(token, {secret: env.JWT_SECRET});
 			const user: User = await prisma.user.findUnique({
 				where: { id: decoded.id },

@@ -15,7 +15,12 @@ export async function loader()
 	}
 	// const newSocket = io(`http://localhost:3333`, {/*path: '/chat',*/ autoConnect: false, /*extraHeaders: {"Authorization": "Bearer " + getCookie('jwt')}, withCredentials: true*//*, transports: ['websocket']*//*, transportOptions: {polling: {extraHeaders: {"Authorization": "Bearer " + getCookie('jwt')}}}*/});
 	// console.log({newSocket});
-	const newSocket = io('http://localhost:3333/chat', {autoConnect: false, auth: {token: getCookie('jwt')}});
+	const newSocket = io('http://localhost:3333/chat', 
+	{
+		autoConnect: false,
+		auth: {token: getCookie('jwt')},
+		extraHeaders: {'Authorization' : 'Bearer ' + getCookie('jwt')}
+	});
 	return {user: res, socket: newSocket};
 }
 
