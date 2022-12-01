@@ -21,17 +21,23 @@ import { WsValidationPipe } from '../websocket-server/pipes';
 import { MessagesService } from './messages/messages.service';
 import { CustomWsFilter } from 'src/websocket-server/filters';
 import { UserInterceptor } from 'src/websocket-server/interceptor';
+import { env } from 'process';
 
 @UseInterceptors(UserInterceptor)
 @UseFilters(new CustomWsFilter())
 @UsePipes(new WsValidationPipe({ whitelist: true }))
-@WebSocketGateway({ cors:
-	{
-		origin: "http://localhost:3000",
-		allowedHeaders: ['Authorization'],
-		credentials: true,
-		exposedHeaders: ['Authorization']
-	}, namespace: 'chat' })
+@WebSocketGateway({ cors: `${env.PROTOCOL}${env.APP_HOST}:${env.FRONT_PORT}`, namespace: 'chat'})
+	// {
+	// 	origin: "http://localhost:3000",
+	// 	allowedHeaders: ['Authorization'],
+	// 	credentials: true,
+	// 	exposedHeaders: ['Authorization']
+	// }, namespace: 'chat' })
+	// {
+	// 	origin: '*:*',
+	// 	credentials: true,
+	// }, namespace: 'chat'})
+	// 'http://localhost:3000'}, namespace: 'chat')
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit
 {
 	private readonly logger = new Logger(ChatGateway.name);
@@ -59,7 +65,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 		try
 		{
 			const channels = client.data.user.channels;
-
+			this.logger.debug("hellooo");
 			for (let chan of channels)
 				client.join(chan.channel.id);
 			this.logger.log(`Client ${client.data.user.userName} connected to chat server`);

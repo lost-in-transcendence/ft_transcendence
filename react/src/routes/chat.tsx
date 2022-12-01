@@ -13,8 +13,9 @@ export async function loader()
 	{
 		return redirect('/login');
 	}
-	const newSocket = io(`ws://localhost:3333/chat`, {autoConnect: false, extraHeaders: {"Authorization": "Bearer " + getCookie('jwt')}, withCredentials: true/*, transports: ['websocket']*/, transportOptions: {polling: {extraHeaders: {"Authorization": "Bearer " + getCookie('jwt')}}}});
+	// const newSocket = io(`http://localhost:3333`, {/*path: '/chat',*/ autoConnect: false, /*extraHeaders: {"Authorization": "Bearer " + getCookie('jwt')}, withCredentials: true*//*, transports: ['websocket']*//*, transportOptions: {polling: {extraHeaders: {"Authorization": "Bearer " + getCookie('jwt')}}}*/});
 	// console.log({newSocket});
+	const newSocket = io('http://localhost:3333/chat', {autoConnect: false, auth: {token: getCookie('jwt')}});
 	return {user: res, socket: newSocket};
 }
 

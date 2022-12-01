@@ -13,16 +13,17 @@ import { ChannelDto, CreateChannelDto, PartialChannelDto } from "./dto";
 import { joinChannelDto, joinChannelMessageDto } from "./dto/join-channel.dto";
 import { UserInterceptor } from "src/websocket-server/interceptor";
 import { UsersService } from "src/users/users.service";
+import { env } from "process";
 
 @UseInterceptors(UserInterceptor)
 @UseFilters(new CustomWsFilter())
 @UsePipes(new WsValidationPipe({ whitelist: true }))
-@WebSocketGateway({ cors:
-	{
-		origin: "http://localhost:3000",
-		allowedHeaders: ['Authorization'],
-		credentials: true
-	}, namespace: 'chat' })
+@WebSocketGateway({ cors: `${env.PROTOCOL}${env.APP_HOST}:${env.FRONT_PORT}`, namespace: 'chat'})
+	// {
+	// 	origin: "http://localhost:3000",
+	// 	allowedHeaders: ['Authorization'],
+	// 	credentials: true
+	// }, namespace: 'chat' })
 export class ChannelsGateway
 {
 	private readonly logger = new Logger(ChannelsGateway.name);
