@@ -21,28 +21,38 @@ export async function logout()
 
 export async function validateToken()
 {
-    return fetch(`${backURL}/auth/validate`,
+    const res = await fetch(`${backURL}/auth/validate`,
 	{
 		method: 'GET',
 		headers: {"Authorization": "Bearer " + getCookie("jwt")},
 		credentials: 'include',
 	});
+    if (res.status !== 200)
+	{
+		throw res
+	}
+    return res;
 }
 
 export async function generateTwoFa()
 {
-    return fetch(`${backURL}/twofa/generate`,
+    const res = await fetch(`${backURL}/twofa/generate`,
         {
             method: 'POST',
             credentials: 'include',
             headers: {"Authorization": "Bearer " + getCookie("jwt")}
         })
+    if (res.status !== 200)
+    {
+        throw res
+    }
+    return res;
 }
 
 export async function authenticateTwoFa(code: string)
 {
     
-    return fetch(`${backURL}/twofa/authenticate`,
+    const res = await fetch(`${backURL}/twofa/authenticate`,
     {
         method: 'POST',
         credentials: 'include',
@@ -54,13 +64,23 @@ export async function authenticateTwoFa(code: string)
         },
         body: JSON.stringify({token: code}),
     });
+    if (res.status !== 200)
+    {
+        throw res
+    }
+    return res;
 }
 
 export async function toggleTwoFa() {
-    return fetch(`${backURL}/twofa/toggle`,
+    const res = await fetch(`${backURL}/twofa/toggle`,
         {
             method: 'POST',
             credentials: 'include',
             headers: {"Authorization": "Bearer " + getCookie("jwt")}
         })
+    if (res.status !== 200)
+    {
+        throw res
+    }
+    return res;
 }

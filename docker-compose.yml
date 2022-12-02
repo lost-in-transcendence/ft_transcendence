@@ -30,6 +30,7 @@ services:
       - ${BACK_PORT}:${BACK_PORT}
     volumes:
       - ./nest:/usr/src/app
+      - ./shared:/usr/src/shared
     environment:
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PW}
@@ -64,6 +65,7 @@ services:
       - ${FRONT_PORT}:${FRONT_PORT}
     volumes:
       - ./react:/usr/src/app
+      - ./shared:/usr/src/shared
     networks:
       - transcendence_network
 

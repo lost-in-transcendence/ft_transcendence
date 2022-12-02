@@ -7,9 +7,6 @@ import { env } from "process";
 
 import { PrismaService } from "src/prisma/prisma.service";
 
-// type SocketWithAuth = Socket['data'] & User;
-
-
 export class SocketIOAdapter extends IoAdapter
 {
 	private readonly logger = new Logger(SocketIOAdapter.name);
@@ -34,7 +31,7 @@ export class SocketIOAdapter extends IoAdapter
 }
 
 const wsAuthMiddleWare = (jwt: JwtService, prisma: PrismaService, logger: Logger) =>
-	(socket: Socket, next) =>
+	async (socket: Socket, next) =>
 	{
 
 		logger.debug('In ws MiddleWare');
@@ -43,7 +40,7 @@ const wsAuthMiddleWare = (jwt: JwtService, prisma: PrismaService, logger: Logger
 		{
 			const token = socket.handshake.headers.authorization.split(' ')[1];
 			const decoded = jwt.verify(token, {secret: env.JWT_SECRET});
-			const user = prisma.user.findUnique({where: { id: decoded.id }});
+			const user: User = await prisma.user.findUnique({where: { id: decoded.id }});
 			socket.data.user = user;
 			next();
 		}

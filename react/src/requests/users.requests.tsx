@@ -15,29 +15,44 @@ import { getCookie } from "./cookies";
 
 export async function getUserMe()
 {
-    return fetch(`${backURL}/users/me`, 
+    const res = await fetch(`${backURL}/users/me`, 
 	{
 		method: 'GET',
 		headers: {"Authorization": "Bearer " + getCookie("jwt")}
 	});
+	if (res.status !== 200)
+	{
+		throw res
+	}
+	return res;
 }
 
 export async function getUserMeFull()
 {
-    return fetch(`${backURL}/users/me/complete`,
+    const res = await fetch(`${backURL}/users/me/complete`,
 	{
 		method: 'GET',
 		headers: {"Authorization": "Bearer " + getCookie('jwt')}
 	});
+	if (res.status !== 200)
+	{
+		throw res
+	}
+	return res;
 }
 
 export async function getUserMeModal(params : URLSearchParams)
 {
-    return fetch(`${backURL}/users/me/modal?` + params, 
+	const res = await fetch(`${backURL}/users/me/modal?` + params, 
 	{
 		method: 'GET',
 		headers: {"Authorization": "Bearer " + getCookie("jwt")}
 	});
+	if (res.status !== 200)
+	{
+		throw res
+	}
+	return res;
 }
 
 type UpdateUserDto =

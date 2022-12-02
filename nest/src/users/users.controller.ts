@@ -1,3 +1,4 @@
+
 import { Body, Controller, FileTypeValidator, Get, HttpCode, Logger, MaxFileSizeValidator, NotFoundException, Param, ParseFilePipe, Patch, Post, Query, Res, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Prisma, User } from '@prisma/client';
@@ -139,5 +140,11 @@ export class UsersController {
 			throw (new NotFoundException(`Cannot find user with user name: ${userName}`));
 		}
 		return res;
+	}
+
+	@Delete()
+	async delete(@GetUser('id', ParseUUIDPipe) userId: string)
+	{
+		return this.userService.deleteUser({id: userId});
 	}
 }

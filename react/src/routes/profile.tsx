@@ -1,21 +1,119 @@
-import { redirect, useLoaderData, useNavigate } from "react-router-dom";
 
-import './styles/profile.css'
-import { getUserMeFull } from "../requests/users.requests";
+import { redirect, useLoaderData, useNavigate } from "react-router-dom";
 import { backURL } from "../requests/constants";
 
 
+import { useContext, useEffect, useState } from "react";
+import { generateTwoFa, toggleTwoFa } from "../requests/auth.requests"
+
+import './styles/profile.css'
+import { getUserMeFull } from "../requests/users.requests";
+import Modal from "../components/Modal/modal";
+import { TwoFa } from "../components/TwoFa/twofa";
+
 export async function loader() {
 	const res = await getUserMeFull();
-	if (res.status !== 200)
-		return (redirect('/login'));
 	return (res);
 }
+
 
 export function Profile() {
 	const user: any = useLoaderData();
 	const playerStats = user.playStats;
 	const navigate = useNavigate();
+
+async function handleToggleTwoFa() {
+	try {
+		const res = await toggleTwoFa();
+		return res;
+	}
+	catch (e: any)
+	{
+		if (e.status !== 200)
+		{
+			throw new Error('Wrong code!');
+		}
+	}
+}
+
+
+
+/* to move into profileEdit
+export function Profile() {
+	const user: any = useLoaderData();
+	const playerStats = user.playStats;
+	const [status, setStatus] = useState('waiting');
+	const [twoFa, setTwoFa] = useState<boolean>(user.twoFaEnabled);
+	const [error, setError] = useState<string | null>(null);
+
+	const [isModalOpen, setIsModalOpen] = useState(false);
+
+	async function onModalOpen()
+	{
+		const res = await generateTwoFa()
+		console.log(res);
+        if (res.status !== 200)
+        {
+			setError("Error generating OTP");
+        }
+        return res;
+	}
+
+	async function enableTwoFa() 
+	{
+		setStatus('loading');
+		setIsModalOpen(true);
+	}
+
+	async function disableTwoFa()
+	{
+		try 
+		{
+			await handleToggleTwoFa()
+			setTwoFa(false);
+		}
+		catch(err: any)
+		{
+			setError(err.message);
+			setStatus('error');
+		}
+	}
+
+	async function handleOnClick() 
+	{
+		if (twoFa === true) 
+		{
+			disableTwoFa();
+		}
+		else if (twoFa === false)
+		{
+			enableTwoFa();
+		}
+	}
+
+	useEffect(() =>
+	{
+		if (status === 'success')
+			{
+				setStatus('waiting');
+				try 
+				{
+					handleToggleTwoFa();
+					setTwoFa(true);
+
+				}
+				catch(err: any)
+				{
+					setError(err.message);
+					setStatus('error');
+				}
+
+			}
+		return (() => {})
+	}, [status]);
+*/
+
+
 
 	return (
 		<div>
@@ -65,6 +163,23 @@ export function Profile() {
 			</div>
 			<>
 				<button onClick={() => {navigate("/profile/edit");}}>Edit Profile</button>
+        
+        
+        
+        
+{/* to move on profile Edit
+				<button onClick={handleOnClick} disabled={status === 'loading'}>{twoFa === true ? ('Disable') : ('Enable')} 2fa</button>
+				<Modal isOpen={isModalOpen} onOpen={onModalOpen} onClose={() => {setIsModalOpen(false); setStatus(prevEvent => {if (prevEvent === 'loading') {return 'waiting'} return prevEvent;})}}>
+					<TwoFa onSuccess={() => {setIsModalOpen(false); setStatus('success')}} />
+				</Modal>
+				<p>status = {status}</p>
+				<p>twoFa = {twoFa === true ? 'true' : 'false'}</p>
+				<p>user.twoFaEnabled = {user.twoFaEnabled === true ? 'true' : 'false'}</p>
+				<p>error = {error}</p>
+
+*/}
+
+
 			</>
 		</div>
 	)

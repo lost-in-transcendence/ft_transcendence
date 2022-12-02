@@ -8,10 +8,6 @@ import { getUserMeModal } from "../requests";
 export async function loader()
 {
 	const res = await getUserMeModal(new URLSearchParams({'friends': 'true'}));
-	if (res.status !== 200)
-	{
-		return redirect('/login');
-	}
 	return res;
 }
 
