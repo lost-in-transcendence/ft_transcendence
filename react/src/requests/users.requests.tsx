@@ -54,3 +54,36 @@ export async function getUserMeModal(params : URLSearchParams)
 	}
 	return res;
 }
+
+type UpdateUserDto =
+{
+    readonly userName?: string
+
+    readonly email?: string
+}
+
+export async function updateUser(params : UpdateUserDto)
+{
+	return fetch(`${backURL}/users`, 
+	{
+		method: 'PATCH',
+		headers: {
+			"Authorization": "Bearer " + getCookie("jwt"),
+			"Content-Type": "application/json"
+		},
+		body: JSON.stringify(params)
+	});
+}
+
+
+export async function updateAvatar(formData : any, id: string)
+{
+	return await fetch(`${backURL}/users/avatar/${id}`,
+	{
+		method: 'POST',
+		headers: {
+			"Authorization": "Bearer " + getCookie("jwt"),
+		},
+		body: formData,
+	});
+}

@@ -26,7 +26,7 @@ model User {
   id42          Int    @unique
   userName      String @unique
   email         String @unique
-  avatar        String
+  avatarPath    String?
 
   twoFaEnabled  Boolean @default(false)
   twoFaSecret   String?

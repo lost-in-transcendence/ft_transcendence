@@ -1,5 +1,9 @@
+
+import { redirect, useLoaderData, useNavigate } from "react-router-dom";
+import { backURL } from "../requests/constants";
+
+
 import { useContext, useEffect, useState } from "react";
-import { redirect, useLoaderData } from "react-router-dom";
 import { generateTwoFa, toggleTwoFa } from "../requests/auth.requests"
 
 import './styles/profile.css'
@@ -11,6 +15,12 @@ export async function loader() {
 	const res = await getUserMeFull();
 	return (res);
 }
+
+
+export function Profile() {
+	const user: any = useLoaderData();
+	const playerStats = user.playStats;
+	const navigate = useNavigate();
 
 async function handleToggleTwoFa() {
 	try {
@@ -26,6 +36,9 @@ async function handleToggleTwoFa() {
 	}
 }
 
+
+
+/* to move into profileEdit
 export function Profile() {
 	const user: any = useLoaderData();
 	const playerStats = user.playStats;
@@ -98,13 +111,17 @@ export function Profile() {
 			}
 		return (() => {})
 	}, [status]);
+*/
+
+
 
 	return (
 		<div>
 			<div className="profilePage">
 				<div className="profileTitle">
 					<div className="profileImg">
-						<img src={user.avatar} />
+						<img src={`${backURL}/users/avatars/${user.id}?time=${Date.now()}`} />
+						{/* <img src={`http://localhost:3333/users/avatar/${user.id}`} /> */}
 					</div>
 					<div className="profileInfo">
 						<h3>{user.userName}</h3>
@@ -145,6 +162,12 @@ export function Profile() {
 				</div>
 			</div>
 			<>
+				<button onClick={() => {navigate("/profile/edit");}}>Edit Profile</button>
+        
+        
+        
+        
+{/* to move on profile Edit
 				<button onClick={handleOnClick} disabled={status === 'loading'}>{twoFa === true ? ('Disable') : ('Enable')} 2fa</button>
 				<Modal isOpen={isModalOpen} onOpen={onModalOpen} onClose={() => {setIsModalOpen(false); setStatus(prevEvent => {if (prevEvent === 'loading') {return 'waiting'} return prevEvent;})}}>
 					<TwoFa onSuccess={() => {setIsModalOpen(false); setStatus('success')}} />
@@ -153,6 +176,10 @@ export function Profile() {
 				<p>twoFa = {twoFa === true ? 'true' : 'false'}</p>
 				<p>user.twoFaEnabled = {user.twoFaEnabled === true ? 'true' : 'false'}</p>
 				<p>error = {error}</p>
+
+*/}
+
+
 			</>
 		</div>
 	)

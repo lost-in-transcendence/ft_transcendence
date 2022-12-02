@@ -10,6 +10,7 @@ import { HomePage, loader as homepageLoader } from './routes/home'
 import { LeaderBoard, loader as leaderboardLoader} from './routes/leaderboard'
 import { Login } from './routes/login'
 import { Profile, loader as profileLoader} from './routes/profile'
+import { ProfileEdit, loader as profileEditLoader, action as profileEditAction} from './routes/profileEdit'
 import { ProtectedRoute, loader as protectedLoader } from './routes/protected-route/ProtectedRoute'
 
 const router = createBrowserRouter(
@@ -38,6 +39,13 @@ const router = createBrowserRouter(
 					path: '/profile',
 					element: <Profile />,
 					loader: profileLoader,
+
+				},
+				{
+					path: '/profile/edit',
+					element: <ProfileEdit />,
+					loader: profileEditLoader,
+					action: profileEditAction,
 				},
 				{
 					path: '/game',
