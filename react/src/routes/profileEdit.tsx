@@ -23,12 +23,8 @@ export async function loader() {
 }
 
 export async function action({request}: any) {
-	console.log('profileEditAction');
-	// console.log({request});
 	const formData = await request.formData();
-	// console.log({formData});
 	const updates = Object.fromEntries(formData);
-	console.log({updates});
 	const res = await updateUser(updates);
 	if (!res.ok)
 	{
@@ -42,27 +38,23 @@ async function handleToggleTwoFa() {
 
 	const res = await toggleTwoFa();
 
-	if (res.status !== 200) {
+	if (res.status !== 200)
+	{
 		throw new Error('Wrong code!');
 	}
 	return res;
 }
-// function useForceUpdate(){
-//     const [value, setValue] = useState(0); // integer state
-//     return () => setValue(value => value + 1); // update state to force render
-// }
 
 export function ProfileEdit() {
 	const user: any = useLoaderData();
-	const playerStats = user.playStats;
 	const [status, setStatus] = useState('waiting');
 	const [twoFa, setTwoFa] = useState<boolean>(user.twoFaEnabled);
 	const [error, setError] = useState(null);
 	const [edit, setEdit] = useState(false);
 	const [file, setFile] = useState(null);
-	const [lol, setLol] = useState('idle');
+	const [upload, setUpload] = useState('idle');
+	const [fileError, setFileError] = useState('ok');
 	const action: any = useActionData();
-	const navigate = useNavigate();
 	
 	
 	async function onMessage(event: MessageEvent) 
@@ -73,36 +65,36 @@ export function ProfileEdit() {
 		switch (event.data) 
 		{
 			case 'loading':
-				{
-					break;
-				}
-			case 'error':
-				{
-					done = true;
-					break;
-				}
-			case 'success':
-				{
-					done = true;
-					break;
-				}
-			}
-			if (done) {
-				window.removeEventListener('message', onMessage);
-			}
-			setStatus(event.data);
-		}
-		
-		async function enableTwoFa() 
-		{
-			setStatus('loading')
-			window.addEventListener('message', onMessage);
-			const childWindow = popupwindow(`${frontURL}/login/twofa`, 'Log In', 400, 600);
-			if (childWindow) 
 			{
-				const timerId = setInterval(async () => 
-				{
-					if (childWindow.closed) 
+				break;
+			}
+			case 'error':
+			{
+				done = true;
+				break;
+			}
+			case 'success':
+			{
+				done = true;
+				break;
+			}
+		}
+		if (done) {
+			window.removeEventListener('message', onMessage);
+		}
+		setStatus(event.data);
+	}
+		
+	async function enableTwoFa() 
+	{
+		setStatus('loading')
+		window.addEventListener('message', onMessage);
+		const childWindow = popupwindow(`${frontURL}/login/twofa`, 'Log In', 400, 600);
+		if (childWindow) 
+		{
+			const timerId = setInterval(async () => 
+			{
+				if (childWindow.closed) 
 				{
 					clearInterval(timerId)
 					setStatus((prevState) => 
@@ -171,12 +163,12 @@ export function ProfileEdit() {
 
 	useEffect(() =>
 	{
-		if (lol === 'fetched')
+		if (upload === 'fetched')
 		{
 			console.log('useEffect lol time = ' + Date.now());
-			setLol('idle');
+			setUpload('idle');
 		}
-	},[lol]);
+	},[upload]);
 
 	async function uploadFile(file : any)
 	{
@@ -184,18 +176,23 @@ export function ProfileEdit() {
 		{
 			const formData = new FormData();
 			formData.append("avatar", file);
-			return await updateAvatar(formData, user.id);
+			const res = await updateAvatar(formData, user.id);
+			if (!res.ok)
+			{
+				throw res;
+			}
 		}
 	}
 
 	function handleOnChange(e: any)
 	{
-		// console.log(e.target.files[0]);
-		if (e?.target?.files[0]?.size > 4 && e?.target?.files[0]?.size <= 1048576)
+		if (e?.target?.files[0]?.size <= 1048576)
 		{
 			setFile(e.target.files[0]);
+			setFileError('ok');
 		}
 		else {
+			setFileError('too large');
 			e.target.value = "";
 		}
 	}
@@ -204,10 +201,9 @@ export function ProfileEdit() {
 	{
 		e.preventDefault();
 
-		setLol(()=>'fetching')
+		setUpload(()=>'fetching')
 		let res = await uploadFile(file);
-		console.log('front end of handleSubmit time = ' + Date.now())
-		setLol(() => 'fetched');
+		setUpload(() => 'fetched');
 	}
 
 	return (
@@ -226,6 +222,7 @@ export function ProfileEdit() {
 								onChange={handleOnChange}
 							/>
 							<button type="submit">Upload</button>
+							{fileError === 'too large' ? (<><br/><p><b>File must not exceed 1Mb</b></p></>) : (<></>)}
 						</form>
 					</div>
 					<div className="profileInfo">
@@ -239,7 +236,6 @@ export function ProfileEdit() {
 										placeholder={user.userName}
 										type="text"
 										defaultValue={user.userName}
-										// value=""
 									/>
 									<br />
 									<input
@@ -249,7 +245,6 @@ export function ProfileEdit() {
 										placeholder={user.email}
 										type="text"
 										defaultValue={user.email}
-										// value=""
 									/>
 									<br />
 									<button	type="submit">Submit</button>

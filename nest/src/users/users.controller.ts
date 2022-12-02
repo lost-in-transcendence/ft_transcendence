@@ -98,8 +98,6 @@ export class UsersController {
 		storage: diskStorage({
 			filename: (req, file, cb) => {
 				const userId: string = req.params.id.split('-').join('');
-				console.debug('lol');
-				console.debug({ file });
 				return (cb(null, `${userId}_${Date.now().toString()}_${file.originalname}`));
 			},
 			destination: 'asset/avatars'

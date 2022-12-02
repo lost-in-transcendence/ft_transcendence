@@ -24,6 +24,7 @@ export class AuthService
 		{
 			user = await this.usersService.createUser({ id42, userName, email});
 			const url = avatarURL;
+			const prefix = user.id.split('-').join('')
 			const filename = `./asset/avatars/${user.id}_${Date.now().toString()}_avatar.png`;
 			const fileWriterStream = fs.createWriteStream(filename);
 			const response = await this.httpService.axiosRef({
@@ -33,7 +34,7 @@ export class AuthService
 			});
 			await response.data.pipe(fileWriterStream);
 			const data: Prisma.UserUpdateInput = { id42, userName, email, avatarPath : filename};
-			const res = await this.usersService.updateUser({
+			await this.usersService.updateUser({
 				where: { id : user.id },
 				data
 			});
