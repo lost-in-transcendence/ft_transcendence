@@ -1,5 +1,5 @@
 
-import { Body, Controller, FileTypeValidator, Get, HttpCode, Logger, MaxFileSizeValidator, NotFoundException, Param, ParseFilePipe, Patch, Post, Query, Res, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller,Delete, Get, HttpCode, Logger, MaxFileSizeValidator, NotFoundException, Param, ParseUUIDPipe, Patch, Post, Query, Res, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Prisma, User } from '@prisma/client';
 import { NotFoundError } from 'rxjs';
