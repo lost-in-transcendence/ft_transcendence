@@ -1,10 +1,12 @@
 import { useContext, useEffect, useState } from "react";
 import { redirect, useLoaderData } from "react-router-dom";
+import io, {Socket}from 'socket.io-client'
+
 import { AuthContext } from "../auth/AuthContext";
 import { getCookie } from "../requests/cookies"
-import { Navigate } from "react-router-dom";
 import { backURL, getUserMe, getUserMeModal } from "../requests";
-import io, {Socket}from 'socket.io-client'
+import { ChannelList } from "../components/Chat/Channels/ChannelList";
+import { ChatChannelDto, ChatContext } from '../components/Chat/Context/chatContext'
 
 export async function loader()
 {
@@ -26,43 +28,44 @@ return {user: res, socket: newSocket};
 
 export function Chat()
 {
+	const ctx = useContext(ChatContext)
 	const data: any = useLoaderData();
 	const {user, socket} = data;
-	const [channelList, setChannelList] = useState<any[]>([]);
+	const [channelList, setChannelList] = useState<ChatChannelDto[]>([]);
 
-	async function onChannel(packet : string)
+	function onChannel(packet : ChatChannelDto[])
 	{
-		const body = await JSON.parse(packet);
-		console.log(body);
-		setChannelList(body);
+		if (!packet) return;
+		setChannelList(packet);
 	}
 
 	useEffect(() =>
 	{
+		console.debug('In Chat component useEffect');
+
 		socket.connect();
+
 		socket.on('channels', onChannel);
+
+		socket.emit('channels');
+
 		return () =>
 		{
+			console.debug('In useEffect cleanup');
 			socket?.off('channels');
 			socket?.disconnect();
 		};
 	}, [])
 	// console.log({user});
-	const auth = useContext(AuthContext);
 	return (
-		<div>
-			<h1>Chat</h1>
-			<button onClick={() => {socket.emit('channels', {}); console.log(socket.id)}}>Channels</button>
-			<ul style={{textDecoration: 'none'}}>
-				{
-					channelList.map((c) =>
-					{
-						return (
-							<li key={c.id}>{c.channelName} {c.mode}</li>
-						)
-					})
-				}
-			</ul>
-		</div>
+		<ChatContext.Provider value={{user: user, visibleChans: channelList}}>
+			<div style={{height: 'inherit', border: '1px solid blue', display: 'flex', flexDirection: 'column', margin: '0'}}>
+				<h1 style={{height: '10%', border: '1px solid orange'}}>Chat</h1>
+				<div style={{height: '90%', border: '1px solid red', margin: '0'}}>
+					<ChannelList channels={channelList} />
+				</div>
+				{/* <button onClick={() => {socket.emit('channels'); console.log(socket.id)}}>Channels</button> */}
+			</div>
+		</ChatContext.Provider>
 	)
 }

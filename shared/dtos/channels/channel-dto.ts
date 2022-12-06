@@ -5,10 +5,21 @@ export class SharedChannelDto
 	mode: string;
 	hash?: string;
 	createdAt: Date;
+	members?: ChannelMembersDto[];
 }
 
 export class SharedFindUniqueChannelDto
 {
 	id: string;
 	channelName: string;
+}
+
+class ChannelMembersDto
+{
+	user:
+	{
+		id: string;
+		userName: string;
+		status: string;
+	}
 }

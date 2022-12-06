@@ -1,4 +1,4 @@
-import { ForbiddenException, Logger, ParseIntPipe, ParseUUIDPipe, UseFilters, UseInterceptors, UsePipes, ValidationPipe } from "@nestjs/common";
+import { ForbiddenException, Get, Logger, ParseIntPipe, ParseUUIDPipe, UseFilters, UseInterceptors, UsePipes, ValidationPipe } from "@nestjs/common";
 import { BaseWsExceptionFilter, ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer, WsException } from "@nestjs/websockets";
 import { Prisma, User, Channel, ChannelMember } from "@prisma/client";
 import { IsString } from "class-validator";
@@ -148,11 +148,23 @@ export class ChannelsGateway
 	@SubscribeMessage('channels')
 	async channels(@ConnectedSocket() client: Socket)
 	{
-		this.logger.debug('CHANNEEEEEELLS', client.id);
-		const visibleChans = await this.getVisibleChannels();
-		this.server.to(client.id).emit('channels', JSON.stringify(visibleChans));
+		const visibleChans: PartialChannelDto[] = await this.getVisibleChannels();
+		this.server.to(client.id).emit('channels', visibleChans);
 	}
 
+	@SubscribeMessage('joinedChannels')
+	async joinedChannels(@ConnectedSocket() client: Socket, @GetUserWs('id', ParseUUIDPipe) userId: string)
+	{
+		const joinedChans: PartialChannelDto[] = await this.getJoinedChannels(userId);
+		this.server.to(client.id).emit('joinedChannels', joinedChans);
+	}
+
+	@SubscribeMessage('otherChans')
+	async otherChans(@ConnectedSocket() client: Socket, @GetUserWs('id', ParseUUIDPipe) userId: string)
+	{
+		const otherChans: PartialChannelDto[] = await this.getOtherChannels(userId);
+		this.server.to(client.id).emit('otherChans', otherChans);
+	}
 
 	/*************************/
 	/*        UTILS          */
@@ -167,16 +179,56 @@ export class ChannelsGateway
 					[
 						{ mode: 'PUBLIC' },
 						{ mode: 'PROTECTED' }
-					]
+					],
 			},
 			select:
 			{
 				id: true,
 				mode: true,
 				channelName: true,
+				members:
+				{
+					select: {user: { select: { id: true, userName: true, status: true } }}
+				}
 			}
 		});
 		return (visibleChans);
+	}
+
+	async getJoinedChannels(userId: string): Promise<PartialChannelDto[]>
+	{
+		const joinedChans: PartialChannelDto[] = await this.channelService.channels({
+			where:
+			{
+				members:
+				{
+					some:
+					{
+						userId: userId
+					}
+				}
+			}
+		});
+		return (joinedChans);
+	}
+
+	async getOtherChannels(userId: string): Promise<PartialChannelDto[]>
+	{
+		const otherChans: PartialChannelDto[] = await this.channelService.channels({
+			where:
+			{
+				OR:
+				[
+					{ mode: 'PUBLIC' },
+					{ mode: 'PROTECTED' }
+				],
+				AND:
+				{
+					members: { every: { NOT: { userId: userId } } }
+				}
+			}
+		});
+		return (otherChans);
 	}
 
 	async DstroyChannel(channelId: string)

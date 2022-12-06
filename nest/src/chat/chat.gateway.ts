@@ -69,6 +69,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 			for (let chan of channels)
 				client.join(chan.channel.id);
 			this.logger.log(`Client ${client.data.user.userName} connected to chat server`);
+			client.emit('channels');
 		}
 		catch (err)
 		{
