@@ -8,30 +8,24 @@ import io, {Socket}from 'socket.io-client'
 
 export async function loader()
 {
-<<<<<<< HEAD
-	const res = await getUserMe();
-	if (res.status !== 200)
-	{
-		return redirect('/login');
-	}
-	// const newSocket = io(`http://localhost:3333`, {/*path: '/chat',*/ autoConnect: false, /*extraHeaders: {"Authorization": "Bearer " + getCookie('jwt')}, withCredentials: true*//*, transports: ['websocket']*//*, transportOptions: {polling: {extraHeaders: {"Authorization": "Bearer " + getCookie('jwt')}}}*/});
-	// console.log({newSocket});
-	const newSocket = io('http://localhost:3333/chat', 
-	{
-		autoConnect: false,
-		auth: {token: getCookie('jwt')},
-		extraHeaders: {'Authorization' : 'Bearer ' + getCookie('jwt')}
-	});
-	return {user: res, socket: newSocket};
-=======
-	const res = await getUserMeModal(new URLSearchParams({'friends': 'true'}));
-	return res;
->>>>>>> dev
+const res = await getUserMeModal(new URLSearchParams({'friends': 'true'}));
+if (res.status !== 200)
+{
+	return redirect('/login');
+}
+// const newSocket = io(`http://localhost:3333`, {/*path: '/chat',*/ autoConnect: false, /*extraHeaders: {"Authorization": "Bearer " + getCookie('jwt')}, withCredentials: true*//*, transports: ['websocket']*//*, transportOptions: {polling: {extraHeaders: {"Authorization": "Bearer " + getCookie('jwt')}}}*/});
+// console.log({newSocket});
+const newSocket = io('http://localhost:3333/chat',
+{
+	autoConnect: false,
+	auth: {token: getCookie('jwt')},
+	extraHeaders: {'Authorization' : 'Bearer ' + getCookie('jwt')}
+});
+return {user: res, socket: newSocket};
 }
 
 export function Chat()
 {
-<<<<<<< HEAD
 	const data: any = useLoaderData();
 	const {user, socket} = data;
 	const [channelList, setChannelList] = useState<any[]>([]);
@@ -54,9 +48,6 @@ export function Chat()
 		};
 	}, [])
 	// console.log({user});
-=======
-	const user: any = useLoaderData();
->>>>>>> dev
 	const auth = useContext(AuthContext);
 	return (
 		<div>
