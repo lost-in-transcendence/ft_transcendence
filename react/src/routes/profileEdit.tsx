@@ -29,6 +29,15 @@ export async function action({request}: any)
 {
 	const formData = await request.formData();
 	const updates = Object.fromEntries(formData);
+	console.log(updates);
+	if (!updates?.userName || !updates?.email)
+	{
+		return {status: "empty field"};
+	}
+	else if (updates?.userName?.length > 32)
+	{
+		return {status: "name too long"};
+	}
 	const res = await updateUser(updates);
 	if (!res.ok)
 	{
@@ -132,7 +141,7 @@ export function ProfileEdit()
 
 	useEffect(() => 
 	{
-		if (action?.status == "updated" && edit == true)
+		if (action?.status === "updated" && edit === true)
 		{
 			setEdit(false);
 			action.status = "pending";
@@ -225,6 +234,8 @@ export function ProfileEdit()
 									/>
 									<br />
 									<button	type="submit">Submit</button>
+									{action?.status === 'empty field' ? (<><br/><p><b>Fields must not be empty</b></p></>) : (<></>)}
+									{action?.status === 'name too long' ? (<><br/><p><b>You cannot have a name that is longer than 32 characters</b></p></>) : (<></>)}
 
 								</Form>) : 
 								(

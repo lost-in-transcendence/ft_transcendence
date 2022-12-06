@@ -116,7 +116,7 @@ export class UsersController {
 	@HttpCode(200)
 	async getAvatar(@Param('userName') userName, @Res() res: Response) {
 		const user = await this.userService.user({userName})
-		if (user.avatarPath)
+		if (user?.avatarPath)
 		{
 			res.sendFile(user.avatarPath, { root: './' });
 		}
