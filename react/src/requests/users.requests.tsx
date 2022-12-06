@@ -14,6 +14,34 @@ import { backURL } from "./constants";
 import { getCookie } from "./cookies";
 import { SharedUpdateUserDto } from '../../shared/dtos'
 
+export async function getUser(userName : string)
+{
+	const res = await fetch(`${backURL}/users/view/${userName}`,
+	{
+		method: 'GET',
+		headers: {"Authorization": "Bearer " + getCookie("jwt")}
+	});
+	if (res.status !== 200)
+	{
+		throw res;
+	}
+	return res;
+}
+
+export async function getUserModal(userName : string, params : URLSearchParams)
+{
+	const res = await fetch(`${backURL}/users/view/${userName}/modal?` + params,
+	{
+		method: 'GET',
+		headers: {"Authorization": "Bearer " + getCookie("jwt")}
+	});
+	if (res.status !== 200)
+	{
+		throw res;
+	}
+	return res;
+}
+
 export async function getUserMe()
 {
     const res = await fetch(`${backURL}/users/me`, 
@@ -23,7 +51,7 @@ export async function getUserMe()
 	});
 	if (res.status !== 200)
 	{
-		throw res
+		throw res;
 	}
 	return res;
 }
@@ -37,7 +65,7 @@ export async function getUserMeFull()
 	});
 	if (res.status !== 200)
 	{
-		throw res
+		throw res;
 	}
 	return res;
 }
@@ -51,7 +79,7 @@ export async function getUserMeModal(params : URLSearchParams)
 	});
 	if (res.status !== 200)
 	{
-		throw res
+		throw res;
 	}
 	return res;
 }
@@ -59,7 +87,7 @@ export async function getUserMeModal(params : URLSearchParams)
 
 export async function updateUser(params : SharedUpdateUserDto)
 {
-	return fetch(`${backURL}/users`, 
+	const res = await fetch(`${backURL}/users`, 
 	{
 		method: 'PATCH',
 		headers: {
@@ -68,12 +96,17 @@ export async function updateUser(params : SharedUpdateUserDto)
 		},
 		body: JSON.stringify(params)
 	});
+	if (res.status !== 200)
+	{
+		throw res;
+	}
+	return res;
 }
 
 
-export async function updateAvatar(formData : any, id: string)
+export async function updateAvatar(formData : any, userName: string)
 {
-	return await fetch(`${backURL}/users/avatar/${id}`,
+	const res = await fetch(`${backURL}/users/avatar/${userName}`,
 	{
 		method: 'POST',
 		headers: {
@@ -81,4 +114,9 @@ export async function updateAvatar(formData : any, id: string)
 		},
 		body: formData,
 	});
+	if (res.status !== 200)
+	{
+		throw res;
+	}
+	return res;
 }

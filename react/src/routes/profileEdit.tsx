@@ -153,7 +153,7 @@ export function ProfileEdit()
 		{
 			const formData = new FormData();
 			formData.append("avatar", file);
-			const res = await updateAvatar(formData, user.id);
+			const res = await updateAvatar(formData, user.userName);
 			if (!res.ok)
 			{
 				throw res;

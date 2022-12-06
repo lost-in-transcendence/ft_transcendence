@@ -92,6 +92,7 @@ export class UsersController {
 
 	@UseGuards(FullAuthGuard)
 	@Post('/avatar/:id')
+	@HttpCode(200)
 	@UseInterceptors(FileInterceptor('avatar', {
 		storage: diskStorage({
 			filename: (req, file, cb) => {
@@ -112,6 +113,7 @@ export class UsersController {
 	}
 
 	@Get('/avatars/:userName')
+	@HttpCode(200)
 	async getAvatar(@Param('userName') userName, @Res() res: Response) {
 		const user = await this.userService.user({userName})
 		if (user.avatarPath)
@@ -121,15 +123,30 @@ export class UsersController {
 	}
 
 	@UseGuards(FullAuthGuard)
-	@Get(':userName')
+	@Get('/view/:userName')
+	@HttpCode(200)
 	async findOne(@Param('userName') userName: string)
 	{
-		const res = await this.userService.user({ userName });
+		// const res = await this.userService.user({ userName });
+		const res = await this.userService.userModal({ userName }, this.userIncludeAll);
 		// error handling
 		if (!res) {
 			throw (new NotFoundException(`Cannot find user with user name: ${userName}`));
 		}
 		return res;
+	}
+
+	@UseGuards(FullAuthGuard)
+	@Get('/view/:userName/modal')
+	@HttpCode(200)
+	async getModalProfile(@Param('userName') userName, @Query() include: UserIncludeQueryDto)
+	{
+		this.logger.debug(userName);
+		const res = await this.userService.userModal({ userName }, include)
+		if (!res) {
+			throw (new NotFoundException(`Cannot find user with userName: ${userName}`));
+		}
+		return (res);
 	}
 
 	@Delete()
