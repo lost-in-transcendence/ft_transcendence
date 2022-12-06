@@ -1,4 +1,7 @@
 .env
+
+/asset/avatars
+
 # compiled output
 /dist
 /node_modules
