@@ -36,8 +36,8 @@
 
 .profileImg img
 {
-	max-height: 7rem;
-	max-width: 7rem;
+	height: 7rem;
+	width: 7rem;
 	border-radius: 100%;
 }
 

@@ -7,14 +7,7 @@ import { getUserMe } from "../requests";
 
 export async function loader()
 {
-	// return getCookie('jwt');
-	// const auth = useContext(AuthContext);
-	// console.log(auth.isAuth);
 	const res = await getUserMe();
-	if (res.status !== 200)
-	{
-		return redirect('/login');
-	}
 	return res;
 }
 

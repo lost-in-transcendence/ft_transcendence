@@ -15,11 +15,11 @@ export class ChannelsController
 {
 	constructor(private readonly channelsService: ChannelsService) { }
 
-	@Post()
-	create(@Body() dto: CreateChannelDto, @GetUser('id', ParseUUIDPipe) id: string): Promise<Channel>
-	{
-		return this.channelsService.create(dto, id);
-	}
+	// @Post()
+	// create(@Body() dto: CreateChannelDto, @GetUser('id', ParseUUIDPipe) id: string): Promise<Channel>
+	// {
+	// 	return this.channelsService.create(dto, id);
+	// }
 
 	@Get()
 	findAll(): Promise<Channel[]>

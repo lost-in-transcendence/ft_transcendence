@@ -22,11 +22,11 @@ enum StatusType {
 }
 
 model User {
-    id       String @id @default(uuid())
-    id42     Int    @unique
-    userName String @unique
-    email    String @unique
-    avatar   String
+  id            String @id @default(uuid())
+  id42          Int    @unique
+  userName      String @unique
+  email         String @unique
+  avatarPath    String?
 
     twoFaEnabled Boolean @default(false)
     twoFaSecret  String?
@@ -74,12 +74,13 @@ model PlayStats {
 // normalement ca ca marche
 
 model Channel {
-    id          String  @id @default(uuid())
-    channelName String? @unique
+    id          String @id @default(uuid())
+    channelName String
 
-    members  ChannelMember[]
-    messages Message[]
-    mode     ChannelModeType
+    members   ChannelMember[]
+    messages  Message[]
+    mode      ChannelModeType
+    whitelist String[]
 
     hash      String?
     createdAt DateTime @default(now())

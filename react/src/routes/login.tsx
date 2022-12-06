@@ -1,7 +1,9 @@
-import { Link, Navigate, Outlet, useNavigate } from "react-router-dom";
+import { Link, Navigate, Outlet, redirect, useLocation, useNavigate } from "react-router-dom";
 import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../auth/AuthContext";
-import { appURL, backURL } from "../requests";
+import { appURL, backURL, generateTwoFa, getCookie, validateToken } from "../requests";
+import Modal from "../components/Modal/modal";
+import { TwoFa } from "../components/TwoFa/twofa";
 
 function popupwindow(url: string , title: string, w: number, h: number) 
 {
@@ -10,17 +12,33 @@ function popupwindow(url: string , title: string, w: number, h: number)
 	return window.open(url, title, 'toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width=' + w + ', height=' + h + ', top=' + top + ', left=' + left);
 } 
 
+async function tryValidateToken()
+{
+	if (!getCookie('jwt'))
+	{
+		return false;
+	}
+	const res = await validateToken();
+	if (res.status !== 200)
+	{
+		return false;
+	}
+	return true;
+}
+
 export function Login()
 {
 	const auth = useContext(AuthContext);
+	const loc = useLocation();
 	const [status, setStatus] = useState('waiting');
+
+	const error = (loc?.state?.error ? <p>{loc.state.error}</p> : <></>)
 
 	async function onMessage(event: MessageEvent)
 	{
 		if (status === "loading")
 			return;
 		let done = false;
-		console.log(event.data);
 		switch (event.data)
 		{
 			case 'loading':
@@ -29,6 +47,7 @@ export function Login()
 			}
 			case 'error':
 			case 'success':
+			case 'next':
 			{
 				done = true;
 				break;
@@ -43,6 +62,12 @@ export function Login()
 	async function login()
 	{
 		setStatus('loading')
+		const tokenValid = await tryValidateToken();
+		if (tokenValid === true)
+		{
+			setStatus('success');
+			return;
+		}
 		window.addEventListener('message', onMessage);
 		const childWindow = popupwindow(`${backURL}/auth/login`, 'Log In', 400, 600);
 		if (childWindow) 
@@ -63,30 +88,40 @@ export function Login()
 		}
 	}
 
-	// useEffect(() =>
-	// {
-	// 	if (status === 'success')
-	// 		console.log('success');
-	// 	else
-	// 	{
-	// 		console.log('failure')
-	// 	}
-	// 	return (() => {})
-	// });
+	const [isModalOpen, setIsModalOpen] = useState(false);
+	if (status === 'next')
+	{
+		setIsModalOpen(true);
+		setStatus('waiting');
+	}
+
+	async function onModalOpen()
+	{
+		const res = await generateTwoFa()
+        if (res.status !== 200)
+        {
+			setStatus('error');
+        }
+        return res;
+	}
 
 	return (
 		<div>
+			{error}
+			<Modal isOpen={isModalOpen} onOpen={onModalOpen} onClose={() => {setIsModalOpen(false)}}>
+				<TwoFa onSuccess={() => {setIsModalOpen(false); setStatus('success')}} />
+			</Modal>
 			{status === 'success' &&
-			<Navigate to={"/home"} />}
+			<Navigate to={"/"} />}
 			<h1>Login</h1>
 			<button onClick={login}>
 				Log in
 			</button>
+			
 			{status === 'loading' &&
 			<p>Loading</p>}
 			{status === 'error' &&
 			<p>BIG ERROR!!!</p>}
-			{/* <button */}
 			<p>state = {status}</p>
 
 		</div>

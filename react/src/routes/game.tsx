@@ -8,10 +8,6 @@ import { getUserMe } from "../requests";
 export async function loader()
 {
 	const res = await getUserMe()
-	if (res.status !== 200)
-	{
-		return redirect('/login');
-	}
 	return res;
 }
 

@@ -1,4 +1,4 @@
-import { INestApplicationContext, Logger } from "@nestjs/common";
+import { INestApplicationContext, Logger, UseFilters, UseGuards } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { IoAdapter } from "@nestjs/platform-socket.io";
 import { User } from "@prisma/client";
@@ -22,7 +22,7 @@ export class SocketIOAdapter extends IoAdapter
 
 		const jwt = this.app.get(JwtService);
 		const prisma = this.app.get(PrismaService);
-		const server: Server = super.createIOServer(port);
+		const server: Server = super.createIOServer(port, options);
 
 		server.of('chat').use(wsAuthMiddleWare(jwt, prisma, this.logger));
 
@@ -38,15 +38,42 @@ const wsAuthMiddleWare = (jwt: JwtService, prisma: PrismaService, logger: Logger
 
 		try
 		{
+			logger.debug(socket.handshake.headers);
 			const token = socket.handshake.headers.authorization.split(' ')[1];
+			// const token = socket.handshake.auth.token;
 			const decoded = jwt.verify(token, {secret: env.JWT_SECRET});
-			const user: User = await prisma.user.findUnique({where: { id: decoded.id }});
+			const user: User = await prisma.user.findUnique({
+				where: { id: decoded.id },
+				include:
+				{
+					channels:
+					{
+						include:
+						{
+							channel:
+							{
+								select:
+								{
+									id: true,
+									channelName: true,
+									mode: true,
+									whitelist: true,
+									createdAt: true,
+								}
+							}
+						}
+					}
+				}
+			})
+
+			if (!user)
+				throw new Error('Invalid user');
 			socket.data.user = user;
 			next();
 		}
 		catch (err)
 		{
-			logger.error('ERROR')
+			logger.error({err});
 			next(new Error('Forbidden'));
 		}
 	}
