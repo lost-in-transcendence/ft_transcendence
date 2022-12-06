@@ -1,23 +1,17 @@
 
-import { redirect, useLoaderData, useNavigate } from "react-router-dom";
+import { useLoaderData } from "react-router-dom";
 import { backURL } from "../requests/constants";
-import { useContext, useEffect, useState } from "react";
-import { generateTwoFa, toggleTwoFa } from "../requests/auth.requests"
 import './styles/profile.css'
-import { getUserMeFull } from "../requests/users.requests";
-import Modal from "../components/Modal/modal";
-import { TwoFa } from "../components/TwoFa/twofa";
+import { getUserModal } from "../requests/users.requests";
 
-export async function loader() {
-	const res = await getUserMeFull();
+export async function loader({params} : any) {
+	const res = getUserModal(params.userName, new URLSearchParams({'playStats': 'true', 'matchHistory': 'true'}));
 	return (res);
 }
 
-export function Profile() {
+export function ProfileView() {
 	const user: any = useLoaderData();
-	console.log({user});
 	const playerStats = user.playStats;
-	const navigate = useNavigate();
 
 	return (
 		<div>
@@ -28,7 +22,6 @@ export function Profile() {
 					</div>
 					<div className="profileInfo">
 						<h3>{user.userName}</h3>
-						<p>{user.email}</p>
 					</div>
 				</div>
 				<div className="profilePong">
@@ -64,7 +57,6 @@ export function Profile() {
 					</div>
 				</div>
 			</div>
-				<button onClick={() => {navigate("/profile/edit");}}>Edit Profile</button>
 		</div>
 	)
 }

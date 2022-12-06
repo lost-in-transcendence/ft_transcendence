@@ -10,9 +10,12 @@ import { MailerModule } from '@nestjs-modules/mailer';
 import { PugAdapter } from '@nestjs-modules/mailer/dist/adapters/pug.adapter';
 import { env } from 'process';
 import { FirstStepAuthStrategy } from './strategy/first-step-auth.strategy';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
-  imports: [PassportModule, JwtModule.register({}),
+  imports: 
+  [
+    PassportModule, JwtModule.register({}),
     MailerModule.forRoot({
       transport: 'smtps://' + env.MAILERHOST_USER + ':' + env.MAILERHOST_PW + '@smtp.gmail.com',
       defaults: {
@@ -26,6 +29,7 @@ import { FirstStepAuthStrategy } from './strategy/first-step-auth.strategy';
         },
       },
     }),
+    HttpModule,
   ],
   providers: [AuthService, Auth42Strategy, UsersService, FirstStepAuthStrategy],
   controllers: [AuthController],

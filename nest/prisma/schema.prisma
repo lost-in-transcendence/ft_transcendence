@@ -22,11 +22,19 @@ enum StatusType {
 }
 
 model User {
+<<<<<<< HEAD
     id       String @id @default(uuid())
     id42     Int    @unique
     userName String @unique
     email    String @unique
     avatar   String
+=======
+  id            String @id @default(uuid())
+  id42          Int    @unique
+  userName      String @unique
+  email         String @unique
+  avatarPath    String?
+>>>>>>> dev
 
     twoFaEnabled Boolean @default(false)
     twoFaSecret  String?

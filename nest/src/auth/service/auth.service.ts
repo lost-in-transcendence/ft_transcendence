@@ -1,30 +1,50 @@
 import { Injectable, UseGuards } from '@nestjs/common';
 import { UsersService } from 'src/users/users.service';
 import { JwtService } from '@nestjs/jwt';
-import { User } from '@prisma/client';
 import { JwtPayload } from '../interface/jwtpayload.dto';
+import * as fs from 'fs';
+import { HttpService } from '@nestjs/axios';
+import { Prisma, User } from '@prisma/client';
 
 @Injectable()
 export class AuthService
 {
 	constructor(
 		private readonly usersService: UsersService,
-		private readonly jwtService: JwtService) { }
+		private readonly jwtService: JwtService,
+		private httpService: HttpService
+		) { }
 
 	async login(profile42: any)
 	{
 		const { id42, userName, email, image } = profile42;
-		const avatar = image.link;
+		const avatarURL = image.link;
 		let user: User = await this.usersService.user({ id42 });
 		if (!user)
 		{
-			user = await this.usersService.createUser({ id42, userName, email, avatar});
+			user = await this.usersService.createUser({ id42, userName, email});
+			const url = avatarURL;
+			const prefix = user.id.split('-').join('')
+			const filename = `./asset/avatars/${user.id}_${Date.now().toString()}_avatar.png`;
+			const fileWriterStream = fs.createWriteStream(filename);
+			const response = await this.httpService.axiosRef({
+				url : url,
+				method: 'GET',
+				responseType: 'stream',
+			});
+			await response.data.pipe(fileWriterStream);
+			const data: Prisma.UserUpdateInput = { id42, userName, email, avatarPath : filename};
+			await this.usersService.updateUser({
+				where: { id : user.id },
+				data
+			});
 		}
+		
 		const token = await this.signToken({ id: user.id })
 		return { token, twoFaEnabled: user.twoFaEnabled };
 	}
 
-	async fakeLogin(fakeInfos: {id42: number, userName: string, email: string, avatar: string })
+	async fakeLogin(fakeInfos: {id42: number, userName: string, email: string, avatarURL: string })
 	{
 		const {userName} = fakeInfos;
 		let user: User = await this.usersService.user({userName});

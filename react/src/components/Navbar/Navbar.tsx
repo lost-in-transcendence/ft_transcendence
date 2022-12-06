@@ -17,7 +17,7 @@ export default function Navbar() {
 				<div className="menu">
 					<div className="menu_logo_wrap">
 						<div className="menu_logo">
-							<Link to={'/home'}>
+							<Link to={'/'}>
 								<p style={{ margin: "0", fontSize: "25px" }}>PONG !</p>
 							</Link>
 						</div>

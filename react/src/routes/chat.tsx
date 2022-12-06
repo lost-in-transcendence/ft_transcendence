@@ -8,6 +8,7 @@ import io, {Socket}from 'socket.io-client'
 
 export async function loader()
 {
+<<<<<<< HEAD
 	const res = await getUserMe();
 	if (res.status !== 200)
 	{
@@ -22,10 +23,15 @@ export async function loader()
 		extraHeaders: {'Authorization' : 'Bearer ' + getCookie('jwt')}
 	});
 	return {user: res, socket: newSocket};
+=======
+	const res = await getUserMeModal(new URLSearchParams({'friends': 'true'}));
+	return res;
+>>>>>>> dev
 }
 
 export function Chat()
 {
+<<<<<<< HEAD
 	const data: any = useLoaderData();
 	const {user, socket} = data;
 	const [channelList, setChannelList] = useState<any[]>([]);
@@ -48,6 +54,9 @@ export function Chat()
 		};
 	}, [])
 	// console.log({user});
+=======
+	const user: any = useLoaderData();
+>>>>>>> dev
 	const auth = useContext(AuthContext);
 	return (
 		<div>

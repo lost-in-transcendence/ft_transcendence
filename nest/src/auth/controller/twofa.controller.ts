@@ -25,7 +25,6 @@ export class TwofaController
                 step: 5 * 60
             };
         const token = authenticator.generate(secret);
-        const date: Date = new Date(Date.now() + 800 * 60 * 1000);
         
         await this.twofaService.sendMail(user, token);
     }
