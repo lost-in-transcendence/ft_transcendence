@@ -36,7 +36,6 @@ export class UsersController {
 	@Get('/me')
 	@HttpCode(200)
 	async getMe(@GetUser() user: User) {
-		// console.log(user);
 		return (user);
 	}
 
@@ -55,7 +54,6 @@ export class UsersController {
 	@Get('/me/modal')
 	@HttpCode(200)
 	async getMeModalProfile(@GetUser('id') id: string, @Query() include: UserIncludeQueryDto) {
-		// console.log(include);
 		const res = await this.userService.userModal({ id }, include)
 		if (!res) {
 			throw (new NotFoundException(`Cannot find user with id: ${id}`));
@@ -83,7 +81,6 @@ export class UsersController {
 	@UseGuards(FullAuthGuard)
 	@Patch()
 	async update(@Body() dto: UpdateUserDto, @GetUser('id') id) {
-		console.log(dto);
 		const data: Prisma.UserUpdateInput = { ...dto };
 		const res = await this.userService.updateUser({
 			where: { id },
@@ -105,29 +102,22 @@ export class UsersController {
 		})
 	}))
 	async uploadFile(@UploadedFile() avatar: Express.Multer.File, @GetUser() user, @Body() dto: UpdateUserDto) {
-		console.log(avatar);
-		console.log(user.id42);
-		this.logger.debug(`avatarPath : ${avatar.path}`);
 		const oldAvatar = user.avatarPath;
 		const data: Prisma.UserUpdateInput = { ...dto, avatarPath : avatar.path};
 		const res = await this.userService.updateUser({
 			where: { id : user.id },
 			data
 		});
-		this.logger.debug('uploadFile time = ' + Date.now());
 		fs.unlinkSync(oldAvatar);
 	}
 
-	@Get('/avatars/:id')
-	async getAvatar(@Param('id') id, @Res() res: Response) {
-		const user = await this.userService.user({id})
-		this.logger.debug('in avatars/:id ROUTE');
-		this.logger.debug(`avatarPath : ${user.avatarPath}`);
+	@Get('/avatars/:userName')
+	async getAvatar(@Param('userName') userName, @Res() res: Response) {
+		const user = await this.userService.user({userName})
 		if (user.avatarPath)
 		{
 			res.sendFile(user.avatarPath, { root: './' });
 		}
-		// res.sendFile('asset/avatars/3606040d-b407-4700-b139-2752824c2c36_1669567651366_logo.png', { root: './' });
 	}
 
 	@UseGuards(FullAuthGuard)

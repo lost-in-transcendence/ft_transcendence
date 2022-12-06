@@ -39,7 +39,6 @@ export function Login()
 		if (status === "loading")
 			return;
 		let done = false;
-		console.log(event.data);
 		switch (event.data)
 		{
 			case 'loading':
@@ -99,7 +98,6 @@ export function Login()
 	async function onModalOpen()
 	{
 		const res = await generateTwoFa()
-		console.log(res);
         if (res.status !== 200)
         {
 			setStatus('error');

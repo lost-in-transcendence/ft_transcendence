@@ -14,7 +14,6 @@ export async function loader()
 export function Chat()
 {
 	const user: any = useLoaderData();
-	// console.log({user});
 	const auth = useContext(AuthContext);
 	return (
 		<div>

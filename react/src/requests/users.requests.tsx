@@ -12,6 +12,7 @@
 
 import { backURL } from "./constants";
 import { getCookie } from "./cookies";
+import { SharedUpdateUserDto } from '../../shared/dtos'
 
 export async function getUserMe()
 {
@@ -55,14 +56,8 @@ export async function getUserMeModal(params : URLSearchParams)
 	return res;
 }
 
-type UpdateUserDto =
-{
-    readonly userName?: string
 
-    readonly email?: string
-}
-
-export async function updateUser(params : UpdateUserDto)
+export async function updateUser(params : SharedUpdateUserDto)
 {
 	return fetch(`${backURL}/users`, 
 	{

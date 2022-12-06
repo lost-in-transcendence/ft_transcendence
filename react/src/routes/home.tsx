@@ -18,7 +18,7 @@ export function HomePage()
 		<div className="home-page">
 			<h1>Home Page</h1>
 			<p>{user.userName}</p>
-			<img src={`${backURL}/users/avatars/${user.id}?time=${Date.now()}`} />
+			<img src={`${backURL}/users/avatars/${user.userName}?time=${Date.now()}`} />
 		</div>
 	);
 }

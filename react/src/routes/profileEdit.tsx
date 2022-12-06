@@ -70,7 +70,6 @@ export function ProfileEdit()
 	async function onModalOpen()
 	{
 		const res = await generateTwoFa();
-		console.log(res);
         if (res.status !== 200)
         {
 			setError("Error generating OTP");
@@ -144,7 +143,6 @@ export function ProfileEdit()
 	{
 		if (upload === 'fetched')
 		{
-			console.log('useEffect lol time = ' + Date.now());
 			setUpload('idle');
 		}
 	},[upload]);
@@ -190,7 +188,7 @@ export function ProfileEdit()
 			<div className="profileEditPage">
 				<div className="profileTitle">
 					<div className="profileImg">
-						<img src={`${backURL}/users/avatars/${user.id}?time=${Date.now()}`} />
+						<img src={`${backURL}/users/avatars/${user.userName}?time=${Date.now()}`} />
 						<form id="userAvatarForm" encType="multipart/form-data" method='post' onSubmit={handleSubmit}>
 							<input
 								id="avatar"

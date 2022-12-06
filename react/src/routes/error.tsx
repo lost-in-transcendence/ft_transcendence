@@ -4,7 +4,6 @@ import { logout } from "../requests";
 export function ErrorPage()
 {
 	const error: any = useRouteError();
-	console.log('here', {error})
 
 	if (isRouteErrorResponse(error))
 	{

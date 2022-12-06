@@ -23,7 +23,7 @@ export function Profile() {
 			<div className="profilePage">
 				<div className="profileTitle">
 					<div className="profileImg">
-						<img src={`${backURL}/users/avatars/${user.id}?time=${Date.now()}`} />
+						<img src={`${backURL}/users/avatars/${user.userName}?time=${Date.now()}`} />
 					</div>
 					<div className="profileInfo">
 						<h3>{user.userName}</h3>

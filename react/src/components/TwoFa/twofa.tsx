@@ -44,7 +44,6 @@ function DisplayTimer(props: {timer: any, years:boolean, hours:boolean, minutes:
 async function resendEmail()
 {
     const res = await generateTwoFa()
-		console.log(res);
         if (res.status !== 200)
         {
             throw new Error("Error generating OTP");
