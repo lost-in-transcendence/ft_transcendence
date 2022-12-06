@@ -4,3 +4,8 @@ export class SharedUpdateUserDto
 
     readonly email?: string
 }
+
+export class SharedUpdateFriendsDto
+{
+    readonly userId: string
+}
