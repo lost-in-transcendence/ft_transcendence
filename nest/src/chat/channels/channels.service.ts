@@ -117,6 +117,15 @@ export class ChannelsService
 		return this.prisma.channelMember.delete({where});
 	}
 
+	async banUser(userId: string, channelId: string)
+	{
+		this.prisma.channelMember.update({
+			where: {userId_channelId: {userId, channelId}},
+			data: {role: 'BANNED'}
+		})
+
+	}
+
 	async findAll(): Promise<Channel[]>
 	{
 		const allChannels = await this.prisma.channel.findMany({});

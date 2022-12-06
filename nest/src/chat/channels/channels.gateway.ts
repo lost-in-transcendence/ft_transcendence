@@ -49,6 +49,10 @@ export class ChannelsGateway
 		@ConnectedSocket() client: Socket,
 		@GetUserWs() user: User)
 	{
+		const joinedChans: any[] = user.channels;
+		const thisChan = joinedChans.find((c) => c.channelId === body.channelId);
+		if (thisChan.role === 'BANNED')
+			return ;
 		const dto: joinChannelDto = {
 			channelId: body.channelId,
 			userId: user.id,
@@ -129,7 +133,8 @@ export class ChannelsGateway
 			else
 				return (this.DstroyChannel(channelId));
 		}
-		await this.channelService.leaveChannel({userId_channelId: {userId: user.id, channelId}});
+		if (thisChan.role !== 'BANNED')
+			await this.channelService.leaveChannel({userId_channelId: {userId: user.id, channelId}});
 		client.leave(channelId);
 		this.notify(channelId, `${user.userName} has left the channel`);
 		const res: {members?: ChannelMember[]} = await this.channelService.channelSelect({
@@ -144,6 +149,15 @@ export class ChannelsGateway
 		this.server.to(channelId).emit('users', {members});
 		// TODO Handle leave message
 	}
+
+	@SubscribeMessage('ban')
+	async banUser(
+		@ConnectedSocket() client: Socket,
+		@MessageBody('channelId') channelId: string
+		)
+	{
+		return (this.channelService.banUser(client.data.user.id, channelId))
+	}	
 
 	@SubscribeMessage('channels')
 	async channels(@ConnectedSocket() client: Socket)
