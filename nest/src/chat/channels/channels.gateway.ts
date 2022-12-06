@@ -49,7 +49,7 @@ export class ChannelsGateway
 		@ConnectedSocket() client: Socket,
 		@GetUserWs() user: User)
 	{
-		const joinedChans: any[] = user.channels;
+		const joinedChans: any[] = client.data.user.channel;
 		const thisChan = joinedChans.find((c) => c.channelId === body.channelId);
 		if (thisChan.role === 'BANNED')
 			return ;

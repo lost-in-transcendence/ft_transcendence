@@ -44,7 +44,7 @@ export class AuthService
 		return { token, twoFaEnabled: user.twoFaEnabled };
 	}
 
-	async fakeLogin(fakeInfos: {id42: number, userName: string, email: string, avatarURL: string })
+	async fakeLogin(fakeInfos: {id42: number, userName: string, email: string, avatarPath: string })
 	{
 		const {userName} = fakeInfos;
 		let user: User = await this.usersService.user({userName});
