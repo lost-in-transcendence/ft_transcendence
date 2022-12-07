@@ -1,32 +1,43 @@
-import { Logger, UseFilters, UsePipes, ValidationPipe } from '@nestjs/common';
-import {
+import { Logger, UseFilters, UseInterceptors, UsePipes } from '@nestjs/common';
+import
+{
 	WebSocketGateway,
 	SubscribeMessage,
 	MessageBody,
 	WebSocketServer,
 	ConnectedSocket,
 	OnGatewayConnection,
-	WsException,
 	OnGatewayDisconnect,
 	OnGatewayInit,
-	BaseWsExceptionFilter
 } from '@nestjs/websockets';
 import { Socket, Namespace } from 'socket.io';
 import { User } from '@prisma/client';
-import { JwtService } from '@nestjs/jwt';
 
 import { ChannelsService } from 'src/chat/channels/channels.service';
 import { ChatService } from './chat.service';
-import { UpdateChatDto } from './dto/update-chat.dto';
-import { CreateChatDto } from './dto';
 import { GetUserWs } from 'src/users/decorator/get-user-ws';
 import { CreateMessageDto } from './messages/dto';
 import { WsValidationPipe } from '../websocket-server/pipes';
 import { MessagesService } from './messages/messages.service';
+import { CustomWsFilter } from 'src/websocket-server/filters';
+import { UserInterceptor } from 'src/websocket-server/interceptor';
+import { env } from 'process';
 
-@UseFilters(new BaseWsExceptionFilter())
-@UsePipes(new WsValidationPipe({whitelist: true}))
-@WebSocketGateway({ cors: true, namespace: 'chat' })
+@UseInterceptors(UserInterceptor)
+@UseFilters(new CustomWsFilter())
+@UsePipes(new WsValidationPipe({ whitelist: true }))
+@WebSocketGateway({ cors: `${env.PROTOCOL}${env.APP_HOST}:${env.FRONT_PORT}`, namespace: 'chat'})
+	// {
+	// 	origin: "http://localhost:3000",
+	// 	allowedHeaders: ['Authorization'],
+	// 	credentials: true,
+	// 	exposedHeaders: ['Authorization']
+	// }, namespace: 'chat' })
+	// {
+	// 	origin: '*:*',
+	// 	credentials: true,
+	// }, namespace: 'chat'})
+	// 'http://localhost:3000'}, namespace: 'chat')
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit
 {
 	private readonly logger = new Logger(ChatGateway.name);
@@ -39,75 +50,79 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 	@WebSocketServer()
 	server: Namespace;
 
+	/*************************/
+	/*      Init Stuff       */
+	/*************************/
+
 	afterInit()
 	{
 		this.logger.log('Chat Gateway initialized');
 	}
 
-	handleConnection(client: Socket, @GetUserWs() user: User)
+	async handleConnection(client: Socket)
 	{
-		this.logger.log(`Client ${client.data.user.userName} connected to chat server`);
+		this.logger.debug('In chat connection');
+		try
+		{
+			const channels = client.data.user.channels;
+			this.logger.debug("hellooo");
+			for (let chan of channels)
+				client.join(chan.channel.id);
+			this.logger.log(`Client ${client.data.user.userName} connected to chat server`);
+			client.emit('channels');
+		}
+		catch (err)
+		{
+			this.logger.error({ err });
+			client.disconnect();
+		}
 	}
 
-	handleDisconnect(client: Socket)
+	async handleDisconnect(client: Socket)
 	{
 		const user: User = client.data.user;
 		this.logger.log(`Client ${user.userName} disconnected from chat server`);
 	}
 
+	/******************************************************************************************/
+
+
 	@SubscribeMessage('message')
-	async sendMessage(@MessageBody() dto: CreateMessageDto)
+	async sendMessage(@MessageBody() dto: CreateMessageDto, @ConnectedSocket() client: Socket, @GetUserWs() user)
 	{
-		this.logger.debug('in message event', {dto});
-		const newMessage = await this.messageService.create(dto);
-		this.logger.debug({newMessage});
-		// this.server.emit('message', text);
+		this.logger.debug('in message event', { dto });
+
+		const newDto = { ...dto, userId: user.id }
+		// const newMessage: Message = await this.messageService.create(newDto);
+		this.server.emit('message', dto);
+	}
+
+	@SubscribeMessage('toChannel')
+	async toRoom(@MessageBody() dto: CreateMessageDto, @ConnectedSocket() client: Socket, @GetUserWs() user)
+	{
+		const newMessage = await this.messageService.create({
+			content: dto.content,
+			channel: { connect: { id: dto.channelId } },
+			sender: { connect: { id: user.id } }
+		});
+		this.server.to(dto.channelId).emit('toChannel', newMessage);
 	}
 
 	/*************************/
 	/*        TESTING        */
 	/*************************/
 	@SubscribeMessage('test')
-	test()
+	async test(@GetUserWs() user, @ConnectedSocket() client: Socket)
 	{
-		this.logger.debug('DEBUG');
-		this.logger.error('ERROR');
-		this.logger.log('LOG');
-		this.logger.verbose('VERBOSE');
-		this.logger.warn('WARN');
+		client.data.prout = { prout: 'prout', lol: 'lol' }
+		this.logger.debug(client.data);
+		this.logger.debug({ user });
+	}
+
+	@SubscribeMessage('testMsg')
+	testMsg(@MessageBody() body: any)
+	{
+		this.server.emit('testMsg', body);
 	}
 	/******************************************************************************************/
-
-	@SubscribeMessage('joinRoom')
-	join(@MessageBody('channel') channel: string, @ConnectedSocket() client: Socket, @GetUserWs() user: User)
-	{
-		this.logger.log(`client: ${user.userName} has joined channel ${channel}`);
-		this.logger.debug({user});
-		client.join(channel);
-	}
-
-	@SubscribeMessage('toRoom')
-	toRoom(@MessageBody() body: CreateChatDto, @ConnectedSocket() client: Socket)
-	{
-		console.log('in toRoom', { body });
-		client.to(body.channel).emit('message', body);
-	}
-
-	@SubscribeMessage('findOneChat')
-	findOne(@MessageBody() id: number)
-	{
-		return this.chatService.findOne(id);
-	}
-
-	@SubscribeMessage('updateChat')
-	update(@MessageBody() updateChatDto: UpdateChatDto)
-	{
-		return this.chatService.update(updateChatDto.id, updateChatDto);
-	}
-
-	@SubscribeMessage('removeChat')
-	remove(@MessageBody() id: number)
-	{
-		return this.chatService.remove(id);
-	}
 }

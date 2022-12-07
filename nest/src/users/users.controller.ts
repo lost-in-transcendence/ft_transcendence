@@ -31,7 +31,7 @@ export class UsersController {
 		}
 	}
 
-	
+
 	@UseGuards(FullAuthGuard)
 	@Get('/me')
 	@HttpCode(200)
@@ -70,7 +70,7 @@ export class UsersController {
 		return res;
 	}
 
-	
+
 	@UseGuards(FullAuthGuard)
 	@Post()
 	async create(@Body() dto: CreateUserDto) {
@@ -149,6 +149,7 @@ export class UsersController {
 		return (res);
 	}
 
+	@UseGuards(FullAuthGuard)
 	@Delete()
 	async delete(@GetUser('id', ParseUUIDPipe) userId: string)
 	{

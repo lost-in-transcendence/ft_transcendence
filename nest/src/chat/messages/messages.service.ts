@@ -1,6 +1,6 @@
 import { ForbiddenException, ImATeapotException, Injectable, Logger, NotFoundException, PreconditionFailedException } from "@nestjs/common";
 import { WsException } from "@nestjs/websockets";
-import { Message } from "@prisma/client";
+import { Message, Prisma } from "@prisma/client";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 import { PrismaService } from "src/prisma/prisma.service";
 import { CreateMessageDto } from "./dto";
@@ -12,16 +12,12 @@ export class MessagesService
 
 	constructor(private readonly prisma: PrismaService) {}
 
-	async create(dto: CreateMessageDto): Promise<Message>
+	async create(data: Prisma.MessageCreateInput): Promise<Message>
 	{
 		try
 		{
 			const newMessage = await this.prisma.message.create({
-				data: {
-					channel: {connect: {id: dto.channelId}},
-					sender: {connect: {id: dto.userId}},
-					content: dto.content
-				},
+				data
 			});
 			return (newMessage);
 		}
@@ -34,5 +30,27 @@ export class MessagesService
 			}
 			throw new ImATeapotException('Something unexpected happened');
 		}
+	}
+
+	async getMany(channelId: string, nb: number): Promise<Message[]>
+	{
+		const manyMessages = await this.prisma.message.findMany({
+			where: { channelId: channelId },
+			take: nb,
+			orderBy: { createdAt: 'desc' }
+		})
+		return (manyMessages);
+	}
+
+	async messages(params: Prisma.MessageFindManyArgs): Promise<Message[]> {
+		const { skip, take, cursor, where, orderBy } = params;
+		return this.prisma.message.findMany(
+			{
+				skip,
+				take,
+				cursor,
+				where,
+				orderBy
+			});
 	}
 }

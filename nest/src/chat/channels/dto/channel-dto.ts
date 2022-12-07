@@ -1,5 +1,5 @@
 import { PartialType } from "@nestjs/mapped-types";
-import { ChannelModeType } from "@prisma/client";
+import { ChannelModeType, Channel } from "@prisma/client";
 import { IsDate, IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID} from "class-validator";
 
 import { SharedChannelDto, SharedFindUniqueChannelDto } from "shared/dtos";
@@ -18,11 +18,7 @@ export class ChannelDto implements SharedChannelDto
 
 	@IsString()
 	@IsOptional()
-	hash: string;
-
-	@IsUUID()
-	@IsNotEmpty()
-	ownerId: string;
+	hash?: string;
 
 	@IsDate()
 	createdAt: Date;
@@ -38,3 +34,5 @@ export class FindUniqueChannelDto implements SharedFindUniqueChannelDto
 	@IsOptional()
 	channelName: string;
 }
+
+export class PartialChannelDto extends PartialType(ChannelDto) {}

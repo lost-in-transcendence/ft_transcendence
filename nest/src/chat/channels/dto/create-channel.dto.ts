@@ -5,9 +5,9 @@ import { SharedCreateChannelDto } from "shared/dtos";
 
 export class CreateChannelDto implements SharedCreateChannelDto
 {
-	@IsOptional()
+	@IsNotEmpty()
 	@IsString()
-	channelName?: string;
+	channelName: string;
 
 	@IsEnum(ChannelModeType)
 	@IsNotEmpty()

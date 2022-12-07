@@ -3,7 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import { env } from 'process';
 import { AppModule } from './app.module';
 import * as cookieParser from 'cookie-parser';
-import { SocketIOAdapter } from './websocket-server/socket-io.adapter';
+import { SocketIOAdapter } from './websocket-server/adapter/socket-io.adapter';
 
 async function bootstrap()
 {

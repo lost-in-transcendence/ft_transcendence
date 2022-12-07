@@ -55,9 +55,9 @@ export class AuthController
 	}
 
 	@Post('dev-signup')
-	devAuth(@Body() fakeInfos: {id42: number, userName: string, email: string, avatarURL: any})
+	devAuth(@Body() fakeInfos: {id42: number, userName: string, email: string, avatarPath: any})
 	{
-		fakeInfos.avatarURL = FAKE_IMG_URL;
+		fakeInfos.avatarPath = FAKE_IMG_URL;
 		return (this.authService.fakeLogin(fakeInfos));
 	}
 }

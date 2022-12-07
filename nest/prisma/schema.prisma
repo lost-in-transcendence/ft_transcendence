@@ -2,23 +2,23 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+    provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
 }
 
 // Voici un commentaire pour expliquer mon THOT process
 
 enum StatusType {
-  ONLINE
-  OFFLINE
-  BUSY
-  AWAY
-  INVISIBLE
-  TA_GRAND_MERE
+    ONLINE
+    OFFLINE
+    BUSY
+    AWAY
+    INVISIBLE
+    TA_GRAND_MERE
 }
 
 model User {
@@ -28,95 +28,98 @@ model User {
   email         String @unique
   avatarPath    String?
 
-  twoFaEnabled  Boolean @default(false)
-  twoFaSecret   String?
+    twoFaEnabled Boolean @default(false)
+    twoFaSecret  String?
 
-  friends       User[] @relation("friendList")
-  friendTo      User[] @relation("friendList")
+    friends  User[] @relation("friendList")
+    friendTo User[] @relation("friendList")
 
-  blacklist     User[] @relation("blacklist")
-  blacklistedBy User[] @relation("blacklist")
+    blacklist     User[] @relation("blacklist")
+    blacklistedBy User[] @relation("blacklist")
 
-  createdAt     DateTime @default(now())
-  status        StatusType @default(OFFLINE)
-  matchHistory  PlayerGame[]
-  playStats     PlayStats?
-  channels      ChannelMember[]
-  messages      Message[]
+    createdAt    DateTime        @default(now())
+    status       StatusType      @default(OFFLINE)
+    matchHistory PlayerGame[]
+    playStats    PlayStats?
+    channels     ChannelMember[]
+    messages     Message[]
 }
 
 model Game {
-  id        String  @id @default(uuid())
-  playedAt  DateTime  @default(now())
-  players   PlayerGame[]
+    id       String       @id @default(uuid())
+    playedAt DateTime     @default(now())
+    players  PlayerGame[]
 }
 
 model PlayerGame {
-  player    User  @relation(fields: [playerId], references: [id])
-  playerId  String
-  game      Game  @relation(fields: [gameId], references: [id])
-  gameId    String
-  score     Int
+    player   User   @relation(fields: [playerId], references: [id])
+    playerId String
+    game     Game   @relation(fields: [gameId], references: [id])
+    gameId   String
+    score    Int
 
-  @@id([playerId, gameId])
+    @@id([playerId, gameId])
 }
 
 model PlayStats {
-  user              User  @relation(onDelete: Cascade ,fields: [userId], references: [id])
-  userId            String  @unique
-  wins              Int @default(0)
-  losses            Int @default(0)
-  rank              Int @default(0)
-  points            Int @default(0)
-  achievement_point Int @default(0)
+    user              User   @relation(onDelete: Cascade, fields: [userId], references: [id])
+    userId            String @unique
+    wins              Int    @default(0)
+    losses            Int    @default(0)
+    rank              Int    @default(0)
+    points            Int    @default(0)
+    achievement_point Int    @default(0)
 }
+
 // normalement ca ca marche
 
-
 model Channel {
-  id         	String  @id @default(uuid())
-  channelName	String? @unique
+    id          String @id @default(uuid())
+    channelName String
 
-  members    	ChannelMember[]
-  messages   	Message[]
-  mode       	ChannelModeType
+    members   ChannelMember[]
+    messages  Message[]
+    mode      ChannelModeType
+    whitelist String[]
 
-  hash			String?
-  createdAt   	DateTime @default(now())
+    hash      String?
+    createdAt DateTime @default(now())
 }
 
 enum ChannelModeType {
-  PUBLIC
-  PRIVATE
-  PROTECTED
-  PRIVMSG
+    PUBLIC
+    PRIVATE
+    PROTECTED
+    PRIVMSG
 }
 
 model ChannelMember {
-  channel     Channel @relation(fields: [channelId], references: [id])
-  channelId   String
-  user        User @relation(fields: [userId], references: [id])
-  userId      String
-  role        RoleType
-  timeJoined  DateTime @default(now())
+    channel     Channel   @relation(fields: [channelId], references: [id], onDelete: Cascade)
+    channelId   String
+    user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+    userId      String
+    role        RoleType
+    banExpires  DateTime? @default(now())
+    muteExpires DateTime? @default(now())
+    timeJoined  DateTime  @default(now())
 
-  @@id([userId, channelId])
+    @@id([userId, channelId])
 }
 
 enum RoleType {
-  OWNER
-  ADMIN
-  MEMBER
-  MUTED
-  BANNED
+    OWNER
+    ADMIN
+    MEMBER
+    MUTED
+    BANNED
 }
 
 model Message {
-  id        String @id @default(uuid())
-  sender    User @relation(fields: [userId], references: [id])
-  userId    String
-  channel   Channel @relation(fields: [channelId], references: [id])
-  channelId String
-  createdAt DateTime @default(now())
-  content   String @db.VarChar(2000)
+    id        String   @id @default(uuid())
+    sender    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    userId    String
+    channel   Channel  @relation(fields: [channelId], references: [id], onDelete: Cascade)
+    channelId String
+    createdAt DateTime @default(now())
+    content   String   @db.VarChar(2000)
 }
