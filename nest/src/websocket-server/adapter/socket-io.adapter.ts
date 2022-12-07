@@ -46,6 +46,9 @@ const wsAuthMiddleWare = (jwt: JwtService, prisma: PrismaService, logger: Logger
 				where: { id: decoded.id },
 				include:
 				{
+					playStats: true,
+					friends: true,
+					blacklist: true,
 					channels:
 					{
 						include:
@@ -65,7 +68,7 @@ const wsAuthMiddleWare = (jwt: JwtService, prisma: PrismaService, logger: Logger
 					}
 				}
 			})
-
+			logger.debug({user});
 			if (!user)
 				throw new Error('Invalid user');
 			socket.data.user = user;

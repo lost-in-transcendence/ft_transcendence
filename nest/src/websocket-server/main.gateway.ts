@@ -23,16 +23,17 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	constructor(private readonly userService: UsersService) {}
 
 	@WebSocketServer()
-	server: Namespace;
+	server: Server;
 
 	afterInit(server: Server)
 	{
 		this.logger.log('Main Gateway initialized');
 	}
 
-	handleConnection(client: Socket, ...args: any[])
+	handleConnection(client: Socket)
 	{
 		this.logger.log(`Client ${client.id} connected to Main websocket Gateway`);
+		this.server.to(client.id).emit('handshake', client.data.user);
 	}
 
 	handleDisconnect(client: Socket)

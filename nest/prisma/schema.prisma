@@ -22,11 +22,11 @@ enum StatusType {
 }
 
 model User {
-  id            String @id @default(uuid())
-  id42          Int    @unique
-  userName      String @unique
-  email         String @unique
-  avatarPath    String?
+    id         String  @id @default(uuid())
+    id42       Int     @unique
+    userName   String  @unique
+    email      String  @unique
+    avatarPath String?
 
     twoFaEnabled Boolean @default(false)
     twoFaSecret  String?
@@ -62,13 +62,13 @@ model PlayerGame {
 }
 
 model PlayStats {
-    user              User   @relation(onDelete: Cascade, fields: [userId], references: [id])
-    userId            String @unique
-    wins              Int    @default(0)
-    losses            Int    @default(0)
-    rank              Int    @default(0)
-    points            Int    @default(0)
-    achievement_point Int    @default(0)
+    user               User   @relation(onDelete: Cascade, fields: [userId], references: [id])
+    userId             String @unique
+    wins               Int    @default(0)
+    losses             Int    @default(0)
+    rank               Int    @default(0)
+    points             Int    @default(0)
+    achievement_points Int    @default(0)
 }
 
 // normalement ca ca marche
