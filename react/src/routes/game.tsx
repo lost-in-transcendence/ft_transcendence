@@ -7,14 +7,14 @@ import { getUserMe } from "../requests";
 
 export async function loader()
 {
-	const res = await getUserMe()
-	return res;
+	// const res = await getUserMe()
+	// return res;
 }
 
 export function Game()
 {
 
-	const user: any = useLoaderData();
+	// const user: any = useLoaderData();
 	const auth = useContext(AuthContext);
 	return (
 		<div>
