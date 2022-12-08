@@ -26,7 +26,7 @@ export function ProfileView() {
 	{
 		if (isFriends)
 		{
-			const res = await removeFriend(profile.id);	
+			const res = await removeFriend(profile.id);
 		}
 		else
 		{
@@ -57,7 +57,7 @@ export function ProfileView() {
 										<p>Losses : {playerStats.losses}</p>
 										<p>Rank : {playerStats.rank}</p>
 										<p>Points Scored : {playerStats.points}</p>
-										<p>Achievement points : {playerStats.achievement_point}</p>
+										<p>Achievement points : {playerStats.achievement_points}</p>
 									</>
 									:
 									<p>Something went wrong ! <br /> Check with the owner of this awesome webapp</p>
