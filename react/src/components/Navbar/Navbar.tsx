@@ -1,7 +1,8 @@
-import { MouseEventHandler, useContext, useState } from 'react'
+import { MouseEventHandler, useContext, useEffect, useState } from 'react'
 import { Link, NavLink, redirect, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../auth/AuthContext';
-import { logout } from '../../requests';
+import { User } from '../../dto/users.dto';
+import { backURL, getUser, getUserMe, logout } from '../../requests';
 import './Navbar.css'
 
 export default function Navbar() {
@@ -11,6 +12,20 @@ export default function Navbar() {
 
 	const auth = useContext(AuthContext);
 	const navigate = useNavigate();
+	const [user, setUser] = useState<User>();
+
+	useEffect(() =>
+	{
+		async function loadUser()
+		{
+			const res = await getUserMe();
+			const fetchedUser = await res.json()
+			setUser(fetchedUser);
+		}
+		loadUser();
+	}, [])
+
+
 	return (
 		<div className="navbar">
 			<div className="menu_wrap">
@@ -59,15 +74,12 @@ export default function Navbar() {
 										</NavLink>
 									</li>
 									<li key="navbar-login">
-										<a
-										style={{ color: 'brown' }}
-										href="#"
-										onClick={ () =>{
-											logout();
-											navigate('/login');}}
-										>
-											LOGOUT
-										</a>
+										<div>
+										<div className="avatar-wrapper">
+										<img className="avatar" src={`${backURL}/users/avatars/${user?.userName}?time=${Date.now()}`} />
+                                        <img className="status" alt=" " aria-hidden="true" src="/assets/online.png"></img>
+										</div>
+										</div>
 									</li>
 								</ul>
 							</nav>

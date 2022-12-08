@@ -27,10 +27,6 @@ export async function validateToken()
 		headers: {"Authorization": "Bearer " + getCookie("jwt")},
 		credentials: 'include',
 	});
-    if (res.status !== 200)
-	{
-		throw res
-	}
     return res;
 }
 

@@ -32,6 +32,7 @@ export function Profile() {
 					<div className="profileInfo">
 						<h3>{user.userName}</h3>
 						<p>{user.email}</p>
+						<p>{user.status}</p>
 					</div>
 				</div>
 				<div className="profilePong">

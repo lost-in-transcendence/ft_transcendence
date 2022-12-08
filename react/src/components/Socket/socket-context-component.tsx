@@ -3,6 +3,7 @@ import { useEffect, useInsertionEffect, useReducer, useState } from "react";
 import { useSocket } from "../../hooks/use-socket";
 import { getCookie } from "../../requests";
 import { defaultSocketContextState, SocketContextProvider, SocketReducer } from "./socket-context";
+import * as events from '../../../shared/constants/users'
 
 export default function SocketContextComponent(props: any)
 {
@@ -29,22 +30,26 @@ export default function SocketContextComponent(props: any)
 		StartListeners();
 
 		SendHandshake();
+		return () =>
+		{
+			socket.emit(events.CHANGE_STATUS, {status: "OFFLINE"})
+		}
 	}, [])
 
 	function StartListeners()
 	{
 		/* Reconnect events */
-		socket.io.on('reconnect', (attempt) =>
+		socket.io.on('reconnect', (attempt : number) =>
 		{
 			console.info(`Reconnected on attempt ${attempt}`);
 		});
 
-		socket.io.on('reconnect_attempt', (attempt) =>
+		socket.io.on('reconnect_attempt', (attempt : number) =>
 		{
 			console.info(`Reconnection attempt ${attempt}`);
 		});
 
-		socket.io.on('reconnect_error', (err) =>
+		socket.io.on('reconnect_error', (err : any) =>
 		{
 			console.info(`Reconnection error: ${err}`);
 		});
@@ -59,9 +64,15 @@ export default function SocketContextComponent(props: any)
 		{
 			console.info('Handshake received from server');
 			SocketDispatch({type: 'update_user', payload});
+			socket.emit(events.CHANGE_STATUS, {status: 'ONLINE'});
 			setLoading(false);
 			console.info(socket.id);
 		});
+
+		socket.on(events.UPDATE_USER, (payload: any) =>
+		{
+			SocketDispatch({type: 'update_user', payload});
+		})
 	}
 
 	function SendHandshake()
