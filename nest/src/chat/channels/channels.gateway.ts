@@ -33,7 +33,7 @@ export class ChannelsGateway
 	async createChannel(@MessageBody() dto: CreateChannelDto, @GetUserWs('id', ParseUUIDPipe) id: string, @ConnectedSocket() client: Socket)
 	{
 		const newChannel: PartialChannelDto = await this.channelService.create(dto, id);
-		const visibleChans = await this.getVisibleChannels();
+		const visibleChans = await this.getVisibleChannels(id);
 		client.join(newChannel.id);
 		if (dto.mode === 'PROTECTED' || dto.mode === 'PUBLIC')
 			this.server.emit(events.NEW_CHANNEL, newChannel);
@@ -142,9 +142,9 @@ export class ChannelsGateway
 	}
 
 	@SubscribeMessage(events.CHANNELS)
-	async channels(@ConnectedSocket() client: Socket)
+	async channels(@ConnectedSocket() client: Socket, @GetUserWs('id', ParseUUIDPipe) userId: string)
 	{
-		const visibleChans: PartialChannelDto[] = await this.getVisibleChannels();
+		const visibleChans: PartialChannelDto[] = await this.getVisibleChannels(userId);
 		this.server.to(client.id).emit(events.CHANNELS, visibleChans);
 	}
 
@@ -166,7 +166,7 @@ export class ChannelsGateway
 	/*        UTILS          */
 	/*************************/
 
-	async getVisibleChannels(): Promise<PartialChannelDto[]>
+	async getVisibleChannels(userId: string): Promise<PartialChannelDto[]>
 	{
 		const visibleChans: PartialChannelDto[] = await this.channelService.channels({
 			where:
@@ -174,7 +174,8 @@ export class ChannelsGateway
 				OR:
 					[
 						{ mode: 'PUBLIC' },
-						{ mode: 'PROTECTED' }
+						{ mode: 'PROTECTED' },
+						{ members: { some: { userId } } }
 					],
 			},
 			select:
@@ -182,6 +183,7 @@ export class ChannelsGateway
 				id: true,
 				mode: true,
 				channelName: true,
+				members: true
 			}
 		});
 		return (visibleChans);
