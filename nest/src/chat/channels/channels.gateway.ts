@@ -4,6 +4,7 @@ import { Prisma, User, Channel, ChannelMember } from "@prisma/client";
 import { IsString } from "class-validator";
 import { Namespace, Server, Socket } from 'socket.io';
 import * as bcrypt from 'bcrypt';
+import { env } from "process";
 
 import { GetUserWs } from "src/users/decorator/get-user-ws";
 import { CustomWsFilter } from "src/websocket-server/filters";
@@ -13,17 +14,12 @@ import { ChannelDto, CreateChannelDto, PartialChannelDto } from "./dto";
 import { joinChannelDto, joinChannelMessageDto } from "./dto/join-channel.dto";
 import { UserInterceptor } from "src/websocket-server/interceptor";
 import { UsersService } from "src/users/users.service";
-import { env } from "process";
+import * as events from 'shared/constants';
 
 @UseInterceptors(UserInterceptor)
 @UseFilters(new CustomWsFilter())
 @UsePipes(new WsValidationPipe({ whitelist: true }))
 @WebSocketGateway({ cors: `${env.PROTOCOL}${env.APP_HOST}:${env.FRONT_PORT}`, namespace: 'chat'})
-	// {
-	// 	origin: "http://localhost:3000",
-	// 	allowedHeaders: ['Authorization'],
-	// 	credentials: true
-	// }, namespace: 'chat' })
 export class ChannelsGateway
 {
 	private readonly logger = new Logger(ChannelsGateway.name);
@@ -33,17 +29,17 @@ export class ChannelsGateway
 	@WebSocketServer()
 	server: Namespace;
 
-	@SubscribeMessage('createChannel')
+	@SubscribeMessage(events.CREATE_CHANNEL)
 	async createChannel(@MessageBody() dto: CreateChannelDto, @GetUserWs('id', ParseUUIDPipe) id: string, @ConnectedSocket() client: Socket)
 	{
 		const newChannel: PartialChannelDto = await this.channelService.create(dto, id);
 		const visibleChans = await this.getVisibleChannels();
 		client.join(newChannel.id);
 		if (dto.mode === 'PROTECTED' || dto.mode === 'PUBLIC')
-			this.server.emit('channels', visibleChans);
+			this.server.emit(events.NEW_CHANNEL, newChannel);
 	}
 
-	@SubscribeMessage('joinChannel')
+	@SubscribeMessage(events.JOIN_CHANNEL)
 	async join(
 		@MessageBody() body: joinChannelMessageDto,
 		@ConnectedSocket() client: Socket,
@@ -73,12 +69,12 @@ export class ChannelsGateway
 			);
 		this.logger.debug({ joinedChannel });
 		const members = joinedChannel.members;
-		this.server.to(joinedChannel.id).emit('users', {users: members});
+		this.server.to(joinedChannel.id).emit(events.USERS, {users: members});
 		client.join(joinedChannel.id);
 		this.notify(joinedChannel.id, `${user.userName} has joined ${joinedChannel.channelName} !`)
 	}
 
-	@SubscribeMessage('leaveChannel')
+	@SubscribeMessage(events.LEAVE_CHANNEL)
 	async leaveChannel(
 		@MessageBody('channelId') channelId: string,
 		@ConnectedSocket() client: Socket,
@@ -141,29 +137,29 @@ export class ChannelsGateway
 		});
 		const members = res.members;
 		this.logger.debug({members});
-		this.server.to(channelId).emit('users', {members});
+		this.server.to(channelId).emit(events.USERS, {members});
 		// TODO Handle leave message
 	}
 
-	@SubscribeMessage('channels')
+	@SubscribeMessage(events.CHANNELS)
 	async channels(@ConnectedSocket() client: Socket)
 	{
 		const visibleChans: PartialChannelDto[] = await this.getVisibleChannels();
-		this.server.to(client.id).emit('channels', visibleChans);
+		this.server.to(client.id).emit(events.CHANNELS, visibleChans);
 	}
 
-	@SubscribeMessage('joinedChannels')
+	@SubscribeMessage(events.JOINED_CHANNELS)
 	async joinedChannels(@ConnectedSocket() client: Socket, @GetUserWs('id', ParseUUIDPipe) userId: string)
 	{
 		const joinedChans: PartialChannelDto[] = await this.getJoinedChannels(userId);
-		this.server.to(client.id).emit('joinedChannels', joinedChans);
+		this.server.to(client.id).emit(events.JOINED_CHANNELS, joinedChans);
 	}
 
-	@SubscribeMessage('otherChans')
-	async otherChans(@ConnectedSocket() client: Socket, @GetUserWs('id', ParseUUIDPipe) userId: string)
+	@SubscribeMessage(events.JOINABLE_CHANNELS)
+	async joinableChans(@ConnectedSocket() client: Socket, @GetUserWs('id', ParseUUIDPipe) userId: string)
 	{
-		const otherChans: PartialChannelDto[] = await this.getOtherChannels(userId);
-		this.server.to(client.id).emit('otherChans', otherChans);
+		const joignableChans: PartialChannelDto[] = await this.getJoinableChannels(userId);
+		this.server.to(client.id).emit(events.JOINABLE_CHANNELS, joignableChans);
 	}
 
 	/*************************/
@@ -186,10 +182,6 @@ export class ChannelsGateway
 				id: true,
 				mode: true,
 				channelName: true,
-				members:
-				{
-					select: {user: { select: { id: true, userName: true, status: true } }}
-				}
 			}
 		});
 		return (visibleChans);
@@ -207,12 +199,18 @@ export class ChannelsGateway
 						userId: userId
 					}
 				}
+			},
+			select:
+			{
+				id: true,
+				mode: true,
+				channelName: true,
 			}
 		});
 		return (joinedChans);
 	}
 
-	async getOtherChannels(userId: string): Promise<PartialChannelDto[]>
+	async getJoinableChannels(userId: string): Promise<PartialChannelDto[]>
 	{
 		const otherChans: PartialChannelDto[] = await this.channelService.channels({
 			where:
@@ -226,6 +224,12 @@ export class ChannelsGateway
 				{
 					members: { every: { NOT: { userId: userId } } }
 				}
+			},
+			select:
+			{
+				id: true,
+				mode: true,
+				channelName: true,
 			}
 		});
 		return (otherChans);
@@ -241,11 +245,11 @@ export class ChannelsGateway
 
 	notify(channelId: string, content: string)
 	{
-		this.server.to(channelId).emit('notify', content);
+		this.server.to(channelId).emit(events.NOTIFY, content);
 	}
 
 	alert(channelId: string, content: string)
 	{
-		this.server.to(channelId).emit('alert', content);
+		this.server.to(channelId).emit(events.ALERT, content);
 	}
 }

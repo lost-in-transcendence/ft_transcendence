@@ -25,6 +25,7 @@ export class SocketIOAdapter extends IoAdapter
 		const server: Server = super.createIOServer(port, options);
 
 		server.of('chat').use(wsAuthMiddleWare(jwt, prisma, this.logger));
+		server.use(wsAuthMiddleWare(jwt, prisma, this.logger));
 
 		return (server);
 	}
@@ -38,14 +39,16 @@ const wsAuthMiddleWare = (jwt: JwtService, prisma: PrismaService, logger: Logger
 
 		try
 		{
-			logger.debug(socket.handshake.headers);
+			// logger.debug(socket.handshake.headers);
 			const token = socket.handshake.headers.authorization.split(' ')[1];
-			// const token = socket.handshake.auth.token;
 			const decoded = jwt.verify(token, {secret: env.JWT_SECRET});
 			const user: User = await prisma.user.findUnique({
 				where: { id: decoded.id },
 				include:
 				{
+					playStats: true,
+					friends: true,
+					blacklist: true,
 					channels:
 					{
 						include:
@@ -65,7 +68,7 @@ const wsAuthMiddleWare = (jwt: JwtService, prisma: PrismaService, logger: Logger
 					}
 				}
 			})
-
+			logger.debug({user});
 			if (!user)
 				throw new Error('Invalid user');
 			socket.data.user = user;

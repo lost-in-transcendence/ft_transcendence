@@ -7,6 +7,7 @@ import { getCookie } from "../requests/cookies"
 import { backURL, getUserMe, getUserMeModal } from "../requests";
 import { ChannelList } from "../components/Chat/Channels/ChannelList";
 import { ChatChannelDto, ChatContext } from '../components/Chat/Context/chatContext'
+import { useSocket } from "../hooks/use-socket";
 
 export async function loader()
 {

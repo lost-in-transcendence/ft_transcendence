@@ -1,4 +1,5 @@
 import { createContext, useContext } from "react";
+import { Socket } from "socket.io-client";
 import { SharedChannelDto } from "../../../../shared/dtos";
 
 export type ChatChannelDto =
@@ -25,7 +26,16 @@ type ChannelMembersDto =
 type ChatContextType =
 {
 	user: any;
-	visibleChans: ChatChannelDto[];
+	socket: Socket | undefined;
+	joined: ChatChannelDto[];
+	joinable: ChatChannelDto[];
+	visible: ChatChannelDto[];
 }
 
-export const ChatContext = createContext<ChatContextType>({user: undefined, visibleChans: []});
+export const ChatContext = createContext<ChatContextType>({
+	joinable: [],
+	joined: [],
+	visible: [],
+	user: undefined,
+	socket: undefined,
+});

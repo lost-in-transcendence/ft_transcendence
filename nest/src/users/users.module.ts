@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { MulterModule } from '@nestjs/platform-express';
+import { FriendsController } from './friends.controller';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 
@@ -9,7 +10,7 @@ import { UsersService } from './users.service';
   //     dest: './asset'
   //   })
   // })],
-  controllers: [UsersController],
+  controllers: [UsersController, FriendsController],
   providers: [UsersService],
   exports: [UsersService]
 })

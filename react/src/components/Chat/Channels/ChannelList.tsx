@@ -3,20 +3,37 @@ import { SharedChannelDto } from "../../../../shared/dtos";
 import { ChatChannelDto, ChatContext } from "../Context/chatContext";
 import { ChannelCard } from "./ChannelCard";
 
-export function ChannelList({channels}: {channels: ChatChannelDto[]})
+export function ChannelList()
 {
-	const {user, visibleChans} = useContext(ChatContext);
+	const { joined, joinable, visible, socket } = useContext(ChatContext);
 
-	console.log({visibleChans});
-	const joinedChannels = visibleChans.filter((c) => c.members.find((m) => m.user.id === user.id))
-	const otherChannels = visibleChans.filter((c) => c.members.find((m) => m.user.id !== user.id))
-	console.log({joinedChannels}, {otherChannels});
 	return (
-		<div className="channelList" style={{ width: '15%', overflow: "auto", height: '100%', boxShadow: '0.1rem 0.1rem 10px rgba(0, 0, 0, 0.3)'}} >
+		<div className="channelList" style={{ width: '15%', overflow: "auto", height: '100%', boxShadow: '0.1rem 0.1rem 10px rgba(0, 0, 0, 0.3)' }} >
+			<h1>Joined</h1>
 			{
-				channels.map((c) =>
+				joined.map((c) =>
 				{
-					return <ChannelCard key={c.id} name={c.channelName} mode={c.mode} />
+					return (
+						<ChannelCard key={c.id} name={c.channelName} mode={c.mode} id={c.id} joinable={false} />
+					)
+				})
+			}
+			<h1>Avalaible</h1>
+			{
+				joinable.map((c) =>
+				{
+					return (
+						<ChannelCard key={c.id} name={c.channelName} mode={c.mode} id={c.id} />
+					)
+				})
+			}
+			<h1>Visible</h1>
+			{
+				visible.map((c) =>
+				{
+					return (
+						<ChannelCard key={c.id} name={c.channelName} mode={c.mode} id={c.id} />
+					)
 				})
 			}
 		</div>

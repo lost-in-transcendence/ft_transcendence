@@ -2,6 +2,7 @@ import { useContext, useEffect, useState } from "react";
 import { Navigate, useLoaderData } from "react-router-dom";
 import { AuthContext } from "../../auth/AuthContext";
 import Core from "../../components/Core/Core";
+import SocketContextComponent from "../../components/Socket/socket-context-component";
 import { validateToken } from "../../requests/auth.requests";
 import { getCookie } from "../../requests/cookies";
 
@@ -20,7 +21,9 @@ export function ProtectedRoute()
 	return (
 		isAuth ? (
 		<>
-			<Core />
+			<SocketContextComponent>
+				<Core />
+			</SocketContextComponent>
 		</>
 		) : <Navigate to={"/login"} />
 	)
