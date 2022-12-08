@@ -57,10 +57,10 @@ export default function SocketContextComponent(props: any)
 
 		socket.on('handshake', (payload: any) =>
 		{
-			console.info('Handshake received from server');
+			// console.info('Handshake received from server');
 			SocketDispatch({type: 'update_user', payload});
 			setLoading(false);
-			console.info(socket.id);
+			// console.info(socket.id);
 		});
 	}
 

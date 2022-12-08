@@ -1,6 +1,7 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 
 import './App.css'
+import { ChatContextComponent } from './components/Chat/Context/chatContextComponent'
 import {Callback, loader as callbackLoader} from './routes/callback'
 
 import { Chat, loader as chatLoader } from './routes/chat'
@@ -60,7 +61,7 @@ const router = createBrowserRouter(
 				},
 				{
 					path: "/chat",
-					element: <Chat />,
+					element: <ChatContextComponent> <Chat /> </ChatContextComponent> ,
 					loader: chatLoader,
 				},
 				{
