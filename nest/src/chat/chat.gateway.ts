@@ -66,6 +66,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 		try
 		{
 			UserSocketStore.setUserSockets(client.data.user.id, client.id)
+			this.logger.debug("COUCOU:", UserSocketStore.getUserSockets(client.id))
 			const channels = client.data.user.channels;
 			this.logger.debug("hellooo");
 			for (let chan of channels)
