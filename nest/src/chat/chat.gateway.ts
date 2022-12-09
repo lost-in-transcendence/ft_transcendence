@@ -22,6 +22,7 @@ import { MessagesService } from './messages/messages.service';
 import { CustomWsFilter } from 'src/websocket-server/filters';
 import { UserInterceptor } from 'src/websocket-server/interceptor';
 import { env } from 'process';
+import { UserSocketStore } from './global/user-socket.store';
 
 @UseInterceptors(UserInterceptor)
 @UseFilters(new CustomWsFilter())
@@ -64,6 +65,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 		this.logger.debug('In chat connection');
 		try
 		{
+			UserSocketStore.setUserSockets(client.data.user.id, client.id)
 			const channels = client.data.user.channels;
 			this.logger.debug("hellooo");
 			for (let chan of channels)
