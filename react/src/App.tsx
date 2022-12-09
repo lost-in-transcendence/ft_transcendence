@@ -1,6 +1,7 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 
 import './App.css'
+import './components/Menu/Menu.css'
 import {Callback, loader as callbackLoader} from './routes/callback'
 
 import { Chat, loader as chatLoader } from './routes/chat'

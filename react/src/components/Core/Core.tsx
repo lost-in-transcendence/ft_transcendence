@@ -1,14 +1,22 @@
 import { useEffect, useState } from 'react'
 import '../../App.css'
-import Navbar from '../Navbar/Navbar'
+import {Navbar} from '../Menu/Navbar'
 
 import './Core.css'
-import { Outlet } from 'react-router-dom'
+import { Link, Outlet } from 'react-router-dom'
 
 function Core() {
 	return (
 		<>
-			<Navbar />
+		<div style={{backgroundColor: 'green'}}>
+
+			<div className='nav-area'>
+				<Link to='/' className='logo'>
+					Pong!
+				</Link>
+				<Navbar />
+			</div>
+		</div>
 			<div className="wrapper">
 				<div className="game">
 					<Outlet />

@@ -4,6 +4,8 @@ import { useSocket } from "../../hooks/use-socket";
 import { getCookie } from "../../requests";
 import { defaultSocketContextState, SocketContextProvider, SocketReducer } from "./socket-context";
 import * as events from '../../../shared/constants/users'
+import { changeStatus } from "../../requests/ws/users.messages";
+import { SharedUserStatus } from "../../../shared/dtos";
 
 export default function SocketContextComponent(props: any)
 {
@@ -32,7 +34,8 @@ export default function SocketContextComponent(props: any)
 		SendHandshake();
 		return () =>
 		{
-			socket.emit(events.CHANGE_STATUS, {status: "OFFLINE"})
+			console.log("in socket context dismount");
+			changeStatus(socket, SharedUserStatus.OFFLINE);
 		}
 	}, [])
 

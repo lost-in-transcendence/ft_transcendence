@@ -68,6 +68,7 @@ position and size, everything inside of it will adapt to it if it gets resized.
 
 .menu_nav > nav > ul > li
 {
+    position:relative;
     display: flex;
     flex: 1 1 auto;
     min-width: 50px;
@@ -108,4 +109,25 @@ position and size, everything inside of it will adapt to it if it gets resized.
     right: 29%;
     border: 4px rgb(95, 126, 45) solid;
     border-radius: 50%;
+}
+
+.user-hover-wrapper
+{
+    position: absolute;
+    top: 100%;
+    left: 0;
+    text-align: initial;
+}
+
+.user-hover-menu
+{
+    list-style: none;
+    padding: 0; 
+}
+
+.user-hover-menu > li
+{
+    height: 25px;
+    width: 200px;
+    background-color: black;
 }

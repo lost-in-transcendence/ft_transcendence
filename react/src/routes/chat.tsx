@@ -61,14 +61,14 @@ export function Chat()
 	}, [])
 	// console.log({user});
 	return (
-		<ChatContext.Provider value={{ user: user, visibleChans: channelList }}>
+		// <ChatContext.Provider value={{ user: user, visibleChans: channelList }}>
 			<div style={{ height: 'inherit', border: '1px solid blue', display: 'flex', flexDirection: 'column', margin: '0' }}>
 				<h1 style={{ height: '10%', border: '1px solid orange' }}>Chat</h1>
 				<div style={{ height: '90%', border: '1px solid red', margin: '0' }}>
-					<ChannelList channels={channelList} />
+					{/* <ChannelList channels={channelList} /> */}
 				</div>
 				{/* <button onClick={() => {socket.emit('channels'); console.log(socket.id)}}>Channels</button> */}
 			</div>
-		</ChatContext.Provider>
+		// </ChatContext.Provider>
 	)
 }

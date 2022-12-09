@@ -3,11 +3,11 @@ import { Form, redirect, useActionData, useLoaderData, useNavigate } from "react
 import { AuthContext } from "../auth/AuthContext";
 import { getCookie } from "../requests/cookies"
 import { Navigate } from "react-router-dom";
-import { generateTwoFa, toggleTwoFa } from "../requests/auth.requests"
+import { generateTwoFa, toggleTwoFa } from "../requests"
 import { backURL, frontURL } from "../requests/constants";
 
 import './styles/profile.css'
-import { getUserMeFull, updateUser, updateAvatar } from "../requests/users.requests";
+import { getUserMeFull, updateUser, updateAvatar } from "../requests";
 import Modal from "../components/Modal/modal";
 import { TwoFa } from "../components/TwoFa/twofa";
 
