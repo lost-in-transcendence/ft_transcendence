@@ -178,7 +178,6 @@ export class ChannelsGateway implements OnGatewayConnection
 		// TODO Handle leave message
 	}
 
-<<<<<<< HEAD
 	@SubscribeMessage('ban')
 	async banUser(
 		@ConnectedSocket() client: Socket,
@@ -188,12 +187,8 @@ export class ChannelsGateway implements OnGatewayConnection
 		return (this.channelService.banUser(client.data.user.id, channelId))
 	}	
 
-	@SubscribeMessage('channels')
-	async channels(@ConnectedSocket() client: Socket)
-=======
 	@SubscribeMessage(events.CHANNELS)
 	async channels(@ConnectedSocket() client: Socket, @GetUserWs('id', ParseUUIDPipe) userId: string)
->>>>>>> chat
 	{
 		const visibleChans: PartialChannelDto[] = await this.getVisibleChannels(userId);
 		this.server.to(client.id).emit(events.CHANNELS, visibleChans);
