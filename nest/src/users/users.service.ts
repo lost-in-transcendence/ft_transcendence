@@ -50,6 +50,22 @@ export class UsersService {
 	}
 
 	/*
+	** @desc Finds and returns a User instance, with only selected fields
+	**
+	** @param {Prisma.UserWhereUniqueInput} where Unique User input data (See Prisma Doc)
+	** @param {Prisma.UserSelect} select Class containing all fields to be selected int he query (See Prisma Doc)
+	** @returns {Promis<User>} Returns a Promise to the found User, or null if not found
+	*/
+	async userSelect(where: Prisma.UserWhereUniqueInput, select: Prisma.UserSelect)
+	{
+		const ret = await this.prisma.user.findUnique({
+			where,
+			select,
+		});
+		return (ret);
+	}
+
+	/*
 	** @desc Finds and returns ALL User instances in database
 	**
 	** @param {userFindManyParams} params See corresponding type above, these are parameters used by the prisma findMany method to give query options

@@ -1,5 +1,5 @@
 
-import { redirect, useLoaderData, useNavigate } from "react-router-dom";
+import { NavLink, redirect, useLoaderData, useNavigate } from "react-router-dom";
 import { backURL } from "../requests/constants";
 import { useContext, useEffect, useState } from "react";
 import { generateTwoFa, toggleTwoFa } from "../requests/auth.requests"
@@ -7,6 +7,7 @@ import './styles/profile.css'
 import { getUserMeFull } from "../requests/users.requests";
 import Modal from "../components/Modal/modal";
 import { TwoFa } from "../components/TwoFa/twofa";
+import { UserCard } from "../components/UserCard/UserCard";
 
 export async function loader() {
 	const res = await getUserMeFull();
@@ -18,7 +19,9 @@ export function Profile() {
 	console.log({user});
 	const playerStats = user.playStats;
 	const navigate = useNavigate();
-
+	user.friends.forEach((f: any) => {
+		console.log({f});
+	})
 	return (
 		<div>
 			<div className="profilePage">
@@ -42,7 +45,7 @@ export function Profile() {
 										<p>Losses : {playerStats.losses}</p>
 										<p>Rank : {playerStats.rank}</p>
 										<p>Points Scored : {playerStats.points}</p>
-										<p>Achievement points : {playerStats.achievement_point}</p>
+										<p>Achievement points : {playerStats.achievement_points}</p>
 									</>
 									:
 									<p>Something went wrong ! <br /> Check with the owner of this awesome webapp</p>
@@ -60,6 +63,25 @@ export function Profile() {
 								)
 								:
 								<h3>No match played yet !</h3>
+						}
+					</div>
+					<div className="flex-break"></div>
+					<div className="friendListContainer">
+						<h2>Friends</h2>
+						{
+							user.friends.length > 0 ?
+							(
+								<div className="overflow-y-auto">
+								<ul>
+									{user.friends.map((f: any) =>
+									{
+										return <UserCard user={f}></UserCard>
+									})}
+								</ul>
+								</div>
+							)
+							:
+							<h3>You have no friends :(</h3>
 						}
 					</div>
 				</div>

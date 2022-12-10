@@ -19,6 +19,9 @@ export class UserInterceptor implements NestInterceptor
 			},
 			include:
 			{
+				playStats: true,
+				friends: true,
+				blacklist: true,
 				channels:
 				{
 					include:

@@ -39,18 +39,33 @@ export class AuthService
 				data
 			});
 		}
-		
+
 		const token = await this.signToken({ id: user.id })
 		return { token, twoFaEnabled: user.twoFaEnabled };
 	}
 
 	async fakeLogin(fakeInfos: {id42: number, userName: string, email: string, avatarPath: string })
 	{
-		const {userName} = fakeInfos;
+		const {userName, id42, email, avatarPath} = fakeInfos;
 		let user: User = await this.usersService.user({userName});
 		if (!user)
 		{
 			user = await this.usersService.createUser(fakeInfos);
+			const url = avatarPath;
+			const prefix = user.id.split('-').join('')
+			const filename = `./asset/avatars/${user.id}_${Date.now().toString()}_avatar.png`;
+			const fileWriterStream = fs.createWriteStream(filename);
+			const response = await this.httpService.axiosRef({
+				url : url,
+				method: 'GET',
+				responseType: 'stream',
+			});
+			await response.data.pipe(fileWriterStream);
+			const data: Prisma.UserUpdateInput = { id42, userName, email, avatarPath : filename};
+			await this.usersService.updateUser({
+				where: { id : user.id },
+				data
+			});
 		}
 		const token = await this.signToken({ id: user.id })
 		return { token };

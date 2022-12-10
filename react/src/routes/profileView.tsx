@@ -2,26 +2,48 @@
 import { useLoaderData } from "react-router-dom";
 import { backURL } from "../requests/constants";
 import './styles/profile.css'
-import { getUserModal } from "../requests/users.requests";
+import { getUserMeModal, getUserModal } from "../requests/users.requests";
+import { getCookie } from "../requests";
+import { addFriend, removeFriend } from "../requests/friends.requests";
+import { useState } from "react";
 
 export async function loader({params} : any) {
-	const res = getUserModal(params.userName, new URLSearchParams({'playStats': 'true', 'matchHistory': 'true'}));
-	return (res);
+	let res = await getUserMeModal(new URLSearchParams({'friends': 'true'}));
+	const user = await res.json()
+	res = await getUserModal(params.userName, new URLSearchParams({'playStats': 'true', 'matchHistory': 'true'}));
+	const profile = await res.json();
+	return ({user, profile});
 }
 
 export function ProfileView() {
-	const user: any = useLoaderData();
-	const playerStats = user.playStats;
+	const data: any = useLoaderData();
+	const {user, profile} = data;
+	const playerStats = profile.playStats;
+	const [isFriends, setIsFriends] = useState(user.friends.find((e: any) => e.id === profile.id) ? true : false)
+	console.log(user.friends);
+
+	async function handleFriend()
+	{
+		if (isFriends)
+		{
+			const res = await removeFriend(profile.id);
+		}
+		else
+		{
+			const res = await addFriend(profile.id);
+		}
+		setIsFriends(!isFriends);
+	}
 
 	return (
 		<div>
 			<div className="profilePage">
 				<div className="profileTitle">
 					<div className="profileImg">
-						<img src={`${backURL}/users/avatars/${user.userName}?time=${Date.now()}`} />
+						<img src={`${backURL}/users/avatars/${profile.userName}?time=${Date.now()}`} />
 					</div>
 					<div className="profileInfo">
-						<h3>{user.userName}</h3>
+						<h3>{profile.userName}</h3>
 					</div>
 				</div>
 				<div className="profilePong">
@@ -35,7 +57,7 @@ export function ProfileView() {
 										<p>Losses : {playerStats.losses}</p>
 										<p>Rank : {playerStats.rank}</p>
 										<p>Points Scored : {playerStats.points}</p>
-										<p>Achievement points : {playerStats.achievement_point}</p>
+										<p>Achievement points : {playerStats.achievement_points}</p>
 									</>
 									:
 									<p>Something went wrong ! <br /> Check with the owner of this awesome webapp</p>
@@ -56,6 +78,12 @@ export function ProfileView() {
 						}
 					</div>
 				</div>
+				{
+					user.id !== profile.id ?
+					<button className={`${isFriends ? "remove" : "add"}-friend`}onClick={handleFriend}>{isFriends ? "Remove" : "Add"} Friend</button>
+					:
+					<></>
+				}
 			</div>
 		</div>
 	)
