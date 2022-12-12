@@ -12,7 +12,7 @@ export function Navbar()
                     const depthLevel =0;
                     return <MenuItem items={menu} key={index} depthLevel={depthLevel} />
                 })}
-                {/* <MenuAvatar /> */}
+                <MenuAvatar />
             </ul>
         </nav>
     )

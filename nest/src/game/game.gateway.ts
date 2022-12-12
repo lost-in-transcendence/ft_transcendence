@@ -1,11 +1,13 @@
 import { Logger, UseFilters, UseInterceptors, UsePipes } from "@nestjs/common";
-import { OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
+import { ConnectedSocket, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
 import { env } from "process";
 import { CustomWsFilter } from "src/websocket-server/filters";
 import { UserInterceptor } from "src/websocket-server/interceptor";
 import { WsValidationPipe } from "src/websocket-server/pipes";
 import { Socket, Namespace } from 'socket.io';
 import { User } from '@prisma/client';
+import { Server } from "http";
+import { GetUserWs } from "src/users/decorator/get-user-ws";
 
 @UseInterceptors(UserInterceptor)
 @UseFilters(new CustomWsFilter())
