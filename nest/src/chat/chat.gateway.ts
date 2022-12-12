@@ -101,8 +101,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 	}
 
 	@SubscribeMessage('toChannel')
-	async toRoom(@MessageBody() dto: CreateMessageDto, @ConnectedSocket() client: Socket, @GetUserWs() user)
+	async toRoom(@MessageBody() dto: CreateMessageDto, @ConnectedSocket() client: Socket, @GetUserWs() user: any)
 	{
+		this.logger.debug("in toChannel event")
 		const newMessage = await this.messageService.create({
 			content: dto.content,
 			channel: { connect: { id: dto.channelId } },

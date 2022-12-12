@@ -9,13 +9,16 @@ import { UpdateChannelDto } from './dto';
 import { ChannelDto, PartialChannelDto } from './dto/channel-dto';
 import { CreateUserDto, UserIncludeQueryDto } from 'src/users/dto';
 import { joinChannelDto } from './dto/join-channel.dto';
+import { ChannelMemberDto } from './channel-member/dto';
+import { ChannelMemberService } from './channel-member/channel-member.service';
 
 @Injectable()
 export class ChannelsService
 {
 	private readonly logger = new Logger(ChannelsService.name);
 
-	constructor(private readonly prisma: PrismaService) { }
+	constructor(private readonly prisma: PrismaService, 
+				private readonly channelMember: ChannelMemberService) { }
 
 	async create(dto: CreateChannelDto, id: string): Promise<PartialChannelDto>
 	{
@@ -73,43 +76,7 @@ export class ChannelsService
 
 	async joinChannel(dto: joinChannelDto)
 	{
-		try
-		{
-			const newChannelMember = await this.prisma.channelMember.create({
-				data:
-				{
-					channel: { connect: { id: dto.channelId } },
-					user: { connect: { id: dto.userId } },
-					role: dto.role
-				},
-				include:
-				{
-					channel:
-					{
-						select:
-						{
-							id: true,
-							channelName: true,
-							mode: true,
-							members: true
-						}
-					}
-				}
-			});
-			return (newChannelMember);
-		}
-		catch (error)
-		{
-			if (error instanceof PrismaClientKnownRequestError)
-			{
-				if (error.code === 'P2025')
-					throw new PreconditionFailedException('Record not found');
-				if (error.code === 'P2002')
-					throw new PreconditionFailedException('User already in channel');
-				}
-			this.logger.error({error});
-			throw new ImATeapotException('something unexpected happened');
-		}
+		return (await this.channelMember.create(dto))
 	}
 
 	async leaveChannel(where: Prisma.ChannelMemberWhereUniqueInput)
@@ -119,11 +86,9 @@ export class ChannelsService
 
 	async banUser(userId: string, channelId: string)
 	{
-		this.prisma.channelMember.update({
-			where: {userId_channelId: {userId, channelId}},
-			data: {role: 'BANNED'}
-		})
+		const dto: ChannelMemberDto = {userId, channelId, role: 'BANNED'};
 
+		await this.channelMember.changeRole(dto);
 	}
 
 	async findAll(): Promise<Channel[]>

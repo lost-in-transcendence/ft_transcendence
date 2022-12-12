@@ -1,4 +1,4 @@
-import { ForbiddenException, Get, Logger, ParseIntPipe, ParseUUIDPipe, UseFilters, UseInterceptors, UsePipes, ValidationPipe } from "@nestjs/common";
+import { Body, ForbiddenException, Get, Logger, ParseIntPipe, ParseUUIDPipe, UseFilters, UseInterceptors, UsePipes, ValidationPipe } from "@nestjs/common";
 import { BaseWsExceptionFilter, ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer, WsException } from "@nestjs/websockets";
 import { Prisma, User, Channel, ChannelMember } from "@prisma/client";
 import { IsString } from "class-validator";
@@ -16,6 +16,9 @@ import { UserInterceptor } from "src/websocket-server/interceptor";
 import { UsersService } from "src/users/users.service";
 import * as events from 'shared/constants';
 import { UserSocketStore } from "../global/user-socket.store";
+import { ChannelMemberDto } from "./channel-member/dto";
+//import { env } from "process";
+import { ChannelMemberService } from "./channel-member/channel-member.service";
 
 @UseInterceptors(UserInterceptor)
 @UseFilters(new CustomWsFilter())
@@ -25,7 +28,9 @@ export class ChannelsGateway implements OnGatewayConnection
 {
 	private readonly logger = new Logger(ChannelsGateway.name);
 
-	constructor(private readonly channelService: ChannelsService, private readonly userService: UsersService) { }
+	constructor(private readonly channelService: ChannelsService, 
+				private readonly userService: UsersService,
+				private readonly channelMember: ChannelMemberService) { }
 
 	@WebSocketServer()
 	server: Namespace;
@@ -76,9 +81,13 @@ export class ChannelsGateway implements OnGatewayConnection
 		@ConnectedSocket() client: Socket,
 		@GetUserWs() user: User)
 	{
-		const joinedChans: any[] = client.data.user.channel;
-		const thisChan = joinedChans.find((c) => c.channelId === body.channelId);
-		if (thisChan.role === 'BANNED')
+		const channelMemberDto: ChannelMemberDto = {
+			userId: user.id,
+			channelId: body.channelId,
+			role: "MEMBER"
+		}
+		const channelMember = await this.channelMember.getOne(channelMemberDto)
+		if (channelMember && channelMember.role === 'BANNED')
 			return ;
 		console.log("COUCOU")
 		const dto: joinChannelDto = {
@@ -120,11 +129,15 @@ export class ChannelsGateway implements OnGatewayConnection
 		@ConnectedSocket() client: Socket,
 		@GetUserWs() user: any)
 	{
-		const joinedChans: any[] = user.channels;
-		const thisChan = joinedChans.find((c) => c.channelId === channelId);
-		if (!thisChan)
+		const channelMemberDto: ChannelMemberDto = {
+			userId: client.data.user.id,
+			channelId,
+			role: null
+		}
+		const channelMember = await this.channelMember.getOne(channelMemberDto);
+		if (!channelMember)
 			throw new WsException({ status: 'Error', message: 'Cannot leave channel you are not a part of !' });
-		if (thisChan.role === 'OWNER')
+		if (channelMember.role === 'OWNER')
 		{
 			const channel: Channel & { members?: ChannelMember[] } = await this.channelService.channel({
 				where: { id: channelId },
@@ -165,7 +178,7 @@ export class ChannelsGateway implements OnGatewayConnection
 			else
 				return (this.DstroyChannel(channelId));
 		}
-		if (thisChan.role !== 'BANNED')
+		if (channelMember.role !== 'BANNED')
 			await this.channelService.leaveChannel({userId_channelId: {userId: user.id, channelId}});
 		client.leave(channelId);
 		this.notify(channelId, `${user.userName} has left the channel`);
@@ -182,16 +195,17 @@ export class ChannelsGateway implements OnGatewayConnection
 		// TODO Handle leave message
 	}
 
-	@SubscribeMessage('ban')
+	@SubscribeMessage('banUser')
 	async banUser(
 		@ConnectedSocket() client: Socket,
-		@MessageBody('channelId') channelId: string
+		@MessageBody() body: any
 		)
 	{
+		this.logger.debug("BAN COUCOU")
 		const array: string[] = UserSocketStore.getUserSockets(client.data.user.id);
 		for (let n of array)
 			this.server.to(n).emit(events.LEAVE_CHANNEL);
-		return (this.channelService.banUser(client.data.user.id, channelId))
+		return (this.channelService.banUser(body.userId, body.channelId))
 	}	
 
 	@SubscribeMessage(events.CHANNELS)
