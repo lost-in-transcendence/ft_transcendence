@@ -1,7 +1,7 @@
 import { useEffect, useInsertionEffect, useReducer, useState } from "react";
+import { useSocket } from "../../../hooks/use-socket";
+import { getCookie } from "../../../requests";
 
-import { useSocket } from "../../hooks/use-socket";
-import { getCookie } from "../../requests";
 import { defaultSocketContextState, SocketReducer } from "../../Socket/socket-context";
 import { GameSocketContextProvider } from "./game-socket-context";
 

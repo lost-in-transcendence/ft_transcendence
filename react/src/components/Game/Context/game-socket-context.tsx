@@ -8,7 +8,7 @@ export interface IGameSocketContextState
 
 export const defaultGameSocketContextState =
 {
-    socket: undefined;
+    socket: undefined
 }
 
 export type TGameSocketContextActions = "update_socket";
