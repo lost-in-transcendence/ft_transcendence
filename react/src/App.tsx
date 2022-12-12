@@ -1,6 +1,7 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 
 import './App.css'
+import GameSocketContextComponent from './components/Game/Context/game-socket-context-component'
 import './components/Menu/Menu.css'
 import {Callback, loader as callbackLoader} from './routes/callback'
 
@@ -56,7 +57,7 @@ const router = createBrowserRouter(
 				},
 				{
 					path: '/game',
-					element: <Game />,
+					element: <GameSocketContextComponent> <Game /> </GameSocketContextComponent>,
 					loader: gameLoader,
 				},
 				{

@@ -25,13 +25,13 @@ export function AvatarDropdown(props: {dropdown: boolean})
                         <li key={1} className="menu-items">
                             <button onClick={() => changeStatus(socket, SharedUserStatus.ONLINE)}>Online</button>
                         </li>
-                        <li key={1} className="menu-items">
+                        <li key={2} className="menu-items">
                             <button onClick={() => changeStatus(socket, SharedUserStatus.OFFLINE)}>Invisible</button>
                         </li>
-                        <li key={1} className="menu-items">
+                        <li key={3} className="menu-items">
                             <button onClick={() => changeStatus(socket, SharedUserStatus.AWAY)}>Away</button>
                         </li>
-                        <li key={1} className="menu-items">
+                        <li key={4} className="menu-items">
                             <button onClick={() => changeStatus(socket, SharedUserStatus.BUSY)}>Busy</button>
                         </li>
                     </ul>
