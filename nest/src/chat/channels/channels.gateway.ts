@@ -4,7 +4,7 @@ import { Prisma, User, Channel, ChannelMember } from "@prisma/client";
 import { IsString } from "class-validator";
 import { Namespace, Server, Socket } from 'socket.io';
 import * as bcrypt from 'bcrypt';
-import { env } from "process";
+import { emit, env } from "process";
 
 import { GetUserWs } from "src/users/decorator/get-user-ws";
 import { CustomWsFilter } from "src/websocket-server/filters";
@@ -15,6 +15,7 @@ import { joinChannelDto, joinChannelMessageDto } from "./dto/join-channel.dto";
 import { UserInterceptor } from "src/websocket-server/interceptor";
 import { UsersService } from "src/users/users.service";
 import * as events from 'shared/constants';
+import { UserSocketStore } from "../global/user-socket.store";
 
 @UseInterceptors(UserInterceptor)
 @UseFilters(new CustomWsFilter())
@@ -79,13 +80,16 @@ export class ChannelsGateway implements OnGatewayConnection
 		const thisChan = joinedChans.find((c) => c.channelId === body.channelId);
 		if (thisChan.role === 'BANNED')
 			return ;
+		console.log("COUCOU")
 		const dto: joinChannelDto = {
 			channelId: body.channelId,
 			userId: user.id,
 			role: 'MEMBER'
 		}
+		console.log("COUCOU")
 		const channel: Channel = await this.channelService.findOne({ id: dto.channelId });
 
+		console.log("COUCOU")
 		if (channel.mode === 'PRIVATE' && !channel.whitelist.includes(user.id))
 			throw new WsException({ status: 'Unauthorized', message: 'Channel is Private ! Get out of here !' });
 		if (channel.mode === 'PROTECTED')
@@ -184,6 +188,9 @@ export class ChannelsGateway implements OnGatewayConnection
 		@MessageBody('channelId') channelId: string
 		)
 	{
+		const array: string[] = UserSocketStore.getUserSockets(client.data.user.id);
+		for (let n of array)
+			this.server.to(n).emit(events.LEAVE_CHANNEL);
 		return (this.channelService.banUser(client.data.user.id, channelId))
 	}	
 
