@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
 import { redirect, useLoaderData } from "react-router-dom";
 import { AuthContext } from "../auth/AuthContext";
 import { getCookie } from "../requests/cookies"
@@ -15,12 +15,32 @@ export async function loader()
 export function Game()
 {
 	const {socket} = useContext(GameSocketContext).GameSocketState;
-	console.log(socket.id);
+	console.log(socket?.id);
+	const [queueing, setQueueing] = useState(false)
+
+	useEffect(() =>
+	{
+		socket?.on('queueing', () =>
+		{
+			setQueueing(true);
+		})
+	})
 
 	// const user: any = useLoaderData();
 	return (
 		<div>
 			<h1>Game</h1>
+			{
+				queueing ?
+				<>
+					<p>In Queue...</p>
+					<button onClick={() => setQueueing(false)}>Stop Queue</button>
+				</>
+				:
+				<>
+					<button onClick={() => socket?.emit('quickplay')}>Quickplay</button>
+				</>
+			}
 		</div>
 	)
 }

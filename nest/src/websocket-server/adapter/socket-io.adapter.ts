@@ -25,6 +25,7 @@ export class SocketIOAdapter extends IoAdapter
 		const server: Server = super.createIOServer(port, options);
 
 		server.of('chat').use(wsAuthMiddleWare(jwt, prisma, this.logger));
+		server.of('game').use(wsAuthMiddleWare(jwt, prisma, this.logger));
 		server.use(wsAuthMiddleWare(jwt, prisma, this.logger));
 
 		return (server);

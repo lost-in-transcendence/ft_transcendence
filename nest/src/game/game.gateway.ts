@@ -1,23 +1,46 @@
 import { Logger, UseFilters, UseInterceptors, UsePipes } from "@nestjs/common";
-import { ConnectedSocket, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
+import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
 import { env } from "process";
 import { CustomWsFilter } from "src/websocket-server/filters";
 import { UserInterceptor } from "src/websocket-server/interceptor";
 import { WsValidationPipe } from "src/websocket-server/pipes";
 import { Socket, Namespace } from 'socket.io';
 import { User } from '@prisma/client';
-import { Server } from "http";
 import { GetUserWs } from "src/users/decorator/get-user-ws";
+import { GamesService } from "./game.service";
+import { create } from "domain";
+import { GetUser } from "src/users/decorator";
+
+class GameWaitingRoom 
+{
+    user1: User;
+    user1SocketId: string;
+    user2?: User;
+    user2SocketId?: string;
+    invitation: boolean;
+    invitedUser?: string;
+
+    constructor(params: {user1: User, user1SocketId: string, invitation: boolean, user2?: User, user2SocketId?: string, invitedUser?: string}) {
+        const {user1, user1SocketId, user2, user2SocketId, invitation, invitedUser} = params;
+        this.user1 = user1;
+        this.user1SocketId = user1SocketId;
+        this.user2 = user2;
+        this.user2SocketId = user2SocketId;
+        this.invitation = invitation;
+        this.invitedUser = invitedUser;
+    }
+}
 
 @UseInterceptors(UserInterceptor)
 @UseFilters(new CustomWsFilter())
 @UsePipes(new WsValidationPipe({ whitelist: true }))
-@WebSocketGateway({ cors: `${env.PROTOCOL}${env.APP_HOST}:${env.FRONT_PORT}`, namespace: 'pong'})
+@WebSocketGateway({ cors: `${env.PROTOCOL}${env.APP_HOST}:${env.FRONT_PORT}`, namespace: 'game'})
 export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit
 {
     private readonly logger = new Logger(GameGateway.name);
+    private waitingRooms : GameWaitingRoom[] = [];
 
-	constructor() { } 
+	constructor(private readonly gamesService: GamesService) { } 
 
     @WebSocketServer()
     server: Namespace;
@@ -25,18 +48,80 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     afterInit()
     {
         this.logger.log("Game Gateway initialized");
+        const timerId = setInterval(() => 
+		{
+            const rooms = this.waitingRooms
+            console.log({rooms});
+		}, 5000)
     }
 
     async handleConnection(client: Socket, ...args: any[])
     {
 		this.logger.log(`Client ${client.id} connected to Game websocket Gateway`);
+        this.logger.debug(client.data);
         this.server.to(client.id).emit('handshake', client.data.user);
     }
 
     async handleDisconnect(client: Socket)
 	{
+        // is socket id in GameWaitingRoom?
+        const waitingRoom = this.waitingRooms.find((v) => v.user1SocketId === client.id);
+        if (waitingRoom)
+        {
+            this.waitingRooms = this.waitingRooms.filter((v) => v.user1SocketId !== client.id);
+        }
+        // is socket id in OngoingGame?
+        // if so gracefully close and notify everything
 		this.logger.log(`Client ${client.id} disconnected from Game websocket Gateway`);
 	}
+
+    @SubscribeMessage('quickplay')
+    async quickplay(@ConnectedSocket() client: Socket, @GetUserWs() user: User)
+    {
+        // check if there are any waiting rooms where invitation === false, if so join it and create an actual room + game
+        const availableRoom = this.waitingRooms.find((v) => v.user1SocketId !== client.id && v.user2 === undefined && v.invitation === false);
+        if (availableRoom)
+        {
+            // blinding shining star
+            // you won't see so far
+            // know what can't be shown
+            // feel what can't be known
+
+            // you were an isle unto thyself
+            // you had a heart you hadn't felt
+            // why wouldit hurt me 
+            // or was it real
+
+            // it was the night we had to part 
+            // we were afraid to miss the start
+            // what did it matter
+            // why would it matter 
+            // and could we heal
+            availableRoom.user2 = user;
+            availableRoom.user2SocketId = client.id;
+            this.logger.debug(availableRoom);
+            this.waitingRooms = this.waitingRooms.filter((v) => v.user1SocketId !== availableRoom.user1SocketId);
+            const ret = await this.gamesService.create({data: {}});
+            // create game, maye like a joinGame() function?
+        }
+        this.waitingRooms.push(new GameWaitingRoom({user1: user, user1SocketId: client.id, invitation: false}));
+        this.server.to(client.id).emit('queueing');
+    }
+
+    // async createGame(waitingRoom: GameWaitingRoom)
+    // {
+    //     // call gameService and create a new DB Game using the waiting room info, also create an "OngoingGame" class made with the DB Game info
+    //     const ret = await this.gamesService.create({data: {}});
+    //     return ret;
+    // }
+
+    @SubscribeMessage('invite')
+    async invite(@ConnectedSocket() client: Socket, @GetUserWs() user, @MessageBody() dto: any)
+    {
+        // fetch invited userId first and check they're online (how do we know? Maybe only allow invite if invited.status !== OFFLINE or INVISIBLE)
+        this.waitingRooms.push(new GameWaitingRoom({user1: user, user1SocketId: client.id, invitation: true, invitedUser: dto.userId}));
+
+    }
 
     // What should happen when someone wants to start a game (not considering invites for now)?
     // Is a room created instantly? Do we wait until 2 players are queueing to create the room?
