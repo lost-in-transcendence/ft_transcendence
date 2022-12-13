@@ -68,11 +68,15 @@ position and size, everything inside of it will adapt to it if it gets resized.
 
 .menu_nav > nav > ul > li
 {
+    position:relative;
     display: flex;
     flex: 1 1 auto;
     min-width: 50px;
     margin-left: 10px;
     padding: 0 10px;
+    justify-content: center;
+    align-content: center;
+    align-items: center;
 }
 
 .menu_nav > nav >  ul > li:hover
@@ -83,4 +87,47 @@ position and size, everything inside of it will adapt to it if it gets resized.
 .menu_nav > nav > ul > li > a
 {
     padding: 24px 0 24px 0;
+}
+
+
+.avatar-wrapper {
+    margin: auto;
+    display:inline-block;
+    position: relative;
+    border-radius: 50%;
+}
+
+.avatar {
+    width: 40px;
+    border-radius: 50%;
+    border: 6px rgb(95, 126, 45) solid
+}
+.status {
+    width: 10px !important;
+    position: relative;
+    bottom: 0%;
+    right: 29%;
+    border: 4px rgb(95, 126, 45) solid;
+    border-radius: 50%;
+}
+
+.user-hover-wrapper
+{
+    position: absolute;
+    top: 100%;
+    left: 0;
+    text-align: initial;
+}
+
+.user-hover-menu
+{
+    list-style: none;
+    padding: 0; 
+}
+
+.user-hover-menu > li
+{
+    height: 25px;
+    width: 200px;
+    background-color: black;
 }

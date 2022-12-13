@@ -1,5 +1,5 @@
-import { backURL } from "./constants";
-import { getCookie } from "./cookies";
+import { backURL } from "../constants";
+import { getCookie } from "../cookies";
 
 export async function login(params: URLSearchParams)
 {
@@ -27,10 +27,6 @@ export async function validateToken()
 		headers: {"Authorization": "Bearer " + getCookie("jwt")},
 		credentials: 'include',
 	});
-    if (res.status !== 200)
-	{
-		throw res
-	}
     return res;
 }
 

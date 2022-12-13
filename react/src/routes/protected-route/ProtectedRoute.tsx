@@ -3,7 +3,7 @@ import { Navigate, useLoaderData } from "react-router-dom";
 import { AuthContext } from "../../auth/AuthContext";
 import Core from "../../components/Core/Core";
 import SocketContextComponent from "../../components/Socket/socket-context-component";
-import { validateToken } from "../../requests/auth.requests";
+import { validateToken } from "../../requests";
 import { getCookie } from "../../requests/cookies";
 
 export async function loader()

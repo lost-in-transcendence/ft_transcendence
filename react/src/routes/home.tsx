@@ -14,9 +14,9 @@ export async function loader()
 
 export function HomePage()
 {
-	const loadedData: any = useLoaderData();
+	const user: any = useLoaderData();
 	const socketState = useContext(SocketContext).SocketState;
-	const { socket, user } = socketState;
+	const { socket} = socketState;
 
 	if (socket)
 		console.log(socket, {socket});

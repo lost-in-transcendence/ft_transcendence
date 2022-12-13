@@ -3,19 +3,13 @@ import { Form, redirect, useActionData, useLoaderData, useNavigate } from "react
 import { AuthContext } from "../auth/AuthContext";
 import { getCookie } from "../requests/cookies"
 import { Navigate } from "react-router-dom";
-import { generateTwoFa, toggleTwoFa } from "../requests/auth.requests"
+import { generateTwoFa, toggleTwoFa } from "../requests"
 import { backURL, frontURL } from "../requests/constants";
 
 import './styles/profile.css'
-import { getUserMeFull, updateUser, updateAvatar } from "../requests/users.requests";
+import { getUserMeFull, updateUser, updateAvatar } from "../requests";
 import Modal from "../components/Modal/modal";
 import { TwoFa } from "../components/TwoFa/twofa";
-
-function popupwindow(url: string, title: string, w: number, h: number) {
-	var left = Math.round(window.screenX + (window.outerWidth - w) / 2);
-	var top = Math.round(window.screenY + (window.outerHeight - h) / 2.5);
-	return window.open(url, title, 'toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width=' + w + ', height=' + h + ', top=' + top + ', left=' + left);
-}
 
 export async function loader() 
 {

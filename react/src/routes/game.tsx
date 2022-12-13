@@ -4,6 +4,7 @@ import { AuthContext } from "../auth/AuthContext";
 import { getCookie } from "../requests/cookies"
 import { Navigate } from "react-router-dom";
 import { getUserMe } from "../requests";
+import GameSocketContext from "../components/Game/Context/game-socket-context";
 
 export async function loader()
 {
@@ -13,9 +14,10 @@ export async function loader()
 
 export function Game()
 {
+	const {socket} = useContext(GameSocketContext).GameSocketState;
+	console.log(socket.id);
 
 	// const user: any = useLoaderData();
-	const auth = useContext(AuthContext);
 	return (
 		<div>
 			<h1>Game</h1>

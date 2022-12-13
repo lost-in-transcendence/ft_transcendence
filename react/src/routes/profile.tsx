@@ -2,12 +2,12 @@
 import { NavLink, redirect, useLoaderData, useNavigate } from "react-router-dom";
 import { backURL } from "../requests/constants";
 import { useContext, useEffect, useState } from "react";
-import { generateTwoFa, toggleTwoFa } from "../requests/auth.requests"
 import './styles/profile.css'
-import { getUserMeFull } from "../requests/users.requests";
+import { getUserMeFull } from "../requests";
 import Modal from "../components/Modal/modal";
 import { TwoFa } from "../components/TwoFa/twofa";
 import { UserCard } from "../components/UserCard/UserCard";
+import SocketContext from "../components/Socket/socket-context";
 
 export async function loader() {
 	const res = await getUserMeFull();
@@ -19,6 +19,7 @@ export function Profile() {
 	console.log({user});
 	const playerStats = user.playStats;
 	const navigate = useNavigate();
+	const {status} = useContext(SocketContext).SocketState.user;
 	user.friends.forEach((f: any) => {
 		console.log({f});
 	})
@@ -32,6 +33,7 @@ export function Profile() {
 					<div className="profileInfo">
 						<h3>{user.userName}</h3>
 						<p>{user.email}</p>
+						<p>{status}</p>
 					</div>
 				</div>
 				<div className="profilePong">

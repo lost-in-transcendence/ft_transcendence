@@ -1,5 +1,5 @@
-import { backURL } from "./constants";
-import { getCookie } from "./cookies";
+import { backURL } from "../constants";
+import { getCookie } from "../cookies";
 
 export async function addFriend(id: string)
 {

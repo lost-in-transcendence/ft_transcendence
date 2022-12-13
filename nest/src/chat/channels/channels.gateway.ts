@@ -1,4 +1,4 @@
-import { ForbiddenException, Get, Logger, ParseIntPipe, ParseUUIDPipe, UseFilters, UseInterceptors, UsePipes, ValidationPipe } from "@nestjs/common";
+import { ForbiddenException, Get, Global, Logger, ParseIntPipe, ParseUUIDPipe, UseFilters, UseInterceptors, UsePipes, ValidationPipe } from "@nestjs/common";
 import { BaseWsExceptionFilter, ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer, WsException } from "@nestjs/websockets";
 import { Prisma, User, Channel, ChannelMember } from "@prisma/client";
 import { IsString } from "class-validator";
