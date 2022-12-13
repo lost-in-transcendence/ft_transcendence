@@ -181,10 +181,10 @@ export class ChannelsGateway implements OnGatewayConnection
 	@SubscribeMessage('ban')
 	async banUser(
 		@ConnectedSocket() client: Socket,
-		@MessageBody('channelId') channelId: string
+		@MessageBody() body: any
 		)
 	{
-		return (this.channelService.banUser(client.data.user.id, channelId))
+		return (this.channelService.banUser(body.userId, body.channelId))
 	}	
 
 	@SubscribeMessage(events.CHANNELS)
