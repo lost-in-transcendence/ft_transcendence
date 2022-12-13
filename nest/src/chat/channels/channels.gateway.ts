@@ -88,7 +88,10 @@ export class ChannelsGateway implements OnGatewayConnection
 		}
 		const channelMember = await this.channelMember.getOne(channelMemberDto)
 		if (channelMember && channelMember.role === 'BANNED')
+		{
+			this.logger.debug("JE SUIS BANNI")
 			return ;
+		}
 		console.log("COUCOU")
 		const dto: joinChannelDto = {
 			channelId: body.channelId,
@@ -202,9 +205,9 @@ export class ChannelsGateway implements OnGatewayConnection
 		)
 	{
 		this.logger.debug("BAN COUCOU")
-		const array: string[] = UserSocketStore.getUserSockets(client.data.user.id);
+		const array: Socket[] = UserSocketStore.getUserSockets(body.userId);
 		for (let n of array)
-			this.server.to(n).emit(events.LEAVE_CHANNEL);
+			n.leave(body.channelId)
 		return (this.channelService.banUser(body.userId, body.channelId))
 	}	
 

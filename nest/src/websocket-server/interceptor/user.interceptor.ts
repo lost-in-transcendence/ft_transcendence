@@ -12,6 +12,7 @@ export class UserInterceptor implements NestInterceptor
 	{
 		const wsClient = context.switchToWs().getClient();
 		const wsUser: User = wsClient.data.user;
+		// console.log(wsUser);
 		const dbUser = await this.prisma.user.findUnique({
 			where:
 			{

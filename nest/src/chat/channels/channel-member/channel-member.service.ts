@@ -62,7 +62,7 @@ export class ChannelMemberService {
 
 	async changeRole(dto: ChannelMemberDto)
 	{
-		this.prisma.channelMember.update({
+		const ret = await this.prisma.channelMember.update({
 			where: {
 				userId_channelId: {userId: dto.userId, channelId: dto.channelId}
 			},
@@ -70,6 +70,7 @@ export class ChannelMemberService {
 				role: dto.role
 			}
 		})
+		console.log({ret});
 	}
 
 	async getOne(dto: ChannelMemberDto)

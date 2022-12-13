@@ -11,6 +11,7 @@ import { CreateUserDto, UserIncludeQueryDto } from 'src/users/dto';
 import { joinChannelDto } from './dto/join-channel.dto';
 import { ChannelMemberDto } from './channel-member/dto';
 import { ChannelMemberService } from './channel-member/channel-member.service';
+import { Server } from 'http';
 
 @Injectable()
 export class ChannelsService
@@ -87,8 +88,9 @@ export class ChannelsService
 	async banUser(userId: string, channelId: string)
 	{
 		const dto: ChannelMemberDto = {userId, channelId, role: 'BANNED'};
-
+		console.log("BANUSER UPDATE ROLE", dto)
 		await this.channelMember.changeRole(dto);
+
 	}
 
 	async findAll(): Promise<Channel[]>
