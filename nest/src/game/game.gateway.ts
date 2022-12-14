@@ -52,7 +52,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 		{
             const rooms = this.waitingRooms
             console.log({rooms});
-		}, 5000)
+		}, 15000)
     }
 
     async handleConnection(client: Socket, ...args: any[])
@@ -79,7 +79,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     async quickplay(@ConnectedSocket() client: Socket, @GetUserWs() user: User)
     {
         // check if there are any waiting rooms where invitation === false, if so join it and create an actual room + game
-        const availableRoom = this.waitingRooms.find((v) => v.user1SocketId !== client.id && v.user2 === undefined && v.invitation === false);
+        const availableRoom = this.waitingRooms.find((v) => {return (v.user1SocketId !== client.id && v.user1.id !== user.id && !v.user2 && v.invitation === false)});
+        console.log({availableRoom});
         if (availableRoom)
         {
             // blinding shining star
@@ -101,11 +102,55 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
             availableRoom.user2SocketId = client.id;
             this.logger.debug(availableRoom);
             this.waitingRooms = this.waitingRooms.filter((v) => v.user1SocketId !== availableRoom.user1SocketId);
-            const ret = await this.gamesService.create({data: {}});
+            // create game in db
+            const ret = await this.gamesService.create({data: 
+                {
+                    players: { create: [ 
+                        {
+                            score: 0,
+                            player:
+                            {
+                                connect: { id: availableRoom.user1.id }
+                            }
+                        },
+                        {
+                            score: 0,
+                            player:
+                            {
+                                connect: { id: availableRoom.user2.id }
+                            }
+                        }
+                    ]}
+                }});
+            this.server.to(availableRoom.user1SocketId).to(availableRoom.user2SocketId).emit('roomReady', {room: ret.id});
+            // get game ID and use as room ID
+            // send back room ID to both clients
+            // have them send a message to join the room
+            // when a user joins the room, have them join the "OngoingGame" class
+            // once 2 users with the corresponding user IDs join the room, the game can start
+            // A user should send its userID when joining the room to make this possible
+            console.log("A game was motherfucking created")
             // create game, maye like a joinGame() function?
+            return;
         }
         this.waitingRooms.push(new GameWaitingRoom({user1: user, user1SocketId: client.id, invitation: false}));
         this.server.to(client.id).emit('queueing');
+    }
+
+    @SubscribeMessage('leaveQueue')
+    async leaveQueue(@ConnectedSocket() client: Socket, @GetUserWs() user: User)
+    {
+        const room = this.waitingRooms.find((v) => {return (v.user1SocketId === client.id)});
+        if (room)
+        {
+            this.waitingRooms = this.waitingRooms.filter((v) => v.user1SocketId !== client.id);
+            this.server.to(client.id).emit('leftQueue');
+            return;
+        }
+        else
+        {
+            throw new Error("You're not in any queues you dumbass!!!!!!!!!!!!!!!!");
+        }
     }
 
     // async createGame(waitingRoom: GameWaitingRoom)

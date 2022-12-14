@@ -23,6 +23,8 @@ export class CustomWsFilter extends BaseWsExceptionFilter
 			return (client.emit('exception', {status: exception.getStatus(), message: exception.message}));
 		if (exception instanceof PrismaClientKnownRequestError)
 			return (client.emit('exception', {status: exception.code, message: `${exception.name} ${exception.message}`}));
+		else
+			return client.emit('exception', {status: 500, message: exception})
 		super.catch(exception, host);
 	}
 

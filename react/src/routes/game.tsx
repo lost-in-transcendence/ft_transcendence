@@ -24,6 +24,14 @@ export function Game()
 		{
 			setQueueing(true);
 		})
+		socket?.on("leftQueue", () =>
+		{
+			setQueueing(false);
+		})
+		socket?.on('exception', (payload: any) =>
+		{
+			console.log({payload});
+		})
 	})
 
 	// const user: any = useLoaderData();
@@ -34,7 +42,7 @@ export function Game()
 				queueing ?
 				<>
 					<p>In Queue...</p>
-					<button onClick={() => setQueueing(false)}>Stop Queue</button>
+					<button onClick={() => socket?.emit("leaveQueue")}>Stop Queue</button>
 				</>
 				:
 				<>
