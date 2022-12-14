@@ -69,7 +69,7 @@ const wsAuthMiddleWare = (jwt: JwtService, prisma: PrismaService, logger: Logger
 					}
 				}
 			})
-			logger.debug({user});
+			// logger.debug({user});
 			if (!user)
 				throw new Error('Invalid user');
 			socket.data.user = user;

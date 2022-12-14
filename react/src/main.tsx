@@ -6,9 +6,9 @@ import './index.css'
 import { Auth, AuthContext } from './auth/AuthContext'
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
-  <React.StrictMode>
-	<Auth>
-		<App />
-	</Auth>
-  </React.StrictMode>
+  	<React.StrictMode>
+		<Auth>
+			<App />
+		</Auth>
+	</React.StrictMode>
 )

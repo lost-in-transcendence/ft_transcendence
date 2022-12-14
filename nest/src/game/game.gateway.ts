@@ -10,8 +10,11 @@ import { GetUserWs } from "src/users/decorator/get-user-ws";
 import { GamesService } from "./game.service";
 import { create } from "domain";
 import { GetUser } from "src/users/decorator";
+import { GameComputer, PaddleDirection } from "./game-computer";
+import { Subscriber } from "rxjs";
+import { userInfo } from "os";
 
-class GameWaitingRoom 
+export class GameWaitingRoom 
 {
     user1: User;
     user1SocketId: string;
@@ -45,9 +48,13 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     @WebSocketServer()
     server: Namespace;
 
+
+    private gameComputer: GameComputer;
+
     afterInit()
     {
         this.logger.log("Game Gateway initialized");
+        this.gameComputer = new GameComputer(this.server, this.gamesService);
         const timerId = setInterval(() => 
 		{
             const rooms = this.waitingRooms
@@ -57,8 +64,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
     async handleConnection(client: Socket, ...args: any[])
     {
-		this.logger.log(`Client ${client.id} connected to Game websocket Gateway`);
-        this.logger.debug(client.data);
+		// this.logger.log(`Client ${client.id} connected to Game websocket Gateway`);
+        // this.logger.debug(client.data);
         this.server.to(client.id).emit('handshake', client.data.user);
     }
 
@@ -69,9 +76,15 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
         if (waitingRoom)
         {
             this.waitingRooms = this.waitingRooms.filter((v) => v.user1SocketId !== client.id);
+            return true;
         }
-        // is socket id in OngoingGame?
-        // if so gracefully close and notify everything
+        const onGoingroom = this.gameComputer.findGameBySocketId(client.id);
+        if (onGoingroom)
+        {
+            // is socket id in OngoingGame?
+            // if so gracefully close and notify everything
+            this.gameComputer.playerDisconnected(client.id);
+        }
 		this.logger.log(`Client ${client.id} disconnected from Game websocket Gateway`);
 	}
 
@@ -80,27 +93,10 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     {
         // check if there are any waiting rooms where invitation === false, if so join it and create an actual room + game
         const availableRoom = this.waitingRooms.find((v) => {return (v.user1SocketId !== client.id && v.user1.id !== user.id && !v.user2 && v.invitation === false)});
-        console.log({availableRoom});
         if (availableRoom)
         {
-            // blinding shining star
-            // you won't see so far
-            // know what can't be shown
-            // feel what can't be known
-
-            // you were an isle unto thyself
-            // you had a heart you hadn't felt
-            // why wouldit hurt me 
-            // or was it real
-
-            // it was the night we had to part 
-            // we were afraid to miss the start
-            // what did it matter
-            // why would it matter 
-            // and could we heal
             availableRoom.user2 = user;
             availableRoom.user2SocketId = client.id;
-            this.logger.debug(availableRoom);
             this.waitingRooms = this.waitingRooms.filter((v) => v.user1SocketId !== availableRoom.user1SocketId);
             // create game in db
             const ret = await this.gamesService.create({data: 
@@ -123,14 +119,14 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
                     ]}
                 }});
             this.server.to(availableRoom.user1SocketId).to(availableRoom.user2SocketId).emit('roomReady', {room: ret.id});
+            this.gameComputer.newGame(ret.id, availableRoom);
             // get game ID and use as room ID
             // send back room ID to both clients
             // have them send a message to join the room
             // when a user joins the room, have them join the "OngoingGame" class
             // once 2 users with the corresponding user IDs join the room, the game can start
             // A user should send its userID when joining the room to make this possible
-            console.log("A game was motherfucking created")
-            // create game, maye like a joinGame() function?
+            console.log("A game was motherfucking created with id ", ret.id);
             return;
         }
         this.waitingRooms.push(new GameWaitingRoom({user1: user, user1SocketId: client.id, invitation: false}));
@@ -153,6 +149,36 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
         }
     }
 
+    @SubscribeMessage('declineMatch')
+    async declineMatch(@ConnectedSocket() client: Socket, @GetUserWs() user: User)
+    {
+        const game = await this.gameComputer.findGameBySocketId(client.id);
+
+        const isPlayer = this.gameComputer.isAPlayer(game, user, client.id);
+        if (isPlayer)
+        {
+            this.gameComputer.playerDisconnected(client.id);
+            if (isPlayer === 1 && game.readyPlayer2 === false)
+            {
+                this.server.to(game.user2SocketId).emit('matchDeclinedByOpponent');
+            }
+            else if (isPlayer === 2 && game.readyPlayer1 === false)
+            {
+                this.server.to(game.user1SocketId).emit('matchDeclinedByOpponent');
+            }
+        }
+        this.server.to(client.id).emit('matchDeclined');
+    }
+
+    @SubscribeMessage('acceptMatch')
+    async joinRoom(@ConnectedSocket() client: Socket, @GetUserWs() user: User, @MessageBody('room') room: any)
+    {
+        console.log ('JOIN ROOM ', {room});
+        client.join(room);
+        this.gameComputer.userJoin(room, user, client.id);
+        this.server.to(client.id).emit('matchAccepted');
+    }
+
     // async createGame(waitingRoom: GameWaitingRoom)
     // {
     //     // call gameService and create a new DB Game using the waiting room info, also create an "OngoingGame" class made with the DB Game info
@@ -160,8 +186,14 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     //     return ret;
     // }
 
+    @SubscribeMessage('paddleMove')
+    async paddleMove(@ConnectedSocket() client: Socket, @GetUserWs() user: User, @MessageBody('direction') direction: PaddleDirection)
+    {
+        this.gameComputer.paddleMove(client.id, user, direction);
+    }
+
     @SubscribeMessage('invite')
-    async invite(@ConnectedSocket() client: Socket, @GetUserWs() user, @MessageBody() dto: any)
+    async invite(@ConnectedSocket() client: Socket, @GetUserWs() user: User, @MessageBody() dto: any)
     {
         // fetch invited userId first and check they're online (how do we know? Maybe only allow invite if invited.status !== OFFLINE or INVISIBLE)
         this.waitingRooms.push(new GameWaitingRoom({user1: user, user1SocketId: client.id, invitation: true, invitedUser: dto.userId}));
