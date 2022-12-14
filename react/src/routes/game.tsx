@@ -48,6 +48,7 @@ export function Game()
 		socket?.on('startGame', () =>
 		{
 			setError('starting game');
+			setStatus('ongoingGame');
 		});
 		socket?.on('matchAccepted', () =>
 		{
@@ -78,6 +79,7 @@ export function Game()
 			setError('Someone disconnected');
 			setRoomState('');
 		});
+
 	}, [])
 
 	// const user: any = useLoaderData();
@@ -95,6 +97,10 @@ export function Game()
 				<>
 					<p>In Queue...</p>
 					<button onClick={() => socket?.emit("leaveQueue")}>Stop Queue</button>
+				</>
+				: status === 'ongoingGame' ?
+				<>
+					<canvas></canvas>
 				</>
 				:
 				<>
