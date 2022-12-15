@@ -213,9 +213,10 @@ export class GameComputer
                 {
                     game.score1++;
                 }
-                if (game.objective === Objective.SCORE && game.score2 === game.scoreObjective)
+                if (game.objective === Objective.SCORE && (game.score2 === game.scoreObjective || game.score1 === game.scoreObjective))
                 {
                     game.endGame = EndGameValue.SCORE;
+                    game.status = GameStatusValue.FINISHED;
                 }
             }
     }
@@ -318,11 +319,20 @@ export class GameComputer
                 game.paddle1?.updatePosition();
                 game.paddle2?.updatePosition();
                 this.updateBallPosition(game);
-
+                if (game.objective === Objective.TIME)
+                {
+                    game.timer -= 16;
+                    if (game.timer <= 0)
+                    {
+                        game.endGame = EndGameValue.TIME;
+                        game.status = GameStatusValue.FINISHED;
+                    }
+                }
                 this.server.to(game.id).emit('renderFrame', {paddle1Pos: game.paddle1.position, paddle2Pos: game.paddle2.position, ballPos: game.ball.position});
             }
             //render le jeu et tout
-        }, 16);
+        }, 16
+        );
     }
 
     async deleteGame(gameId: string)
