@@ -9,9 +9,10 @@ import { ChannelsModule } from './chat/channels/channels.module';
 import { TwofaModule } from './auth/twofa.module';
 import { MainGateway } from './websocket-server/main.gateway';
 import { WebsocketModule } from './websocket-server/websocket.module';
+import { GameModule } from './game/game.module';
 
 @Module({
-  imports: [PrismaModule, UsersModule, ChannelsModule, AuthModule, ChatModule, TwofaModule, WebsocketModule/*, ConfigModule.forRoot({isGlobal: true}) */],
+  imports: [PrismaModule, UsersModule, ChannelsModule, AuthModule, ChatModule, TwofaModule, WebsocketModule, GameModule/*, ConfigModule.forRoot({isGlobal: true}) */],
   controllers: [AppController],
   providers: [AppService],
 })
