@@ -2,6 +2,7 @@ import { ConsoleLogger, Injectable, Logger } from '@nestjs/common';
 import { User } from '@prisma/client';
 import { timeStamp } from 'console';
 import { Socket, Namespace } from 'socket.io';
+import { GlobalChatService } from 'src/global/global-chat-service';
 import { GameWaitingRoom } from './game.gateway';
 import { GamesService } from './game.service';
 
@@ -24,6 +25,12 @@ enum GameStatusValue
     FINISHED,
 }
 
+export enum Objective
+{
+    TIME,
+    SCORE,
+}
+
 export enum PaddleDirection
 {
     UP = -1,
@@ -43,28 +50,6 @@ class Ball
         this.direction = direction;
         this.speed = 3;
         this.size = size;
-    }
-    updatePosition()
-    {
-        this.position.x = this.position.x + (this.speed * this.direction.x);
-        if (this.position.x < 0 + this.size / 2)
-        {
-            this.position.x = this.size / 2;
-        }
-        else if (this.position.x > width - this.size / 2)
-        {
-            this.position.x = width - this.size / 2;
-        }
-
-        this.position.y = this.position.y + (this.speed * this.direction.y);
-        if (this.position.y < 0 + this.size / 2)
-        {
-            this.position.y = this.size / 2;
-        }
-        else if (this.position.y > height - this.size / 2)
-        {
-            this.position.y = height - this.size / 2;
-        }
     }
 }
 
@@ -107,8 +92,13 @@ class OngoingGame
     user1SocketId: string;
     user2SocketId: string;
     
-    score1: number;
-    score2: number;
+    score1: number = 0;
+    score2: number = 0;
+
+    scoreObjective: number;
+    timer: number;
+
+    objective: Objective;
 
     paddle1: Paddle;
     paddle2: Paddle;
@@ -121,17 +111,21 @@ class OngoingGame
     disconnectedSocket: string;
     // spectators: User[];
 
-    constructor(params: {id, user1, user2, user1SocketId, user2SocketId})
+    constructor(params: {id: string, user1: User, user2: User, user1SocketId: string, user2SocketId: string, objective: Objective, scoreObjective: number, timer: number})
     {
-        const {id, user1, user2, user1SocketId, user2SocketId} = params;
+        const {id, user1, user2, user1SocketId, user2SocketId, objective, scoreObjective, timer} = params;
         this.id = id;
         this.user1 = user1;
         this.user2 = user2;
         this.user1SocketId = user1SocketId;
         this.user2SocketId = user2SocketId;
         this.paddle1 = new Paddle(Math.round((height / 2) - 50), 100);
-        this.paddle1 = new Paddle(Math.round((height / 2) - 50), 100);
+        this.paddle2 = new Paddle(Math.round((height / 2) - 50), 100);
         this.ball = new Ball({x: width / 2, y:height / 2}, {x: 1, y:1}, 25);
+        this.objective = objective;
+        this.scoreObjective = scoreObjective;
+        this.timer = timer;
+
         // TODO
         // - define score paddle ball base values
 
@@ -152,7 +146,7 @@ export class GameComputer
         this.server = server;
     }
 
-    async newGame(gameId: string, waitingRoom: GameWaitingRoom)
+    async newGame(gameId: string, waitingRoom: GameWaitingRoom, objective: Objective, scoreObjective: number, timer: number)
     {
         const {user1, user2, user1SocketId, user2SocketId} = waitingRoom;
         const game = new OngoingGame(
@@ -161,7 +155,10 @@ export class GameComputer
                 user1,
                 user2,
                 user1SocketId,
-                user2SocketId
+                user2SocketId,
+                objective,
+                scoreObjective,
+                timer,
             });
         this.ongoingGames.push(game);
         this.runGame(game);
@@ -185,6 +182,85 @@ export class GameComputer
         }
     }
 
+    async handleBounces(game: OngoingGame, paddle : Paddle, player: number)
+    {
+        if (paddle.position >= game.ball.position.y - game.ball.size / 2 && paddle.position + paddle.size <= game.ball.position.y + game.ball.size / 2)
+            {
+                game.ball.position.x = game.ball.size / 2;
+                game.ball.direction.x *= -1;
+                if (game.ball.position.y <= paddle.position + paddle.size / 3)
+                {
+                    game.ball.direction.y = -1;
+                }
+                else if (game.ball.position.y >= paddle.position + paddle.size - paddle.size / 3)
+                {
+                    game.ball.direction.y = -1;
+                }
+                else
+                {
+                    game.ball.direction.y = -1;
+                }
+            }
+            else
+            {
+                game.ball.position.x = width / 2;
+                game.ball.position.y = height / 2;
+                if (player === 1)
+                {
+                    game.score2++;
+                }
+                else
+                {
+                    game.score1++;
+                }
+                if (game.objective === Objective.SCORE && (game.score2 === game.scoreObjective || game.score1 === game.scoreObjective))
+                {
+                    game.endGame = EndGameValue.SCORE;
+                    game.status = GameStatusValue.FINISHED;
+                }
+            }
+    }
+
+    async updateBallPosition(game: OngoingGame)
+    {
+        game.ball.position.x = game.ball.position.x + (game.ball.speed * game.ball.direction.x);
+        if (game.ball.position.x < 0 + game.ball.size / 2)
+        {
+            this.handleBounces(game, game.paddle1, 1);
+            // if (game.paddle1.position >= game.ball.position.y - game.ball.size / 2 && game.paddle1.position + game.paddle1.size <= game.ball.position.y + game.ball.size / 2)
+            // {
+            //     game.ball.position.x = game.ball.size / 2;
+            //     game.ball.direction.x *= -1;
+            //     if (game.ball.position.y <= game.paddle1.position + game.paddle1.size / 3)
+            //     {
+            //         game.ball.direction.y = -1;
+            //     }
+            //     else if (game.ball.position.y >= game.paddle1.position + game.paddle1.size - game.paddle1.size / 3)
+            //     {
+            //         game.ball.direction.y = -1;
+            //     }
+            //     else
+            //     {
+            //         game.ball.direction.y = -1;
+            //     }
+            // }
+            // else
+            // {
+            //     game.ball.position.x = width / 2;
+            //     game.ball.position.y = height / 2;
+            //     game.score2++;
+            //     if (game.objective === Objective.SCORE && game.score2 === game.scoreObjective)
+            //     {
+            //         game.endGame = EndGameValue.SCORE;
+            //     }
+            // }
+        }
+        else if (game.ball.position.x > width - game.ball.size / 2)
+        {
+            this.handleBounces(game, game.paddle2, 2);
+        }
+    }
+
     async runGame(game: OngoingGame)
     {
         //setup
@@ -197,34 +273,66 @@ export class GameComputer
                 if (game.endGame === EndGameValue.ABORTED)
                 {
                     this.server.to(game.id).emit('aborted');
-                    this.gamesService.remove({where: {id: game.id}});
+                    this.gamesService.remove({where: {id: game.id}})
+                    this.deleteGame(game.id);
+                    clearInterval(timerId);
+                    return ;
                 }
                 else if (game.endGame === EndGameValue.DISCONNECTION)
                 {
                     this.server.to(game.id).emit('disconnected');
                     if (game.disconnectedSocket === game.user1SocketId)
                     {
-                        //user2 wins donc change le score BATARD
+                        game.score2 = 3;
+                        game.score1 = 0;
                     }
                     else
                     {
-                        //user1 wins donc change le score sale petit CANCRE ouuuuuuuuuuuuuuuuuuuuuuuuuhhhhhhhhhhhhhhhhhhh yeah
+                        game.score1 = 3;
+                        game.score2 = 0;
                     }
+                    game.status = GameStatusValue.FINISHED;
                 }
-                // enregistrer les scores 
+                // enregistrer les scores
+                this.gamesService.update({where: {id: game.id}, data: 
+                    {
+                        players:
+                        {
+                            update:
+                            [
+                                {
+                                    where: {playerId_gameId: {playerId: game.user1.id, gameId: game.id}},
+                                    data: {score: game.score1},
+                                },
+                                {
+                                    where: {playerId_gameId: {playerId: game.user2.id, gameId: game.id}},
+                                    data: {score: game.score2},
+                                },
+                            ]
+                        }
+                    }});
                 clearInterval(timerId);
                 this.deleteGame(game.id);
             }
             if (game.status === GameStatusValue.ONGOING)
             {
-                game.paddle1.updatePosition();
-                game.paddle2.updatePosition();
-                game.ball.updatePosition();
-
+                game.paddle1?.updatePosition();
+                game.paddle2?.updatePosition();
+                this.updateBallPosition(game);
+                if (game.objective === Objective.TIME)
+                {
+                    game.timer -= 16;
+                    if (game.timer <= 0)
+                    {
+                        game.endGame = EndGameValue.TIME;
+                        game.status = GameStatusValue.FINISHED;
+                    }
+                }
                 this.server.to(game.id).emit('renderFrame', {paddle1Pos: game.paddle1.position, paddle2Pos: game.paddle2.position, ballPos: game.ball.position});
             }
             //render le jeu et tout
-        }, 1000);
+        }, 16
+        );
     }
 
     async deleteGame(gameId: string)
