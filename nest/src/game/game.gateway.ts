@@ -10,7 +10,7 @@ import { GetUserWs } from "src/users/decorator/get-user-ws";
 import { GamesService } from "./game.service";
 import { create } from "domain";
 import { GetUser } from "src/users/decorator";
-import { GameComputer, PaddleDirection } from "./game-computer";
+import { GameComputer, Objective, PaddleDirection } from "./game-computer";
 import { Subscriber } from "rxjs";
 import { userInfo } from "os";
 
@@ -119,7 +119,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
                     ]}
                 }});
             this.server.to(availableRoom.user1SocketId).to(availableRoom.user2SocketId).emit('roomReady', {room: ret.id});
-            this.gameComputer.newGame(ret.id, availableRoom);
+            this.gameComputer.newGame(ret.id, availableRoom, Objective.SCORE, 5, 0);
             // get game ID and use as room ID
             // send back room ID to both clients
             // have them send a message to join the room

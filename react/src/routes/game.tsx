@@ -76,7 +76,7 @@ export function Game()
 		socket?.on('disconnected', () => 
 		{
 			setStatus('waiting');
-			setError('Someone disconnected');
+			setError('Your opponent has disconnected');
 			setRoomState('');
 		});
 
