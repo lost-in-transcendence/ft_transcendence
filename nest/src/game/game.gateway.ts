@@ -189,6 +189,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     @SubscribeMessage('paddleMove')
     async paddleMove(@ConnectedSocket() client: Socket, @GetUserWs() user: User, @MessageBody('direction') direction: PaddleDirection)
     {
+        console.log("direction =", direction);
         this.gameComputer.paddleMove(client.id, user, direction);
     }
 

@@ -63,7 +63,7 @@ class Paddle
     {
         this.position = position;
         this.direction = PaddleDirection.IDLE;
-        this.speed = 1;
+        this.speed = 10;
         this.size = size;
     }
     updatePosition()
@@ -184,41 +184,46 @@ export class GameComputer
 
     async handleBounces(game: OngoingGame, paddle : Paddle, player: number)
     {
-        if (paddle.position >= game.ball.position.y - game.ball.size / 2 && paddle.position + paddle.size <= game.ball.position.y + game.ball.size / 2)
+        const ballTop = game.ball.position.y - (game.ball.size / 2);
+        const ballDown = game.ball.position.y + (game.ball.size / 2)
+        if (ballDown >= paddle.position && ballTop <= paddle.position + paddle.size)
+        {
+            if (player === 1)
+                game.ball.position.x = game.ball.size;
+            else
+                game.ball.position.x = width - game.ball.size;
+            game.ball.direction.x *= -1;
+            if (game.ball.position.y <= paddle.position + paddle.size / 3)
             {
-                game.ball.position.x = game.ball.size / 2;
-                game.ball.direction.x *= -1;
-                if (game.ball.position.y <= paddle.position + paddle.size / 3)
-                {
-                    game.ball.direction.y = -1;
-                }
-                else if (game.ball.position.y >= paddle.position + paddle.size - paddle.size / 3)
-                {
-                    game.ball.direction.y = -1;
-                }
-                else
-                {
-                    game.ball.direction.y = -1;
-                }
+                game.ball.direction.y = -1;
+            }
+            else if (game.ball.position.y >= paddle.position + paddle.size - paddle.size / 3)
+            {
+                game.ball.direction.y = 1;
             }
             else
             {
-                game.ball.position.x = width / 2;
-                game.ball.position.y = height / 2;
-                if (player === 1)
-                {
-                    game.score2++;
-                }
-                else
-                {
-                    game.score1++;
-                }
-                if (game.objective === Objective.SCORE && (game.score2 === game.scoreObjective || game.score1 === game.scoreObjective))
-                {
-                    game.endGame = EndGameValue.SCORE;
-                    game.status = GameStatusValue.FINISHED;
-                }
+                game.ball.direction.y = 0;
             }
+        }
+        else
+        {
+            game.ball.position.x = width / 2;
+            game.ball.position.y = height / 2;
+            if (player === 1)
+            {
+                game.score2++;
+            }
+            else
+            {
+                game.score1++;
+            }
+            if (game.objective === Objective.SCORE && (game.score2 === game.scoreObjective || game.score1 === game.scoreObjective))
+            {
+                game.endGame = EndGameValue.SCORE;
+                game.status = GameStatusValue.FINISHED;
+            }
+        }
     }
 
     async updateBallPosition(game: OngoingGame)
@@ -227,37 +232,21 @@ export class GameComputer
         if (game.ball.position.x < 0 + game.ball.size / 2)
         {
             this.handleBounces(game, game.paddle1, 1);
-            // if (game.paddle1.position >= game.ball.position.y - game.ball.size / 2 && game.paddle1.position + game.paddle1.size <= game.ball.position.y + game.ball.size / 2)
-            // {
-            //     game.ball.position.x = game.ball.size / 2;
-            //     game.ball.direction.x *= -1;
-            //     if (game.ball.position.y <= game.paddle1.position + game.paddle1.size / 3)
-            //     {
-            //         game.ball.direction.y = -1;
-            //     }
-            //     else if (game.ball.position.y >= game.paddle1.position + game.paddle1.size - game.paddle1.size / 3)
-            //     {
-            //         game.ball.direction.y = -1;
-            //     }
-            //     else
-            //     {
-            //         game.ball.direction.y = -1;
-            //     }
-            // }
-            // else
-            // {
-            //     game.ball.position.x = width / 2;
-            //     game.ball.position.y = height / 2;
-            //     game.score2++;
-            //     if (game.objective === Objective.SCORE && game.score2 === game.scoreObjective)
-            //     {
-            //         game.endGame = EndGameValue.SCORE;
-            //     }
-            // }
         }
         else if (game.ball.position.x > width - game.ball.size / 2)
         {
             this.handleBounces(game, game.paddle2, 2);
+        }
+        game.ball.position.y = game.ball.position.y + (game.ball.speed * game.ball.direction.y);
+        if (game.ball.position.y < game.ball.size / 2)
+        {
+            game.ball.direction.y *= -1;
+            game.ball.position.y = game.ball.size / 2;
+        }
+        if (game.ball.position.y > height - game.ball.size / 2)
+        {
+            game.ball.direction.y *= -1;
+            game.ball.position.y = height - game.ball.size / 2;
         }
     }
 
@@ -328,7 +317,14 @@ export class GameComputer
                         game.status = GameStatusValue.FINISHED;
                     }
                 }
-                this.server.to(game.id).emit('renderFrame', {paddle1Pos: game.paddle1.position, paddle2Pos: game.paddle2.position, ballPos: game.ball.position});
+                this.server.to(game.id).emit('renderFrame', 
+                {
+                    paddle1Pos: game.paddle1.position,
+                    paddle2Pos: game.paddle2.position,
+                    ballPos: game.ball.position,
+                    player1Score: game.score1,
+                    player2Score: game.score2,
+                });
             }
             //render le jeu et tout
         }, 16
