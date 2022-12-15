@@ -5,6 +5,7 @@ import { getCookie } from "../requests/cookies"
 import { Navigate } from "react-router-dom";
 import { getUserMe } from "../requests";
 import GameSocketContext from "../components/Game/Context/game-socket-context";
+import { Canvas } from "../components/Canvas/canvas";
 
 export async function loader()
 {
@@ -82,6 +83,15 @@ export function Game()
 
 	}, [])
 
+	function draw(ctx: any, frameCount: any)
+	{
+		ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
+		ctx.fillStyle = '#000000'
+		ctx.beginPath()
+		ctx.arc(50, 100, 20*Math.sin(frameCount*0.05)**2, 0, 2*Math.PI)
+		ctx.fill()
+	  }
+
 	// const user: any = useLoaderData();
 	return (
 		<div>
@@ -100,7 +110,7 @@ export function Game()
 				</>
 				: status === 'ongoingGame' ?
 				<>
-					<canvas></canvas>
+					<Canvas draw={draw} height={600} width={800}></Canvas>
 				</>
 				:
 				<>
