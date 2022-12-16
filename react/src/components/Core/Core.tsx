@@ -12,7 +12,7 @@ function Core() {
 	return (
 		<div className='flex flex-row'>
 			<SideBar />
-			<div className='bg-gray-800 basis-full overflow-auto'>
+			<div className='bg-gray-800 basis-full'>
 				<Outlet />
 			</div>
 		</div>
