@@ -10,9 +10,9 @@
 // getUserMe
 // changeChannelMode
 
-import { backURL } from "./constants";
-import { getCookie } from "./cookies";
-import { SharedUpdateUserDto } from '../../shared/dtos'
+import { backURL } from "../constants";
+import { getCookie } from "../cookies";
+import { SharedUpdateUserDto } from '../../../shared/dtos'
 
 export async function getUser(userName : string)
 {

@@ -1,4 +1,4 @@
-import { Logger, UseFilters, UseInterceptors, UsePipes } from '@nestjs/common';
+import { Global, Logger, UseFilters, UseInterceptors, UsePipes } from '@nestjs/common';
 import
 {
 	WebSocketGateway,

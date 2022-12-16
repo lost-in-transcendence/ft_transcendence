@@ -1,6 +1,7 @@
+// import './modal.css'
+
 import { ReactNode, useEffect, useState } from 'react'
 import ReactDOM from 'react-dom';
-import './modal.css'
 
 export default function Modal(props: {isOpen : boolean, onOpen: any, onClose: any, children: any})
 {
@@ -12,7 +13,7 @@ export default function Modal(props: {isOpen : boolean, onOpen: any, onClose: an
             const res = await props.onOpen();
             if (res.ok === true)
                 setDisplayChild(true);
-            
+
            }
         if (props.isOpen === true)
         {
@@ -26,7 +27,7 @@ export default function Modal(props: {isOpen : boolean, onOpen: any, onClose: an
         setDisplayChild(false);
         props.onClose()
     }
-    
+
     return ReactDOM.createPortal(
 
         <div className={`modal-overlay ${props.isOpen ? 'modal-open' : ''}`} onClick={closeModal}>
