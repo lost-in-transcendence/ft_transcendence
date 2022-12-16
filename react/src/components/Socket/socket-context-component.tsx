@@ -34,7 +34,6 @@ export default function SocketContextComponent(props: any)
 		SendHandshake();
 		return () =>
 		{
-			console.log("in socket context dismount");
 			changeStatus(socket, SharedUserStatus.OFFLINE);
 		}
 	}, [])
@@ -65,11 +64,9 @@ export default function SocketContextComponent(props: any)
 
 		socket.on('handshake', (payload: any) =>
 		{
-			console.info('Handshake received from server');
 			SocketDispatch({type: 'update_user', payload});
 			socket.emit(events.CHANGE_STATUS, {status: 'ONLINE'});
 			setLoading(false);
-			console.info(socket.id);
 		});
 
 		socket.on(events.UPDATE_USER, (payload: any) =>

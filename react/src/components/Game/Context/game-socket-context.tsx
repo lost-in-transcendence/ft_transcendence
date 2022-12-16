@@ -23,7 +23,7 @@ export interface IGameSocketContextActions
 
 export function GameSocketReducer(state: IGameSocketContextState, action: IGameSocketContextActions)
 {
-    console.info(`Message Received - Action: ${action.type} - Payload `, action.payload)
+    // console.info(`Message Received - Action: ${action.type} - Payload `, action.payload)
 
 	switch (action.type)
 	{

@@ -53,7 +53,7 @@ function updateUser(user: User, payload: PartialUser)
 
 export function SocketReducer(state: ISocketContextState, action: ISocketContextActions)
 {
-	console.info(`Message Received - Action: ${action.type} - Payload `, action.payload)
+	// console.info(`Message Received - Action: ${action.type} - Payload `, action.payload)
 
 	switch (action.type)
 	{
