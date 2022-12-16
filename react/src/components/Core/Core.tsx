@@ -1,28 +1,20 @@
+// import '../../App.css'
+// import './Core.css'
+
 import { useEffect, useState } from 'react'
-import '../../App.css'
 import {Navbar} from '../Menu/Navbar'
 
-import './Core.css'
 import { Link, Outlet } from 'react-router-dom'
+import { SideBar } from '../Menu/Sidebar'
 
 function Core() {
 	return (
-		<>
-		<div style={{backgroundColor: 'green'}}>
-
-			<div className='nav-area'>
-				<Link to='/' className='logo'>
-					Pong!
-				</Link>
-				<Navbar />
+		<div className='flex flex-row'>
+			<SideBar />
+			<div className='bg-gray-800 basis-full overflow-auto'>
+				<Outlet />
 			</div>
 		</div>
-			<div className="wrapper">
-				<div className="game">
-					<Outlet />
-				</div>
-			</div>
-		</>
 	)
 }
 

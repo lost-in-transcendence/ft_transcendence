@@ -1,11 +1,12 @@
+// import './styles/profile.css'
 
+import { useState } from "react";
 import { useLoaderData } from "react-router-dom";
+
 import { backURL } from "../requests/constants";
-import './styles/profile.css'
 import { getUserMeModal, getUserModal } from "../requests";
 import { getCookie } from "../requests";
 import { addFriend, removeFriend } from "../requests/http/friends.requests";
-import { useState } from "react";
 
 export async function loader({params} : any) {
 	let res = await getUserMeModal(new URLSearchParams({'friends': 'true'}));
