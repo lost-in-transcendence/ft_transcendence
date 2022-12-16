@@ -32,12 +32,6 @@ export default function GameSocketContextComponent(props: any)
 		SendHandshake();
 		return () =>
 		{
-			console.log("in game socket context dismount");
-			// socket.off('reconnect');
-			// socket.off('reconnect_attempt');
-			// socket.off('reconnect_error');
-			// socket.off('reconnect_failed');
-			// socket.off()
 			socket.offAnyOutgoing();
 		}
 	}, [])
@@ -68,9 +62,7 @@ export default function GameSocketContextComponent(props: any)
 
 		socket.on('handshake', (payload: any) =>
 		{
-			console.info('Handshake received from server');
 			setLoading(false);
-			console.info(socket.id);
 		});
 	}
 

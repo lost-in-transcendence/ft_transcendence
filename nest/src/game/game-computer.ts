@@ -1,6 +1,5 @@
-import { ConsoleLogger, Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { User } from '@prisma/client';
-import { timeStamp } from 'console';
 import { Socket, Namespace } from 'socket.io';
 import { GlobalChatService } from 'src/global/global-chat-service';
 import { GameWaitingRoom } from './game.gateway';
@@ -105,6 +104,7 @@ class OngoingGame
     
     ball: any;
 
+    winner: number;
 
     status: GameStatusValue = GameStatusValue.WAITING;
     endGame: EndGameValue = EndGameValue.ONGOING;
@@ -125,9 +125,10 @@ class OngoingGame
         this.objective = objective;
         this.scoreObjective = scoreObjective;
         this.timer = timer;
+        this.winner = 0;
 
         // TODO
-        // - define score paddle ball base values
+        // - do spectators and shit
 
         // this.spectators = [];
     }
@@ -218,8 +219,14 @@ export class GameComputer
             {
                 game.score1++;
             }
-            if (game.objective === Objective.SCORE && (game.score2 === game.scoreObjective || game.score1 === game.scoreObjective))
+            if (game.objective === Objective.SCORE)
             {
+                if (game.score1 === game.scoreObjective)
+                    game.winner = 1;
+                else if (game.score2 === game.scoreObjective)
+                    game.winner = 2;
+                else
+                    return ;
                 game.endGame = EndGameValue.SCORE;
                 game.status = GameStatusValue.FINISHED;
             }
@@ -250,6 +257,78 @@ export class GameComputer
         }
     }
 
+    async endGame(game: OngoingGame)
+    {
+        if (game.endGame === EndGameValue.ABORTED)
+        {
+            this.server.to(game.id).emit('matchDeclinedByOpponent');
+            this.gamesService.remove({where: {id: game.id}})
+            return ;
+        }
+        else if (game.endGame === EndGameValue.DISCONNECTION)
+        {
+            if (game.disconnectedSocket === game.user1SocketId)
+            {
+                game.score2 = 3;
+                game.score1 = 0;
+                game.winner = 2;
+            }
+            else
+            {
+                game.score1 = 3;
+                game.score2 = 0;
+                game.winner = 1;
+            }
+            game.status = GameStatusValue.FINISHED;
+        }
+        // enregistrer les scores
+        this.gamesService.update({where: {id: game.id}, data: 
+            {
+                players:
+                {
+                    update:
+                    [
+                        {
+                            where: {playerId_gameId: {playerId: game.user1.id, gameId: game.id}},
+                            data: {score: game.score1},
+                        },
+                        {
+                            where: {playerId_gameId: {playerId: game.user2.id, gameId: game.id}},
+                            data: {score: game.score2},
+                        },
+                    ]
+                }
+            }});
+        if (game.winner === 0)
+        {
+            // do something
+            this.server.to(game.id).emit('endGame'),
+            {
+                draw: true,
+            }
+            return;
+        }
+
+        let winnerName, loserName;
+        if (game.winner === 1)
+        {
+            winnerName = game.user1.userName;
+            loserName = game.user2.userName;
+        }
+        else
+        {
+            winnerName = game.user2.userName;
+            loserName = game.user1.userName;
+        }
+
+        this.server.to(game.id).emit('endGame', 
+        {
+            winner: winnerName,
+            loser: loserName,
+            reason: game.disconnectedSocket ? `${loserName} disconnected.` : ''
+        })
+    }
+
     async runGame(game: OngoingGame)
     {
         //setup
@@ -259,47 +338,7 @@ export class GameComputer
             //check game status etc
             if (game.endGame !== EndGameValue.ONGOING)
             {
-                if (game.endGame === EndGameValue.ABORTED)
-                {
-                    this.server.to(game.id).emit('aborted');
-                    this.gamesService.remove({where: {id: game.id}})
-                    this.deleteGame(game.id);
-                    clearInterval(timerId);
-                    return ;
-                }
-                else if (game.endGame === EndGameValue.DISCONNECTION)
-                {
-                    this.server.to(game.id).emit('disconnected');
-                    if (game.disconnectedSocket === game.user1SocketId)
-                    {
-                        game.score2 = 3;
-                        game.score1 = 0;
-                    }
-                    else
-                    {
-                        game.score1 = 3;
-                        game.score2 = 0;
-                    }
-                    game.status = GameStatusValue.FINISHED;
-                }
-                // enregistrer les scores
-                this.gamesService.update({where: {id: game.id}, data: 
-                    {
-                        players:
-                        {
-                            update:
-                            [
-                                {
-                                    where: {playerId_gameId: {playerId: game.user1.id, gameId: game.id}},
-                                    data: {score: game.score1},
-                                },
-                                {
-                                    where: {playerId_gameId: {playerId: game.user2.id, gameId: game.id}},
-                                    data: {score: game.score2},
-                                },
-                            ]
-                        }
-                    }});
+                this.endGame(game);
                 clearInterval(timerId);
                 this.deleteGame(game.id);
             }
@@ -315,6 +354,10 @@ export class GameComputer
                     {
                         game.endGame = EndGameValue.TIME;
                         game.status = GameStatusValue.FINISHED;
+                        if (game.score1 > game.score2)
+                            game.winner = 1;
+                        else if (game.score2 > game.score1)
+                            game.winner = 2;
                     }
                 }
                 this.server.to(game.id).emit('renderFrame', 
@@ -354,10 +397,7 @@ export class GameComputer
 
     async userJoin(gameId: string, user: User, userSocketId: string)
     {
-        // console.log(`game computer userJoin : gameId=${gameId} user socket = ${userSocketId}`)
-        // this.logger.debug(`gameId=${gameId} user socket = ${userSocketId}`);
         const game = await this.findGame(gameId);
-        console.log("gameId:", gameId, "user.id:", user.id, "userSocketId:", userSocketId);
         if (!game)
         {
             throw new Error("Could not find corresponding game");
@@ -369,8 +409,6 @@ export class GameComputer
                 game.readyPlayer1 = true;
             else if (isPlayer === 2)
                 game.readyPlayer2 = true;
-            // this.server.to(game.id).emit('joined', {user});
-            // send message saying that you got into the game or something idk
         }
         // else
         // {
@@ -380,12 +418,7 @@ export class GameComputer
         {
             this.server.to(game.id).emit('startGame');
             game.status = GameStatusValue.ONGOING;
-            // send message saying the game is fucking readYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYy
         }
-        // console.log('P RDY = ',game.playersReady);
-        // console.log("Player = ", user.id);
-        // console.log("socket id = ", userSocketId)
-
     }
 
     async playerDisconnected(userSocketId: string)
@@ -407,16 +440,6 @@ export class GameComputer
         }
     }
 
-    // async userLeave(user: User, userSocketId: string)
-    // {
-    //     const game = this.findGameBySocketId(userSocketId);
-    //     if (game)
-    //     {
-    //         // emit un message a tous les gens dans la room pour dire qu'un mec s'est barre
-    //         // si la game etait meme pas lancee faudrait supprimer la game peut etre
-    //     }
-    // }
-
     isAPlayer(game: OngoingGame, user: User, userSocketId: string)
     {
         const {user1, user2, user1SocketId, user2SocketId} = game;
@@ -428,11 +451,6 @@ export class GameComputer
     }
 
     async startGame()
-    {
-
-    }
-
-    async endGame()
     {
 
     }
