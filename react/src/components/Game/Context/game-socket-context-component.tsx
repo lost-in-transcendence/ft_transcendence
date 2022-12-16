@@ -33,6 +33,12 @@ export default function GameSocketContextComponent(props: any)
 		return () =>
 		{
 			console.log("in game socket context dismount");
+			// socket.off('reconnect');
+			// socket.off('reconnect_attempt');
+			// socket.off('reconnect_error');
+			// socket.off('reconnect_failed');
+			// socket.off()
+			socket.offAnyOutgoing();
 		}
 	}, [])
 

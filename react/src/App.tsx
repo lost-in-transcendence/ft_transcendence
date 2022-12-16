@@ -1,11 +1,11 @@
+// import './App.css'
+// import './components/Menu/Menu.css'
+
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 
-import './App.css'
 import { ChatContextComponent } from './components/Chat/Context/chatContextComponent'
 import GameSocketContextComponent from './components/Game/Context/game-socket-context-component'
-import './components/Menu/Menu.css'
 import {Callback, loader as callbackLoader} from './routes/callback'
-
 import { Chat, loader as chatLoader } from './routes/chat'
 import { ErrorPage } from './routes/error'
 import { Game, loader as gameLoader } from './routes/game'

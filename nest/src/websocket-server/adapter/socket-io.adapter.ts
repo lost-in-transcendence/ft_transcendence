@@ -25,6 +25,7 @@ export class SocketIOAdapter extends IoAdapter
 		const server: Server = super.createIOServer(port, options);
 
 		server.of('chat').use(wsAuthMiddleWare(jwt, prisma, this.logger));
+		server.of('game').use(wsAuthMiddleWare(jwt, prisma, this.logger));
 		server.use(wsAuthMiddleWare(jwt, prisma, this.logger));
 
 		return (server);
@@ -68,7 +69,7 @@ const wsAuthMiddleWare = (jwt: JwtService, prisma: PrismaService, logger: Logger
 					}
 				}
 			})
-			logger.debug({user});
+			// logger.debug({user});
 			if (!user)
 				throw new Error('Invalid user');
 			socket.data.user = user;
