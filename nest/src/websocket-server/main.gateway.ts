@@ -50,4 +50,10 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		});
 		this.server.to(client.id).emit(events.UPDATE_USER, { status: updatedUser.status });
 	}
+
+	@SubscribeMessage('test')
+	async testfunct()
+	{
+		this.server.of('/chat').emit('notify', {status: 'this is a test'});
+	}
 }

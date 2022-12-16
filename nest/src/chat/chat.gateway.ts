@@ -123,7 +123,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 	}
 
 	@SubscribeMessage('testMsg')
-	testMsg(@MessageBody() body: any)
+	testMsg(@MessageBody() body: any, @ConnectedSocket() client: Socket)
 	{
 		this.server.emit('testMsg', body);
 	}

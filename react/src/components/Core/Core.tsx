@@ -3,6 +3,7 @@
 
 import { useEffect, useState } from 'react'
 import {Navbar} from '../Menu/Navbar'
+import { Navbar as NewNav } from '../Menu/NavBar'
 
 import { Link, Outlet } from 'react-router-dom'
 import { SideBar } from '../Menu/Sidebar'
