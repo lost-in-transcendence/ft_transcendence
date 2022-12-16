@@ -3,6 +3,7 @@ import { GiPingPongBat as PongIcon, GiStarsStack as LeaderBoardIcon } from 'reac
 import { AiOutlineHome as HomeIcon, AiOutlinePoweroff as LogoutIcon } from 'react-icons/ai'
 import { IoChatbubbleEllipsesSharp as ChatIcon } from 'react-icons/io5'
 import { NavLink } from 'react-router-dom'
+import { logout } from '../../requests'
 
 export function SideBar()
 {
@@ -35,7 +36,9 @@ export function SideBar()
 			</div>
 			<hr className='self-center w-12 border-gray-700' />
 			<div className='basis-1/10'>
-				<SideBarIcon icon={<LogoutIcon size='20' />} tooltip='LogOut' />
+				<NavLink to={'/login'}>
+					<SideBarIcon icon={<LogoutIcon size='20' />} tooltip='LogOut' />
+				</NavLink>
 			</div>
 		</div>
 	)
@@ -44,7 +47,11 @@ export function SideBar()
 function SideBarIcon({ icon, tooltip = 'tooltip' }: any)
 {
 	return (
-		<div className='sidebar-icon group'>
+		<div className='sidebar-icon group' onClick={() =>
+		{
+			if (tooltip === 'LogOut')
+				logout();
+		}}>
 			{icon}
 			<span className='icon-tooltip group-hover:scale-100'>{tooltip}</span>
 		</div>
