@@ -75,9 +75,9 @@ export class ChannelsGateway implements OnGatewayConnection
 		@ConnectedSocket() client: Socket,
 		@GetUserWs() user: User)
 	{
-		const joinedChans: any[] = client.data.user.channel;
-		const thisChan = joinedChans.find((c) => c.channelId === body.channelId);
-		if (thisChan.role === 'BANNED')
+		const joinedChans: any[] = client.data.user.channels;
+		const thisChan = joinedChans?.find((c) => c.channelId === body.channelId);
+		if (thisChan?.role === 'BANNED')
 			return ;
 		const dto: joinChannelDto = {
 			channelId: body.channelId,
@@ -185,7 +185,7 @@ export class ChannelsGateway implements OnGatewayConnection
 		)
 	{
 		return (this.channelService.banUser(client.data.user.id, channelId))
-	}	
+	}
 
 	@SubscribeMessage(events.CHANNELS)
 	async channels(@ConnectedSocket() client: Socket, @GetUserWs('id', ParseUUIDPipe) userId: string)

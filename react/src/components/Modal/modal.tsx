@@ -1,4 +1,4 @@
-// import './modal.css'
+import './modal.css'
 
 import { ReactNode, useEffect, useState } from 'react'
 import ReactDOM from 'react-dom';

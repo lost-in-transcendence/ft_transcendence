@@ -4,11 +4,23 @@ export function Accordeon({title, children}: any)
 {
 	const [isOpen, setIsOpen] = useState<boolean>(false);
 	const selfRef = useRef<HTMLDivElement>(null)
-	console.log(selfRef.current?.scrollHeight)
+
 	return (
 		<div className="accordeon">
-			<button onClick={() => setIsOpen(!isOpen)} className='flex flex-row justify-between text-right w-full z-10 px-5'>{title}<span>{isOpen ? '-' : '+'}</span></button>
-			<div ref={selfRef} className={`bg-orange-500 ${(isOpen) ? `h-[${selfRef.current?.scrollHeight}px]` : "h-0"} origin-top duration-1000 transition-all ease-linear  overflow-hidden`}>
+			<button
+			onClick={() => setIsOpen(!isOpen)}
+			className='flex flex-row justify-between
+					text-right
+					w-full px-5
+					hover:bg-gray-500 hover:text-white
+					focus:bg-gray-500
+					rounded'>
+				{title}
+				<span>
+					{isOpen ? '-' : '+'}
+				</span>
+			</button>
+			<div ref={selfRef} className={`bg-gray-600 ${(isOpen) ? `scale-y-100 h-full` : "scale-y-0 h-0"} rounded origin-top duration-300 transition-scale-y ease-in-out overflow-hidden`}>
 			{
 				children
 			}
