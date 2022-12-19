@@ -2,11 +2,12 @@ import { BsPersonFill as ProfileIcon } from 'react-icons/bs'
 import { GiPingPongBat as PongIcon, GiStarsStack as LeaderBoardIcon } from 'react-icons/gi'
 import { AiOutlineHome as HomeIcon, AiOutlinePoweroff as LogoutIcon } from 'react-icons/ai'
 import { IoChatbubbleEllipsesSharp as ChatIcon } from 'react-icons/io5'
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 import { logout } from '../../requests'
 
 export function SideBar()
 {
+	const navigate = useNavigate();
 	return (
 		<div className="sticky grow-0 shrink-0 basis-14 h-screen m-0 left-0 top-0 z-50
 						flex flex-col justify-between
@@ -18,9 +19,9 @@ export function SideBar()
 			</div>
 			<hr className='self-center w-12 border-gray-700' />
 			<div className='basis-full overflow-hidden scrollbar-hide'>
-				<NavLink to={'/game'}>
+				<a onClick={() => navigate("/game")}>
 					<SideBarIcon icon={<PongIcon size='20' />} tooltip='Play !' />
-				</NavLink>
+				</a>
 
 				<NavLink to={'/chat'}>
 					<SideBarIcon icon={<ChatIcon size='20' />} tooltip='Chat' />

@@ -106,7 +106,7 @@ export function Login()
 	}
 
 	return (
-		<div>
+		<div className="bg-gray-800">
 			{error}
 			<Modal isOpen={isModalOpen} onOpen={onModalOpen} onClose={() => {setIsModalOpen(false)}}>
 				<TwoFa onSuccess={() => {setIsModalOpen(false); setStatus('success')}} />

@@ -22,3 +22,20 @@
 	}
 
 }
+p, div, input, button
+{
+	color: white
+}
+
+button
+{
+	padding: 5px;
+	border: white solid 2px;
+	border-radius: 12.5%;
+	background-color: grey;
+}
+
+select
+{
+	background-color: grey;
+}

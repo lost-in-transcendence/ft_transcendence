@@ -1,7 +1,10 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { ForbiddenException, HttpException, Injectable, Logger, UseFilters, UseInterceptors, UsePipes } from '@nestjs/common';
 import { User } from '@prisma/client';
 import { Socket, Namespace } from 'socket.io';
 import { GlobalChatService } from 'src/global/global-chat-service';
+import { CustomWsFilter } from 'src/websocket-server/filters';
+import { UserInterceptor } from 'src/websocket-server/interceptor';
+import { WsValidationPipe } from 'src/websocket-server/pipes';
 import { GameWaitingRoom } from './game.gateway';
 import { GamesService } from './game.service';
 
@@ -17,7 +20,7 @@ enum EndGameValue
     TIME,
 }
 
-enum GameStatusValue
+export enum GameStatusValue
 {
     WAITING,
     ONGOING,
@@ -79,6 +82,14 @@ class Paddle
     }
 }
 
+interface Spectator 
+{
+    id: string;
+    name: string;
+    socketId: string;
+
+}
+
 class OngoingGame
 {
     id: string;
@@ -94,8 +105,9 @@ class OngoingGame
     score1: number = 0;
     score2: number = 0;
 
-    scoreObjective: number;
-    timer: number;
+    // scoreObjective: number;
+    timer?: number;
+    goal: number;
 
     objective: Objective;
 
@@ -109,11 +121,11 @@ class OngoingGame
     status: GameStatusValue = GameStatusValue.WAITING;
     endGame: EndGameValue = EndGameValue.ONGOING;
     disconnectedSocket: string;
-    // spectators: User[];
+    spectators: Spectator[] = [];
 
-    constructor(params: {id: string, user1: User, user2: User, user1SocketId: string, user2SocketId: string, objective: Objective, scoreObjective: number, timer: number})
+    constructor(params: {id: string, user1: User, user2: User, user1SocketId: string, user2SocketId: string, objective: Objective, goal: number;})
     {
-        const {id, user1, user2, user1SocketId, user2SocketId, objective, scoreObjective, timer} = params;
+        const {id, user1, user2, user1SocketId, user2SocketId, objective, goal} = params;
         this.id = id;
         this.user1 = user1;
         this.user2 = user2;
@@ -123,9 +135,14 @@ class OngoingGame
         this.paddle2 = new Paddle(Math.round((height / 2) - 50), 100);
         this.ball = new Ball({x: width / 2, y:height / 2}, {x: 1, y:1}, 25);
         this.objective = objective;
-        this.scoreObjective = scoreObjective;
-        this.timer = timer;
+        // this.scoreObjective = scoreObjective;
+        // this.timer = timer;
+        this.goal = goal;
         this.winner = 0;
+        if (this.objective === Objective.TIME)
+        {
+            this.timer = this.goal * 1000 * 60;
+        }
 
         // TODO
         // - do spectators and shit
@@ -138,40 +155,41 @@ class OngoingGame
 export class GameComputer
 {
     private ongoingGames: OngoingGame[] = []
-    private server: Namespace;
+    private server?: Namespace;
 
     private readonly logger = new Logger(GameComputer.name);
 
-    constructor (server: Namespace, private readonly gamesService: GamesService)
+    constructor (private readonly gamesService: GamesService) {}
+
+    initServer(server: Namespace)
     {
         this.server = server;
     }
 
-    async newGame(gameId: string, waitingRoom: GameWaitingRoom, objective: Objective, scoreObjective: number, timer: number)
+    async newGame(waitingRoom: GameWaitingRoom)
     {
-        const {user1, user2, user1SocketId, user2SocketId} = waitingRoom;
+        const {id, user1, user2, objective, goal, user1SocketId, user2SocketId} = waitingRoom;
         const game = new OngoingGame(
             {
-                id: gameId, 
+                id, 
                 user1,
                 user2,
                 user1SocketId,
                 user2SocketId,
                 objective,
-                scoreObjective,
-                timer,
+                goal,
             });
         this.ongoingGames.push(game);
         this.runGame(game);
         return game;
     }
 
-    async paddleMove(userSocketId: string, user: User, direction: PaddleDirection)
+    async paddleMove(userSocketId: string, direction: PaddleDirection)
     {
         const game = await this.findGameBySocketId(userSocketId);
         if (game)
         {
-            const isPlayer = this.isAPlayer(game, user, userSocketId);
+            const isPlayer = this.isAPlayer(game, userSocketId);
             if (isPlayer === 1)
             {
                 game.paddle1.direction = direction;
@@ -221,9 +239,9 @@ export class GameComputer
             }
             if (game.objective === Objective.SCORE)
             {
-                if (game.score1 === game.scoreObjective)
+                if (game.score1 === game.goal)
                     game.winner = 1;
-                else if (game.score2 === game.scoreObjective)
+                else if (game.score2 === game.goal)
                     game.winner = 2;
                 else
                     return ;
@@ -261,7 +279,11 @@ export class GameComputer
     {
         if (game.endGame === EndGameValue.ABORTED)
         {
-            this.server.to(game.id).emit('matchDeclinedByOpponent');
+            const player = this.isAPlayer(game, game.disconnectedSocket);
+            if (player === 1)
+                this.server.to(game.user2SocketId).emit('matchDeclinedByOpponent');
+            else if (player === 2)
+                this.server.to(game.user1SocketId).emit('matchDeclinedByOpponent')
             this.gamesService.remove({where: {id: game.id}})
             return ;
         }
@@ -306,6 +328,7 @@ export class GameComputer
             {
                 draw: true,
             }
+            this.server.socketsLeave(game.id);
             return;
         }
 
@@ -327,6 +350,7 @@ export class GameComputer
             loser: loserName,
             reason: game.disconnectedSocket ? `${loserName} disconnected.` : ''
         })
+        this.server.socketsLeave(game.id);
     }
 
     async runGame(game: OngoingGame)
@@ -369,7 +393,6 @@ export class GameComputer
                     player2Score: game.score2,
                 });
             }
-            //render le jeu et tout
         }, 16
         );
     }
@@ -380,6 +403,8 @@ export class GameComputer
         if (game)
         {
             this.ongoingGames = this.ongoingGames.filter((v) => v.id !== gameId);
+            if (game.endGame !== EndGameValue.ABORTED)
+                this.emitOngoingGames();
             return true;
         }
         return false;
@@ -395,14 +420,29 @@ export class GameComputer
         return this.ongoingGames.find((v) => {return v.user1SocketId === socketId || v.user2SocketId === socketId})
     }
 
+    async findGameBySpectatorSocketId(socketId: string)
+    {
+        // const lol = this.ongoingGames.find((v) => {return v.user1});
+        // if (lol)
+        //     console.log(lol.spectators);
+        return this.ongoingGames.find((v) =>
+        {
+            return v.spectators.find((val) =>
+            {
+                return val.socketId === socketId;
+            });
+        })
+    }
+
     async userJoin(gameId: string, user: User, userSocketId: string)
     {
         const game = await this.findGame(gameId);
         if (!game)
         {
-            throw new Error("Could not find corresponding game");
+            this.server.to(userSocketId).emit('exception', {status: 400, message: "Couldnt find corresonding game"});
+            return false;
         }
-        const isPlayer = this.isAPlayer(game, user, userSocketId);
+        const isPlayer = this.isAPlayer(game, userSocketId);
         if (isPlayer)
         {
             if (isPlayer === 1)
@@ -410,14 +450,15 @@ export class GameComputer
             else if (isPlayer === 2)
                 game.readyPlayer2 = true;
         }
-        // else
-        // {
-        //     game.spectators.push(user);
-        // }
-        if (game.readyPlayer1 === true && game.readyPlayer2 === true)
+        else
+        {
+            game.spectators.push({id: user.id, name: user.userName, socketId: userSocketId});
+        }
+        if (game.readyPlayer1 === true && game.readyPlayer2 === true && game.status !== GameStatusValue.ONGOING)
         {
             this.server.to(game.id).emit('startGame');
             game.status = GameStatusValue.ONGOING;
+            this.emitOngoingGames();
         }
     }
 
@@ -435,17 +476,23 @@ export class GameComputer
             else
             {
                 game.endGame = EndGameValue.DISCONNECTION;
-                game.disconnectedSocket = userSocketId;
             }
+            game.disconnectedSocket = userSocketId;
+
         }
     }
 
-    isAPlayer(game: OngoingGame, user: User, userSocketId: string)
+    async spectatorDisconnected(game: OngoingGame, socketId: string)
     {
-        const {user1, user2, user1SocketId, user2SocketId} = game;
-        if (user1.id === user.id && user1SocketId === userSocketId)
+        game.spectators = game.spectators.filter((v) => v.socketId !== socketId);
+    }
+
+    isAPlayer(game: OngoingGame, userSocketId: string)
+    {
+        const {user1SocketId, user2SocketId} = game;
+        if (user1SocketId === userSocketId)
             return 1;
-        else if (user2.id === user.id && user2SocketId === userSocketId)
+        else if (user2SocketId === userSocketId)
             return 2;
         return 0;
     }
@@ -453,6 +500,31 @@ export class GameComputer
     async startGame()
     {
 
+    }
+
+    getOngoingGames()
+    {
+        const ongoingGames = []
+        for ( let room of this.ongoingGames)
+        {
+            if (room.status !== GameStatusValue.ONGOING)
+                continue;
+            ongoingGames.push(
+                {
+                    id : room.id,
+                    objective: room.objective,
+                    goal: room.goal,
+                    user1: room.user1.userName,
+                    user2: room.user2.userName,
+                }
+            );
+        }
+        return ongoingGames;
+    }
+
+    emitOngoingGames()
+    {
+        this.server.emit('ongoingGames', {ongoingGames: this.getOngoingGames()});
     }
 
 

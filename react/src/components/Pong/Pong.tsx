@@ -23,9 +23,9 @@ enum PaddleDirection
     DOWN = 1,
 }
 
-export function Pong(props: {goBack: any})
+export function Pong(props: {goBack: any, asSpectator: boolean})
 {
-    const {goBack} = props;
+    const {goBack, asSpectator} = props;
     const {socket} = useContext(GameSocketContext).GameSocketState;
     const [showEndScreen, setShowEndScreen] = useState(false);
     const [endScreen, setEndScreen] = useState({winner: '', loser: '', draw: false, reason: ''})
@@ -115,6 +115,8 @@ export function Pong(props: {goBack: any})
 
 	function handleKeyUp(e: any)
 	{
+		if (asSpectator === true)
+			return;
 		var key = e.key;
 		if (key === 'w')
 		{
@@ -128,6 +130,8 @@ export function Pong(props: {goBack: any})
 
 	function handleKeyDown(e: any)
 	{
+		if (asSpectator === true)
+			return ;
 		var key = e.key;
 		if (key === 'w')
 		{
@@ -148,6 +152,7 @@ export function Pong(props: {goBack: any})
                 :
                 <></>
             }
+			<button onClick={goBack}>Go Back</button>
         </> 
     )
 }

@@ -39,6 +39,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	handleDisconnect(client: Socket)
 	{
 		this.logger.log(`Client ${client.id} disconnected from Main websocket Gateway`);
+		this.userService.updateUser({where: {id: client.data.user.id}, data: {status: StatusType.OFFLINE}});
 	}
 
 	@SubscribeMessage(events.CHANGE_STATUS)

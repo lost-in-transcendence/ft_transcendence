@@ -18,9 +18,9 @@ export function HomePage()
 	const socketState = useContext(SocketContext).SocketState;
 	const { socket} = socketState;
 
-	if (socket)
-		console.log(socket, {socket});
-	console.info({user});
+	// if (socket)
+	// 	console.log(socket, {socket});
+	// console.info({user});
 	return (
 		<div className="home-page">
 			<h1>Home Page</h1>
