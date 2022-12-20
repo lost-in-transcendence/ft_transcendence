@@ -57,7 +57,7 @@ export function ChatSidebar({ user }: any)
 					<PlusIcon size='20' className='ml-3' />
 					New
 					<ChatModal isOpen={isOpen} onClose={() => setIsOpen(false)} >
-						<CreateChannelForm onClose={() => {setIsOpen(false)}} />
+						<CreateChannelForm onClose={() => { setIsOpen(false) }} />
 					</ChatModal>
 				</button>
 				<hr className="border-gray-600 mb-2 w-11/12 m-auto" />
@@ -110,7 +110,7 @@ function ChatModal(props: { isOpen: boolean, children: any, onClose: any })
 
 	return ReactDOM.createPortal(
 
-		<div className={`modal-overlay z-20 ${props.isOpen ? 'modal-open' : ''}`} onClick={(e) => {e.stopPropagation(); closeModal()}}>
+		<div className={`modal-overlay z-20 ${props.isOpen ? 'modal-open' : ''}`} onClick={(e) => { e.stopPropagation(); closeModal() }}>
 			<div className="modal-content bg-gray-300 rounded" onClick={e => e.stopPropagation()}>
 				<div className="modal-body">
 					{
@@ -141,10 +141,10 @@ function CreateChannelForm({ onClose }: any)
 	return (
 		<>
 			<form
-			className='flex flex-col gap-2'
-			onSubmit={createChannel}
+				className='flex flex-col'
+				onSubmit={createChannel}
 			>
-				<label className='flex flex-row justify-between gap-2 p-2'>
+				<label className='flex flex-row justify-between p-2'>
 					<p>Channel Name</p>
 					<input
 						type={'text'}
@@ -152,7 +152,7 @@ function CreateChannelForm({ onClose }: any)
 						className='basis-1/2 rounded shadow'
 					/>
 				</label>
-				<label className='flex flex-row justify-between gap-2 p-2'>
+				<label className='flex flex-row justify-between p-2'>
 					<p>Mode</p>
 					<select
 						className='basis-1/2 rounded shadow'
@@ -166,7 +166,7 @@ function CreateChannelForm({ onClose }: any)
 				</label>
 				{
 					data.mode === 'PROTECTED' &&
-					<label className='flex flex-row justify-between gap-2 p-2'>
+					<label className='flex flex-row justify-between p-2'>
 						<p>Password</p>
 						<input
 							type={'text'}
@@ -175,11 +175,12 @@ function CreateChannelForm({ onClose }: any)
 						/>
 					</label>
 				}
-				<input type={'submit'} name='Submit' className='bg-indigo-300 shadow border w-1/4 rounded self-center' />
+				<input
+					type={'submit'}
+					name='Submit'
+					className='bg-indigo-300 shadow border w-1/4 rounded self-center'
+				/>
 			</form>
-			<button onClick={() => console.log({ data })}>
-				TEST IT !
-			</button>
 		</>
 	)
 }
