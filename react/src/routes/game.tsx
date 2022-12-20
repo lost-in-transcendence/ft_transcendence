@@ -8,6 +8,7 @@ import GameSocketContext from "../components/Game/Context/game-socket-context";
 import { Canvas } from "../components/Canvas/canvas";
 import { Pong } from "../components/Pong/Pong";
 import { GiConsoleController } from "react-icons/gi";
+import SocketContext from "../components/Socket/socket-context";
 
 export async function loader()
 {
@@ -24,6 +25,7 @@ export enum Objective
 export function Game()
 {
 	const {socket} = useContext(GameSocketContext).GameSocketState;
+	const mastersocket = useContext(SocketContext).SocketState.socket;
 	const [status, setStatus] = useState('waiting')
 	const [error, setError] = useState<string | null>(null);
 	const [customGameInfo, setCustomGameInfo] = useState({

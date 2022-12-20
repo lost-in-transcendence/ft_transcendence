@@ -78,7 +78,7 @@ export function ProfileEdit()
         {
 			setError("Error generating OTP");
         }
-        return res;
+        return res.ok;
 	}
 
 	async function enableTwoFa()

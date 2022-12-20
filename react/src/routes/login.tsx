@@ -102,7 +102,7 @@ export function Login()
         {
 			setStatus('error');
         }
-        return res;
+        return res.ok;
 	}
 
 	return (
