@@ -106,7 +106,6 @@ function ChatModal(props: { isOpen: boolean, children: any, onClose: any })
 		socket?.emit(events.CHANNELS);
 		setDisplayChild(false);
 		props.onClose()
-		console.log('in close modal');
 	}
 
 	return ReactDOM.createPortal(
