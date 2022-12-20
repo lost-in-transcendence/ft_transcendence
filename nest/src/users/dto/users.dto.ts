@@ -85,3 +85,36 @@ export class UserIncludeQueryDto
     @IsOptional()
     readonly messages: boolean
 }
+
+export class UserSelectQueryDto
+{
+    @Transform(({value}) => toBoolean(value))
+    @IsBoolean()
+    @IsOptional()
+    readonly id: boolean;
+
+    @Transform(({value}) => toBoolean(value))
+    @IsBoolean()
+    @IsOptional()
+    readonly id42: boolean;
+
+    @Transform(({value}) => toBoolean(value))
+    @IsBoolean()
+    @IsOptional()
+    readonly userName: boolean;
+
+    @Transform(({value}) => toBoolean(value))
+    @IsBoolean()
+    @IsOptional()
+    readonly email: boolean;
+
+    @Transform(({value}) => toBoolean(value))
+    @IsBoolean()
+    @IsOptional()
+    readonly createdAt: boolean;
+
+    @Transform(({value}) => toBoolean(value))
+    @IsBoolean()
+    @IsOptional()
+    readonly status: boolean;
+}

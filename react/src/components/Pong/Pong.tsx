@@ -102,6 +102,10 @@ export function Pong(props: {goBack: any, asSpectator: boolean})
 		ctx.fillText(gameItems.player1Score,((gameWidth/2)/2),100);
 		ctx.fillText(gameItems.player2Score,((gameWidth/2)*1.5),100);
 
+		// display names
+		ctx.fillText('player 1',((gameWidth/2)/2) - 30,40);
+		ctx.fillText('player 2',((gameWidth/2)*1.5) - 30,40);
+
         // paddles
 		ctx.fillStyle= "#fff";
 		ctx.fillRect(1, gameItems.paddle1Pos, 10, paddleSize)

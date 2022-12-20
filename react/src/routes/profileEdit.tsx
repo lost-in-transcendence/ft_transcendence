@@ -254,10 +254,6 @@ export function ProfileEdit()
 				<p>twoFa = {twoFa === true ? 'true' : 'false'}</p>
 				<p>user.twoFaEnabled = {user.twoFaEnabled === true ? 'true' : 'false'}</p>
 				<p>error = {error}</p>
-				<p>status = {status}</p>
-				<p>twoFa = {twoFa === true ? 'true' : 'false'}</p>
-				<p>user.twoFaEnabled = {user.twoFaEnabled === true ? 'true' : 'false'}</p>
-				<p>error = {error}</p>
 			</>
 		</div>
 	)

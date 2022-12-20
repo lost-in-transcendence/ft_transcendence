@@ -120,3 +120,17 @@ export async function updateAvatar(formData : any, userName: string)
 	}
 	return res;
 }
+
+export async function getAllUsersSelect(params : URLSearchParams)
+{
+	const res = await fetch(`${backURL}/users/all/select?` + params, 
+	{
+		method: 'GET',
+		headers: {"Authorization": "Bearer " + getCookie("jwt")}
+	});
+	if (res.status !== 200)
+	{
+		throw res;
+	}
+	return res;
+}

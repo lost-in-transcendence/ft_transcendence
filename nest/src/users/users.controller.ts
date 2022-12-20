@@ -5,7 +5,7 @@ import { Prisma, User } from '@prisma/client';
 import { NotFoundError } from 'rxjs';
 import { FullAuthGuard } from 'src/auth/guard/full-auth.guard';
 import { GetUser } from './decorator';
-import { CreateUserDto, UpdateUserDto, UserIncludeQueryDto } from './dto/users.dto'
+import { CreateUserDto, UpdateUserDto, UserIncludeQueryDto, UserSelectQueryDto } from './dto/users.dto'
 import { UsersService } from './users.service';
 import { Express, Response } from 'express'
 import { diskStorage } from 'multer';
@@ -67,6 +67,16 @@ export class UsersController {
 		const res = await this.userService.users({});
 		//if (!res)
 		// error handling
+		return res;
+	}
+
+	@UseGuards(FullAuthGuard)
+	@Get('/all/select')
+	async findAllSelect(@Query() select: UserSelectQueryDto)
+	{
+		const res = await this.userService.users({
+			select
+		})
 		return res;
 	}
 
