@@ -20,7 +20,7 @@ import * as events from 'shared/constants';
 @UseFilters(new CustomWsFilter())
 @UsePipes(new WsValidationPipe({ whitelist: true }))
 @WebSocketGateway({ cors: `${env.PROTOCOL}${env.APP_HOST}:${env.FRONT_PORT}`, namespace: 'chat'})
-export class ChannelsGateway
+export class ChannelsGateway implements OnGatewayConnection
 {
 	private readonly logger = new Logger(ChannelsGateway.name);
 
@@ -29,14 +29,47 @@ export class ChannelsGateway
 	@WebSocketServer()
 	server: Namespace;
 
+	async handleConnection(client: Socket)
+	{
+		const initChannels = await this.getVisibleChannels(client.data.user.id);
+		this.server.to(client.id).emit('handshake', initChannels);
+	}
+
 	@SubscribeMessage(events.CREATE_CHANNEL)
 	async createChannel(@MessageBody() dto: CreateChannelDto, @GetUserWs('id', ParseUUIDPipe) id: string, @ConnectedSocket() client: Socket)
 	{
 		const newChannel: PartialChannelDto = await this.channelService.create(dto, id);
-		const visibleChans = await this.getVisibleChannels();
 		client.join(newChannel.id);
+		this.logger.debug({newChannel});
+		const retChannel = await this.channelService.channelSelect({
+			where: { id: newChannel.id },
+			select:
+			{
+				id: true,
+				mode: true,
+				channelName: true,
+				members:
+				{
+					include:
+					{
+						user:
+						{
+							select:
+							{
+								id: true,
+								userName: true,
+								status: true,
+							}
+						}
+					}
+				}
+			}
+		})
+		this.logger.debug({retChannel});
 		if (dto.mode === 'PROTECTED' || dto.mode === 'PUBLIC')
-			this.server.emit(events.NEW_CHANNEL, newChannel);
+			this.server.emit(events.NEW_CHANNEL, retChannel);
+		else
+			this.server.to(client.id).emit(events.NEW_CHANNEL, retChannel);
 	}
 
 	@SubscribeMessage(events.JOIN_CHANNEL)
@@ -45,6 +78,10 @@ export class ChannelsGateway
 		@ConnectedSocket() client: Socket,
 		@GetUserWs() user: User)
 	{
+		const joinedChans: any[] = client.data.user.channels;
+		const thisChan = joinedChans?.find((c) => c.channelId === body.channelId);
+		if (thisChan?.role === 'BANNED')
+			return ;
 		const dto: joinChannelDto = {
 			channelId: body.channelId,
 			userId: user.id,
@@ -72,6 +109,8 @@ export class ChannelsGateway
 		this.server.to(joinedChannel.id).emit(events.USERS, {users: members});
 		client.join(joinedChannel.id);
 		this.notify(joinedChannel.id, `${user.userName} has joined ${joinedChannel.channelName} !`)
+		const newChanList = await this.getVisibleChannels(user.id);
+		this.server.to(client.id).emit('channels', newChanList);
 	}
 
 	@SubscribeMessage(events.LEAVE_CHANNEL)
@@ -125,7 +164,8 @@ export class ChannelsGateway
 			else
 				return (this.DstroyChannel(channelId));
 		}
-		await this.channelService.leaveChannel({userId_channelId: {userId: user.id, channelId}});
+		if (thisChan.role !== 'BANNED')
+			await this.channelService.leaveChannel({userId_channelId: {userId: user.id, channelId}});
 		client.leave(channelId);
 		this.notify(channelId, `${user.userName} has left the channel`);
 		const res: {members?: ChannelMember[]} = await this.channelService.channelSelect({
@@ -141,10 +181,19 @@ export class ChannelsGateway
 		// TODO Handle leave message
 	}
 
-	@SubscribeMessage(events.CHANNELS)
-	async channels(@ConnectedSocket() client: Socket)
+	@SubscribeMessage('ban')
+	async banUser(
+		@ConnectedSocket() client: Socket,
+		@MessageBody('channelId') channelId: string
+		)
 	{
-		const visibleChans: PartialChannelDto[] = await this.getVisibleChannels();
+		return (this.channelService.banUser(client.data.user.id, channelId))
+	}
+
+	@SubscribeMessage(events.CHANNELS)
+	async channels(@ConnectedSocket() client: Socket, @GetUserWs('id', ParseUUIDPipe) userId: string)
+	{
+		const visibleChans: PartialChannelDto[] = await this.getVisibleChannels(userId);
 		this.server.to(client.id).emit(events.CHANNELS, visibleChans);
 	}
 
@@ -162,11 +211,19 @@ export class ChannelsGateway
 		this.server.to(client.id).emit(events.JOINABLE_CHANNELS, joignableChans);
 	}
 
+	// @SubscribeMessage('handshake')
+	// async handshake(@ConnectedSocket() client: Socket, @GetUserWs('id', ParseUUIDPipe) userId: string)
+	// {
+	// 	this.logger.debug('Receiving handshake event from client in channels gateway');
+	// 	const channels: PartialChannelDto[] = await this.getVisibleChannels(userId);
+	// 	this.server.to(client.id).emit('handshake', channels);
+	// }
+
 	/*************************/
 	/*        UTILS          */
 	/*************************/
 
-	async getVisibleChannels(): Promise<PartialChannelDto[]>
+	async getVisibleChannels(userId: string): Promise<PartialChannelDto[]>
 	{
 		const visibleChans: PartialChannelDto[] = await this.channelService.channels({
 			where:
@@ -174,7 +231,8 @@ export class ChannelsGateway
 				OR:
 					[
 						{ mode: 'PUBLIC' },
-						{ mode: 'PROTECTED' }
+						{ mode: 'PROTECTED' },
+						{ members: { some: { userId } } }
 					],
 			},
 			select:
@@ -182,6 +240,21 @@ export class ChannelsGateway
 				id: true,
 				mode: true,
 				channelName: true,
+				members:
+				{
+					include:
+					{
+						user:
+						{
+							select:
+							{
+								id: true,
+								userName: true,
+								status: true,
+							}
+						}
+					}
+				}
 			}
 		});
 		return (visibleChans);
