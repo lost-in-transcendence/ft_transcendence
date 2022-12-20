@@ -51,7 +51,7 @@ export const defaultChatContextState: IChatContextState =
 
 type TChatContextActions = 'update_channels' | 'update_socket' | 'new_channel' | 'update_active';
 
-type TChatContextPayload = Socket | PartialUser | PartialChannel[] | Channel;
+type TChatContextPayload = Socket | PartialUser | PartialChannel[] | Channel | undefined;
 
 interface IChatContextActions
 {

@@ -51,7 +51,7 @@ export function ChatContextComponent(props: any)
 
 		socket.on(events.NEW_CHANNEL, (payload: Channel) =>
 		{
-			console.info('new channel event received');
+			console.info('new channel event received', payload);
 			ChatDispatch({type: 'new_channel', payload});
 		})
 	}

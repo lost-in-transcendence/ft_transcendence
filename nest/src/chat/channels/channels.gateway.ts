@@ -41,7 +41,7 @@ export class ChannelsGateway implements OnGatewayConnection
 		const newChannel: PartialChannelDto = await this.channelService.create(dto, id);
 		client.join(newChannel.id);
 		this.logger.debug({newChannel});
-		const retChannel = await this.channelService.channel({
+		const retChannel = await this.channelService.channelSelect({
 			where: { id: newChannel.id },
 			select:
 			{
@@ -65,8 +65,11 @@ export class ChannelsGateway implements OnGatewayConnection
 				}
 			}
 		})
+		this.logger.debug({retChannel});
 		if (dto.mode === 'PROTECTED' || dto.mode === 'PUBLIC')
 			this.server.emit(events.NEW_CHANNEL, retChannel);
+		else
+			this.server.to(client.id).emit(events.NEW_CHANNEL, retChannel);
 	}
 
 	@SubscribeMessage(events.JOIN_CHANNEL)
