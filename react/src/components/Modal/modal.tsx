@@ -1,4 +1,4 @@
-// import './modal.css'
+import './modal.css'
 
 import { ReactNode, useEffect, useState } from 'react'
 import ReactDOM from 'react-dom';
@@ -24,7 +24,7 @@ export default function Modal(props: {isOpen : boolean, onOpen?: any, onClose: a
             openEvent();
         }
 
-    }, [props.isOpen])
+	}, [props.isOpen])
 
     function closeModal()
     {
@@ -32,16 +32,16 @@ export default function Modal(props: {isOpen : boolean, onOpen?: any, onClose: a
         props.onClose();
     }
 
-    return ReactDOM.createPortal(
+	return ReactDOM.createPortal(
 
-        <div className={`modal-overlay ${props.isOpen ? 'modal-open' : ''}`} onClick={closeModal}>
-            <div className="modal-content" onClick={e => e.stopPropagation()}>
-                <div className="modal-body">
-                    {displayChild ? props.children : null}
-                </div>
-                <button onClick={closeModal}>Close</button>
-            </div>
-        </div>,
-        document.getElementById('root')!
-        )
+		<div className={`modal-overlay ${props.isOpen ? 'modal-open' : ''}`} onClick={closeModal}>
+			<div className="modal-content" onClick={e => e.stopPropagation()}>
+				<div className="modal-body">
+					{displayChild ? props.children : null}
+				</div>
+				<button onClick={closeModal}>Close</button>
+			</div>
+		</div>,
+		document.getElementById('root')!
+	)
 }

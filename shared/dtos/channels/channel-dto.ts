@@ -1,4 +1,4 @@
-export class SharedChannelDto
+export interface SharedChannelDto
 {
 	id: string;
 	channelName: string;
@@ -8,13 +8,13 @@ export class SharedChannelDto
 	members?: ChannelMembersDto[];
 }
 
-export class SharedFindUniqueChannelDto
+export interface SharedFindUniqueChannelDto
 {
 	id: string;
 	channelName: string;
 }
 
-class ChannelMembersDto
+interface ChannelMembersDto
 {
 	user:
 	{
@@ -22,4 +22,14 @@ class ChannelMembersDto
 		userName: string;
 		status: string;
 	}
+}
+
+export interface SharedPartialChannelDto
+{
+	id?: string;
+	channelName?: string;
+	mode?: string;
+	hash?: string;
+	createdAt?: Date;
+	members?: ChannelMembersDto[];
 }

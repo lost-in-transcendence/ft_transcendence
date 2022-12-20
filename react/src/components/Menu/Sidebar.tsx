@@ -9,7 +9,7 @@ export function SideBar()
 {
 	const navigate = useNavigate();
 	return (
-		<div className="sticky grow-0 shrink-0 basis-14 h-screen m-0 left-0 top-0 z-50
+		<div className="sticky grow-0 shrink-0 basis-14 h-screen m-0 left-0 top-0 z-10
 						flex flex-col justify-between
 						bg-gray-900 text-white shadow-lg">
 			<div className='basis-1/10'>

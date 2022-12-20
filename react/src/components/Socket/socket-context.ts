@@ -12,7 +12,7 @@ export interface ISocketContextState
 	user: User;
 }
 
-const defaultUser: User =
+export const defaultUser: User =
 {
 	id: '',
 	id42: 0,
