@@ -1,4 +1,4 @@
-import { Global, Logger, UseFilters, UseInterceptors, UsePipes } from '@nestjs/common';
+import { Logger, UseFilters, UseInterceptors, UsePipes } from '@nestjs/common';
 import
 {
 	WebSocketGateway,
@@ -65,8 +65,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 		this.logger.debug('In chat connection');
 		try
 		{
-			UserSocketStore.setUserSockets(client.data.user.id, client.id)
-			this.logger.debug("COUCOU:", UserSocketStore.getUserSockets(client.id))
+			UserSocketStore.setUserSockets(client.data.user.id, client)
+			const log: Socket[] = UserSocketStore.getUserSockets(client.data.user.id);
+			for (let index of log)
+				this.logger.debug("SocketIds:", index.id)
 			const channels = client.data.user.channels;
 			this.logger.debug("hellooo");
 			for (let chan of channels)
@@ -84,6 +86,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 	async handleDisconnect(client: Socket)
 	{
 		const user: User = client.data.user;
+		UserSocketStore.removeUserSocket(client.data.user.id, client);
 		this.logger.log(`Client ${user.userName} disconnected from chat server`);
 	}
 
@@ -101,8 +104,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 	}
 
 	@SubscribeMessage('toChannel')
-	async toRoom(@MessageBody() dto: CreateMessageDto, @ConnectedSocket() client: Socket, @GetUserWs() user)
+	async toRoom(@MessageBody() dto: CreateMessageDto, @ConnectedSocket() client: Socket, @GetUserWs() user: any)
 	{
+		this.logger.debug("in toChannel event")
 		const newMessage = await this.messageService.create({
 			content: dto.content,
 			channel: { connect: { id: dto.channelId } },
