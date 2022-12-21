@@ -321,13 +321,14 @@ export class GameComputer
                     ]
                 }
             }});
-        if (game.winner === 0)
+        if (game.endGame === EndGameValue.TIME && game.score1 === game.score2)
         {
             // do something
-            this.server.to(game.id).emit('endGame'),
+            this.server.to(game.id).emit('endGame',
             {
                 draw: true,
-            }
+                reason: ''
+            });
             this.server.socketsLeave(game.id);
             return;
         }
@@ -346,6 +347,7 @@ export class GameComputer
 
         this.server.to(game.id).emit('endGame', 
         {
+            draw: false,
             winner: winnerName,
             loser: loserName,
             reason: game.disconnectedSocket ? `${loserName} disconnected.` : ''
@@ -382,6 +384,8 @@ export class GameComputer
                             game.winner = 1;
                         else if (game.score2 > game.score1)
                             game.winner = 2;
+                        else
+                            game.winner = 0;
                     }
                 }
                 this.server.to(game.id).emit('renderFrame', 

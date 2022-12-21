@@ -23,6 +23,35 @@ enum PaddleDirection
     DOWN = 1,
 }
 
+function DisplayTimer(props: {timer: any, years:boolean, hours:boolean, minutes: boolean, seconds: boolean})
+{
+    const {timer} = props;
+    let years, hours, minutes, seconds;
+    let timerstr = '';
+    if (props.years === true)
+    {
+        years = Math.floor(timer / (60 * 60 * 24))
+        timerstr += years;
+    }
+    if (props.hours === true)
+    {
+        hours = Math.floor((timer / (60 * 60)) % 24),
+        timerstr += (hours < 10 ? `0${hours}` : hours);
+    }
+    if (props.minutes === true)
+    {
+        minutes = Math.floor((timer / 60) % 60);
+        timerstr += (minutes < 10 ? `0${minutes}` : minutes);
+    }
+    if (props.seconds === true)
+    {
+        seconds = Math.floor((timer % 60));
+        timerstr += ':' + (seconds < 10 ? `0${seconds}` : seconds);
+    }
+
+    return <p>{timerstr}</p>
+}
+
 export function Pong(props: {goBack: any, asSpectator: boolean})
 {
     const {goBack, asSpectator} = props;
@@ -43,6 +72,20 @@ export function Pong(props: {goBack: any, asSpectator: boolean})
 			player1Score: 0,
 			player2Score: 0,
 		})
+	
+	const [timer, setTimer] = useState(0);
+
+	useEffect( () =>
+	{
+		const interval = setInterval(() => 
+			{
+				if (showEndScreen === false)
+				{
+					setTimer((prev) => {return prev + 1});
+				}
+			}, 1000);
+		return () => {clearInterval(interval)};
+	}, [showEndScreen]);
 
     useEffect(() =>
     {
@@ -65,7 +108,9 @@ export function Pong(props: {goBack: any, asSpectator: boolean})
 		});
         socket?.on('endGame', (payload:any) =>
         {
-            const {winner, loser, draw, reason} = payload;
+            const {draw, reason} = payload;
+			const winner = draw ? undefined : payload.winner;
+			const loser = draw ? undefined : payload.loser;
             setEndScreen({...endScreen, winner, loser, draw, reason})
             setShowEndScreen(true);
         })
@@ -149,6 +194,7 @@ export function Pong(props: {goBack: any, asSpectator: boolean})
 
     return(
         <>
+			<DisplayTimer timer={timer} years={false} hours={false} minutes={true} seconds={true}/>
             <Canvas onKeyDown={(e: any) => handleKeyDown(e)} onKeyUp={(e: any) => handleKeyUp(e)} tabIndex={0} draw={drawGame} height={600} width={800}></Canvas>
             {
                 showEndScreen ?
@@ -163,7 +209,9 @@ export function Pong(props: {goBack: any, asSpectator: boolean})
 
 export function EndScreen(props: {winner: string, loser: string, draw: boolean, reason: string})
 {
-    const {winner, loser, draw, reason} = props;
+    const {draw, reason} = props;
+	const winner = props.winner? props.winner : undefined;
+	const loser = props.winner? props.loser : undefined;
 
     let title, content;
     if (draw)
