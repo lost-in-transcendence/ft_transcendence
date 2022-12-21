@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { Canvas } from "../Canvas/canvas";
 import GameSocketContext from "../Game/Context/game-socket-context";
 
@@ -122,6 +122,8 @@ export function Pong(props: {goBack: any, asSpectator: boolean})
 
     function drawGame(ctx: any)
 	{
+		const heightRatio = ctx.canvas.height / 600;
+		const widthRatio = ctx.canvas.width / 800;
         // background
 		ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
 		ctx.fillStyle = '#242424';
@@ -135,8 +137,8 @@ export function Pong(props: {goBack: any, asSpectator: boolean})
 		ctx.strokeStyle = "#fff";
 		ctx.setLineDash([10]);
 		ctx.beginPath();
-		ctx.moveTo(gameWidth / 2,0);
-		ctx.lineTo(gameWidth / 2, gameHeight);
+		ctx.moveTo(ctx.canvas.width / 2,0);
+		ctx.lineTo(ctx.canvas.width / 2, ctx.canvas.height);
 		ctx.stroke();
 
 		// score
@@ -151,12 +153,12 @@ export function Pong(props: {goBack: any, asSpectator: boolean})
 
         // paddles
 		ctx.fillStyle= "#fff";
-		ctx.fillRect(1, gameItems.paddle1Pos, 10, paddleSize)
-		ctx.fillRect(ctx.canvas.width - 10, gameItems.paddle2Pos, 10, paddleSize);
+		ctx.fillRect(1, gameItems.paddle1Pos * heightRatio, 10 * widthRatio, paddleSize * heightRatio)
+		ctx.fillRect(ctx.canvas.width - (10 * widthRatio), gameItems.paddle2Pos * heightRatio, 10 * widthRatio, paddleSize * heightRatio);
 
         // ball
 		ctx.beginPath()
-		ctx.arc(gameItems.ballPos.x, gameItems.ballPos.y, ballSize / 2, 0, 2 * Math.PI);
+		ctx.arc(gameItems.ballPos.x * widthRatio, gameItems.ballPos.y * heightRatio, ballSize / 2  * ((widthRatio + heightRatio) / 2), 0, 2 * Math.PI);
 		ctx.fill();
 	}
 
@@ -193,7 +195,7 @@ export function Pong(props: {goBack: any, asSpectator: boolean})
     return(
         <>
 			<DisplayTimer timer={timer} years={false} hours={false} minutes={true} seconds={true}/>
-            <Canvas onKeyDown={(e: any) => handleKeyDown(e)} onKeyUp={(e: any) => handleKeyUp(e)} tabIndex={0} draw={drawGame} height={600} width={800}></Canvas>
+            <Canvas onKeyDown={(e: any) => handleKeyDown(e)} onKeyUp={(e: any) => handleKeyUp(e)} tabIndex={0} draw={drawGame}></Canvas>
             {
                 showEndScreen ?
                 <EndScreen winner={endScreen.winner} loser={endScreen.loser} draw={endScreen.draw} reason={endScreen.reason} />

@@ -398,7 +398,7 @@ export class GameComputer
                         clearInterval(timerId2);
                     }
                 }
-        }, 500);
+        }, 250);
     }
 
     async deleteGame(gameId: string)
