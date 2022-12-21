@@ -1,6 +1,7 @@
+// import './UserCard.css'
+
 import { NavLink } from "react-router-dom";
 import { backURL } from "../../requests";
-import './UserCard.css'
 
 export function UserCard(props: {user: any})
 {

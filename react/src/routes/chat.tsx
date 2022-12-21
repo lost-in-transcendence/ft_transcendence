@@ -31,11 +31,6 @@ export function Chat()
 
 	// console.info('IN CHAT COMPONENT  ',{state})
 	return (
-		<>
-			<h1>Chat</h1>
-			<ChannelList />
-			{state.activeChannel ? <MemberList channel={state.activeChannel} /> : <></> }
-			{/* <ChatBox activeChannel={activeChannel} /> */}
-		</>
+		<h1>Chat</h1>
 	)
 }

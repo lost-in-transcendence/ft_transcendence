@@ -52,9 +52,9 @@ model Game {
 }
 
 model PlayerGame {
-    player   User   @relation(fields: [playerId], references: [id])
+    player   User   @relation(fields: [playerId], references: [id], onDelete: Cascade)
     playerId String
-    game     Game   @relation(fields: [gameId], references: [id])
+    game     Game   @relation(fields: [gameId], references: [id], onDelete: Cascade)
     gameId   String
     score    Int
 
@@ -62,7 +62,7 @@ model PlayerGame {
 }
 
 model PlayStats {
-    user               User   @relation(onDelete: Cascade, fields: [userId], references: [id])
+    user               User   @relation(fields: [userId], references: [id], onDelete: Cascade)
     userId             String @unique
     wins               Int    @default(0)
     losses             Int    @default(0)

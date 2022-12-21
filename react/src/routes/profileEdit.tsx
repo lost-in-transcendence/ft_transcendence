@@ -1,23 +1,18 @@
+// import './styles/profile.css'
+
 import { useContext, useEffect, useState } from "react";
 import { Form, redirect, useActionData, useLoaderData, useNavigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
+
 import { AuthContext } from "../auth/AuthContext";
 import { getCookie } from "../requests/cookies"
-import { Navigate } from "react-router-dom";
-import { generateTwoFa, toggleTwoFa } from "../requests/auth.requests"
+import { generateTwoFa, toggleTwoFa } from "../requests"
 import { backURL, frontURL } from "../requests/constants";
-
-import './styles/profile.css'
-import { getUserMeFull, updateUser, updateAvatar } from "../requests/users.requests";
+import { getUserMeFull, updateUser, updateAvatar } from "../requests";
 import Modal from "../components/Modal/modal";
 import { TwoFa } from "../components/TwoFa/twofa";
 
-function popupwindow(url: string, title: string, w: number, h: number) {
-	var left = Math.round(window.screenX + (window.outerWidth - w) / 2);
-	var top = Math.round(window.screenY + (window.outerHeight - h) / 2.5);
-	return window.open(url, title, 'toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width=' + w + ', height=' + h + ', top=' + top + ', left=' + left);
-}
-
-export async function loader() 
+export async function loader()
 {
 	const res = await getUserMeFull();
 	if (res.status !== 200)
@@ -25,7 +20,7 @@ export async function loader()
 	return (res);
 }
 
-export async function action({request}: any) 
+export async function action({request}: any)
 {
 	const formData = await request.formData();
 	const updates = Object.fromEntries(formData);
@@ -61,7 +56,7 @@ async function handleToggleTwoFa()
 	}
 }
 
-export function ProfileEdit() 
+export function ProfileEdit()
 {
 	const user: any = useLoaderData();
 	const playerStats = user.playStats;
@@ -86,7 +81,7 @@ export function ProfileEdit()
         return res;
 	}
 
-	async function enableTwoFa() 
+	async function enableTwoFa()
 	{
 		setStatus('loading');
 		setIsModalOpen(true);
@@ -94,7 +89,7 @@ export function ProfileEdit()
 
 	async function disableTwoFa()
 	{
-		try 
+		try
 		{
 			await handleToggleTwoFa()
 			setTwoFa(false);
@@ -106,9 +101,9 @@ export function ProfileEdit()
 		}
 	}
 
-	async function handleOnClick() 
+	async function handleOnClick()
 	{
-		if (twoFa === true) 
+		if (twoFa === true)
 		{
 			disableTwoFa();
 		}
@@ -123,7 +118,7 @@ export function ProfileEdit()
 		if (status === 'success')
 			{
 				setStatus('waiting');
-				try 
+				try
 				{
 					handleToggleTwoFa();
 					setTwoFa(true);
@@ -139,7 +134,7 @@ export function ProfileEdit()
 		return (() => {})
 	}, [status]);
 
-	useEffect(() => 
+	useEffect(() =>
 	{
 		if (action?.status === "updated" && edit === true)
 		{
@@ -182,7 +177,7 @@ export function ProfileEdit()
 			e.target.value = "";
 		}
 	}
-	
+
 	async function handleSubmit(e: any)
 	{
 		e.preventDefault();
@@ -237,7 +232,7 @@ export function ProfileEdit()
 									{action?.status === 'empty field' ? (<><br/><p><b>Fields must not be empty</b></p></>) : (<></>)}
 									{action?.status === 'name too long' ? (<><br/><p><b>You cannot have a name that is longer than 32 characters</b></p></>) : (<></>)}
 
-								</Form>) : 
+								</Form>) :
 								(
 									<>
 										<h3>{user.userName}</h3>
@@ -246,7 +241,7 @@ export function ProfileEdit()
 									</>
 								)
 						}
-						
+
 					</div>
 				</div>
 			</div>
