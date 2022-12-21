@@ -108,9 +108,7 @@ export function Pong(props: {goBack: any, asSpectator: boolean})
 		});
         socket?.on('endGame', (payload:any) =>
         {
-            const {draw, reason} = payload;
-			const winner = draw ? undefined : payload.winner;
-			const loser = draw ? undefined : payload.loser;
+            const {winner, loser, draw, reason} = payload;
             setEndScreen({...endScreen, winner, loser, draw, reason})
             setShowEndScreen(true);
         })
@@ -209,9 +207,7 @@ export function Pong(props: {goBack: any, asSpectator: boolean})
 
 export function EndScreen(props: {winner: string, loser: string, draw: boolean, reason: string})
 {
-    const {draw, reason} = props;
-	const winner = props.winner? props.winner : undefined;
-	const loser = props.winner? props.loser : undefined;
+    const {winner, loser, draw, reason} = props;
 
     let title, content;
     if (draw)
