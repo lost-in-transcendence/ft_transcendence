@@ -321,13 +321,13 @@ export class GameComputer
                     ]
                 }
             }});
-        if (game.winner === 0)
+        if (game.endGame === EndGameValue.TIME && game.score1 === game.score2)
         {
             // do something
-            this.server.to(game.id).emit('endGame'),
+            this.server.to(game.id).emit('endGame',
             {
                 draw: true,
-            }
+            });
             this.server.socketsLeave(game.id);
             return;
         }
@@ -371,19 +371,7 @@ export class GameComputer
                 game.paddle1?.updatePosition();
                 game.paddle2?.updatePosition();
                 this.updateBallPosition(game);
-                if (game.objective === Objective.TIME)
-                {
-                    game.timer -= 16;
-                    if (game.timer <= 0)
-                    {
-                        game.endGame = EndGameValue.TIME;
-                        game.status = GameStatusValue.FINISHED;
-                        if (game.score1 > game.score2)
-                            game.winner = 1;
-                        else if (game.score2 > game.score1)
-                            game.winner = 2;
-                    }
-                }
+                
                 this.server.to(game.id).emit('renderFrame', 
                 {
                     paddle1Pos: game.paddle1.position,
@@ -395,6 +383,22 @@ export class GameComputer
             }
         }, 16
         );
+        const timerId2 = setInterval(() =>
+        {
+            if (game.status === GameStatusValue.ONGOING && game.objective === Objective.TIME)
+                {
+                    if (Date.now() >= game.timer)
+                    {
+                        game.endGame = EndGameValue.TIME;
+                        game.status = GameStatusValue.FINISHED;
+                        if (game.score1 > game.score2)
+                            game.winner = 1;
+                        else if (game.score2 > game.score1)
+                            game.winner = 2;
+                        clearInterval(timerId2);
+                    }
+                }
+        }, 500);
     }
 
     async deleteGame(gameId: string)
@@ -457,6 +461,7 @@ export class GameComputer
         if (game.readyPlayer1 === true && game.readyPlayer2 === true && game.status !== GameStatusValue.ONGOING)
         {
             this.server.to(game.id).emit('startGame');
+            game.timer = Date.now() + game.goal * 60 * 1000;
             game.status = GameStatusValue.ONGOING;
             this.emitOngoingGames();
         }

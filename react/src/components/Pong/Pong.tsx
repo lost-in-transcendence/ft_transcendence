@@ -23,6 +23,35 @@ enum PaddleDirection
     DOWN = 1,
 }
 
+function DisplayTimer(props: {timer: any, years:boolean, hours:boolean, minutes: boolean, seconds: boolean})
+{
+    const {timer} = props;
+    let years, hours, minutes, seconds;
+    let timerstr = '';
+    if (props.years === true)
+    {
+        years = Math.floor(timer / (60 * 60 * 24))
+        timerstr += years;
+    }
+    if (props.hours === true)
+    {
+        hours = Math.floor((timer / (60 * 60)) % 24),
+        timerstr += (hours < 10 ? `0${hours}` : hours);
+    }
+    if (props.minutes === true)
+    {
+        minutes = Math.floor((timer / 60) % 60);
+        timerstr += (minutes < 10 ? `0${minutes}` : minutes);
+    }
+    if (props.seconds === true)
+    {
+        seconds = Math.floor((timer % 60));
+        timerstr += ':' + (seconds < 10 ? `0${seconds}` : seconds);
+    }
+
+    return <p>{timerstr}</p>
+}
+
 export function Pong(props: {goBack: any, asSpectator: boolean})
 {
     const {goBack, asSpectator} = props;
@@ -43,6 +72,20 @@ export function Pong(props: {goBack: any, asSpectator: boolean})
 			player1Score: 0,
 			player2Score: 0,
 		})
+	
+	const [timer, setTimer] = useState(0);
+
+	useEffect( () =>
+	{
+		const interval = setInterval(() => 
+			{
+				if (showEndScreen === false)
+				{
+					setTimer((prev) => {return prev + 1});
+				}
+			}, 1000);
+		return () => {clearInterval(interval)};
+	}, [showEndScreen]);
 
     useEffect(() =>
     {
@@ -149,6 +192,7 @@ export function Pong(props: {goBack: any, asSpectator: boolean})
 
     return(
         <>
+			<DisplayTimer timer={timer} years={false} hours={false} minutes={true} seconds={true}/>
             <Canvas onKeyDown={(e: any) => handleKeyDown(e)} onKeyUp={(e: any) => handleKeyUp(e)} tabIndex={0} draw={drawGame} height={600} width={800}></Canvas>
             {
                 showEndScreen ?

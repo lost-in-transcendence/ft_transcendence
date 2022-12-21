@@ -1,4 +1,4 @@
-import { Logger, ParseEnumPipe, UseFilters, UseInterceptors, UsePipes, ValidationPipe } from "@nestjs/common";
+import { Logger, ParseEnumPipe, ParseUUIDPipe, UseFilters, UseInterceptors, UsePipes, ValidationPipe } from "@nestjs/common";
 import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
 import { Socket, Server, Namespace } from 'socket.io';
 import { env } from "process";
@@ -11,6 +11,8 @@ import { WsValidationPipe } from "./pipes";
 import { GetUserWs } from "src/users/decorator/get-user-ws";
 import * as events from 'shared/constants/users'
 import { type } from "os";
+import { SocketStore } from "./socket-store";
+import { IsNotEmpty, IsUUID } from "class-validator";
 
 @UseInterceptors(UserInterceptor)
 @UseFilters(new CustomWsFilter())
@@ -19,6 +21,7 @@ import { type } from "os";
 export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
 	private readonly logger = new Logger(MainGateway.name);
+	private readonly socketStore = new SocketStore();
 
 	constructor(private readonly userService: UsersService) {}
 
@@ -34,12 +37,14 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	{
 		this.logger.log(`Client ${client.id} connected to Main websocket Gateway`);
 		this.server.to(client.id).emit('handshake', client.data.user);
+		this.socketStore.setUserSockets(client.data.user.id, client);
 	}
 
 	handleDisconnect(client: Socket)
 	{
 		this.logger.log(`Client ${client.id} disconnected from Main websocket Gateway`);
 		this.userService.updateUser({where: {id: client.data.user.id}, data: {status: StatusType.OFFLINE}});
+		this.socketStore.removeUserSocket(client.data.user.id, client);
 	}
 
 	@SubscribeMessage(events.CHANGE_STATUS)
@@ -57,4 +62,42 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	{
 		this.server.of('/chat').emit('notify', {status: 'this is a test'});
 	}
+
+	@SubscribeMessage('invite')
+	async invite(@ConnectedSocket() client: Socket, @GetUserWs() user: User, @MessageBody() body: any)
+	{
+		const {gameId, invitedUser} = body;
+		const sockets = this.socketStore.getUserSockets(invitedUser);
+		sockets.forEach((v) =>
+		{
+			// console.log("in here");
+			this.server.to(v.id).emit('notification', {type: 'invite', inviter: user.userName, inviterId: user.id, gameId});
+		})
+		// find uid corresponding socket(s)
+		// send a "notification" message to socket(s)
+		// payload should have type: invite, inviter: user.userName
+	}
+
+	@SubscribeMessage('declineInvite')
+	async declineInvite(@ConnectedSocket() client: Socket, @MessageBody('inviterId', new ParseUUIDPipe) inviterId: string)
+	{
+		console.log('declineInvite');
+		const sockets = this.socketStore.getUserSockets(inviterId);
+		sockets.forEach((v) =>
+		{
+			this.server.to(v.id).emit('invitationDeclined');
+		})
+	}
+}
+
+
+export class InviteNotificationDto
+{
+	@IsUUID()
+	@IsNotEmpty()
+	gameId: string;
+
+	@IsUUID()
+	@IsNotEmpty()
+	invitedUser: string;
 }

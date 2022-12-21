@@ -6,6 +6,8 @@ import { defaultSocketContextState, SocketContextProvider, SocketReducer } from 
 import * as events from '../../../shared/constants/users'
 import { changeStatus } from "../../requests/ws/users.messages";
 import { SharedUserStatus } from "../../../shared/dtos";
+import { toast } from "react-toastify";
+import { displayInviteNotification } from "../Notifications/invite-notification";
 
 export default function SocketContextComponent(props: any)
 {
@@ -72,6 +74,18 @@ export default function SocketContextComponent(props: any)
 		socket.on(events.UPDATE_USER, (payload: any) =>
 		{
 			SocketDispatch({type: 'update_user', payload});
+		})
+		socket.on('notification', (payload: any) =>
+		{
+			const {type, inviter, inviterId, gameId} = payload;
+
+			// console.log("notification!!!");
+			// console.log("type:", type, "inviter:", inviter);
+			if (type === 'invite')
+			{
+				// console.log("in if");
+				displayInviteNotification(inviter, inviterId, gameId, socket);
+			}
 		})
 	}
 
