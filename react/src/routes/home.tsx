@@ -5,6 +5,7 @@ import { getCookie } from "../requests/cookies"
 import { Navigate } from "react-router-dom";
 import { backURL, getUserMeFull } from '../requests'
 import SocketContext from "../components/Socket/socket-context";
+import { toast } from "react-toastify";
 
 export async function loader()
 {
@@ -24,6 +25,7 @@ export function HomePage()
 	return (
 		<div className="home-page">
 			<h1>Home Page</h1>
+			<button onClick={() => toast("wow so easy")}>Notify</button>
 			<p>{user.userName}</p>
 			<img src={`${backURL}/users/avatars/${user.userName}?time=${Date.now()}`} />
 			<div>

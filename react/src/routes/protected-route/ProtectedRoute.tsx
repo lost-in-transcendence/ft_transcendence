@@ -1,10 +1,10 @@
-import { useContext, useEffect, useState } from "react";
 import { Navigate, useLoaderData } from "react-router-dom";
-import { AuthContext } from "../../auth/AuthContext";
 import Core from "../../components/Core/Core";
 import SocketContextComponent from "../../components/Socket/socket-context-component";
 import { validateToken } from "../../requests";
-import { getCookie } from "../../requests/cookies";
+
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export async function loader()
 {
@@ -21,6 +21,7 @@ export function ProtectedRoute()
 	return (
 		isAuth ? (
 		<>
+			<ToastContainer />
 			<SocketContextComponent>
 				<Core />
 			</SocketContextComponent>

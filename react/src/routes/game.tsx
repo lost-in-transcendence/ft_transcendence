@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from "react";
-import { redirect, useLoaderData } from "react-router-dom";
+import { redirect, useLoaderData, useLocation } from "react-router-dom";
 import { AuthContext } from "../auth/AuthContext";
 import { getCookie } from "../requests/cookies"
 import { Navigate } from "react-router-dom";
@@ -11,6 +11,7 @@ import { GiConsoleController } from "react-icons/gi";
 import SocketContext from "../components/Socket/socket-context";
 import { Socket } from "socket.io-client";
 import { IoRefresh } from "react-icons/io5";
+import SocketContextComponent from "../components/Socket/socket-context-component";
 
 export async function loader()
 {
@@ -35,13 +36,14 @@ export function Game()
 {
 	const loaderData: any = useLoaderData();
 	const {socket} = useContext(GameSocketContext).GameSocketState;
+	const masterSocket = useContext(SocketContext).SocketState.socket;
 	const [status, setStatus] = useState('waiting')
 	const [error, setError] = useState<string | null>(null);
 	const [asSpectator, setAsSpectator] = useState(false);
 
 	const [roomState, setRoomState] = useState('');
 
-	// console.log({loaderData});
+	const loc = useLocation();
 
 	useEffect(() =>
 	{
@@ -50,6 +52,12 @@ export function Game()
 			setStatus('queueing');
 		});
 
+		socket?.on('inviteGameCreated', (payload: any) =>
+		{
+			const {gameId, invitedUser} = payload;
+			masterSocket?.emit('invite', {gameId, invitedUser});
+			setStatus('queueing');
+		});
 		socket?.on("leftQueue", () =>
 		{
 			setStatus('waiting');
@@ -57,7 +65,9 @@ export function Game()
 
 		socket?.on('exception', (payload: any) =>
 		{
+			console.log("exception received");
 			console.log({payload});
+			setError(payload.message);
 		});
 
 		socket?.on('roomReady', (payload: any) =>
@@ -99,7 +109,21 @@ export function Game()
 			setError('Your opponent declined the match lol what a fucking loser');
 			setRoomState('');
 		});
+
+		masterSocket?.on('invitationDeclined', () =>
+		{
+			socket?.emit("leaveQueue");
+			setError('Your invitation was declined');
+			setRoomState('');
+		});
 	}, [])
+
+	useEffect(() =>
+	{
+		if (loc?.state?.action === 'joinInvite')
+			socket?.emit('joinCustomGame', {room: loc?.state?.gameId});
+		loc.state = {};
+	}, [loc]);
 
 	function goBack()
 	{
@@ -172,6 +196,7 @@ export function CustomGameScreen(props: {goBack: any})
 	const {goBack} = props;
 	const {socket} = useContext(GameSocketContext).GameSocketState;
 	const me = useContext(SocketContext).SocketState.user;
+	const masterSocket = useContext(SocketContext).SocketState.socket;
 
 	const [customGameInfo, setCustomGameInfo] = useState({
 		objective: Objective.SCORE,
@@ -285,32 +310,8 @@ export function CustomGameScreen(props: {goBack: any})
 				}
 				<input type="submit" value="Submit" disabled={gameVisibility === 'invite' && userToInvite?.userName === ''}/>	
 			</form>
-
-			
-{/* 
-
-			<input className="text-black" type="text" placeholder="Search..." value={userSearchFilter} onChange={(e) => setUserSearchFilter(e.target.value)} />
-				<ul>
-					{filteredList.map((user: any) =>
-					{
-						return (
-						<li key={user.id} onClick={() => setUserToInvite({userName: user.userName, id: user.id})}>{user.userName}</li>
-							)
-					})}
-				</ul>
-				<button 
-					disabled={userToInvite ? false : true} 
-					onClick={() => 
-					{
-					if (userToInvite)
-					{
-						setCustomGameInfo({...customGameInfo, invitation: true, invitedUser: userToInvite?.id});
-					}
-				}}>
-					Invite{userToInvite? " " + userToInvite.userName : ""}
-				</button> */}
-				<button onClick={goBack}>Go Back!</button>
-				</div>
+			<button onClick={goBack}>Go Back!</button>
+			</div>
 	)
 }
 
@@ -385,23 +386,23 @@ export function GameList(props: {goBack: any})
 				})
 			}
 			</ul>
-				<p>Ongoing games:</p>
+			<p>Ongoing games:</p>
+			{
+				ongoingGames.map((game: any) =>
 				{
-					ongoingGames.map((game: any) =>
-					{
-						return (
-						<li key={game.id}>
-							<div className="border-2 border-sky-800">
-								<p>{game.user1} vs {game.user2}</p>
-								<p>objective: {game.goal} {game.objective === Objective.SCORE ? "points" : "minutes"}</p>
-								<p>time elapsed: coming soon</p>
-								<button onClick={() => {socket?.emit('joinAsSpectator', {room: game.id});}}>Join as Spectator</button>
-							</div>
-						</li>
-						)
-					})
-				}
-				<button onClick={goBack}>Go Back!</button>
+					return (
+					<li key={game.id}>
+						<div className="border-2 border-sky-800">
+							<p>{game.user1} vs {game.user2}</p>
+							<p>objective: {game.goal} {game.objective === Objective.SCORE ? "points" : "minutes"}</p>
+							<p>time elapsed: coming soon</p>
+							<button onClick={() => {socket?.emit('joinAsSpectator', {room: game.id});}}>Join as Spectator</button>
+						</div>
+					</li>
+					)
+				})
+			}
+			<button onClick={goBack}>Go Back!</button>
 	</>
 	)
 }
