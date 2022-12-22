@@ -17,6 +17,8 @@ export class CustomWsFilter extends BaseWsExceptionFilter
 	}
 	catch(exception: unknown, host: ArgumentsHost)
 	{
+		this.logger.debug("bijour")
+		this.logger.debug({exception})
 		const ctx = host.switchToWs()
 		const client: Socket = ctx.getClient();
 
@@ -25,6 +27,7 @@ export class CustomWsFilter extends BaseWsExceptionFilter
 		if (exception instanceof PrismaClientKnownRequestError)
 			return (client.emit('exception', {status: exception.code, message: `${exception.name} ${exception.message}`}));
 		//client.emit('exception', {status: 500, message: exception})
+		client.emit('exception', {status: 500, message: exception})
 		super.catch(exception, host);
 	}
 

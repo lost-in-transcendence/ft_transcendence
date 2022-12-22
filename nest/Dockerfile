@@ -1,5 +1,4 @@
 FROM node:lts-alpine
-
 WORKDIR /usr/src/app
 
 RUN apk add --update --no-cache openssl1.1-compat
