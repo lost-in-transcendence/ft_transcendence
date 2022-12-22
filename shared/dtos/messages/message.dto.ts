@@ -4,4 +4,6 @@ export interface SharedMessageDto
 	channelId: string;
 	content: string;
 	createdAt: number;
+	sender: { userName: string };
 }
+

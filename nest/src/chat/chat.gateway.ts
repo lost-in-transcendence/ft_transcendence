@@ -62,13 +62,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
 	async handleConnection(client: Socket)
 	{
-		this.logger.debug('In chat connection');
 		try
 		{
 			UserSocketStore.setUserSockets(client.data.user.id, client.id)
-			this.logger.debug("COUCOU:", UserSocketStore.getUserSockets(client.id))
 			const channels = client.data.user.channels;
-			this.logger.debug("hellooo");
 			for (let chan of channels)
 				client.join(chan.channel.id);
 			this.logger.log(`Client ${client.data.user.userName} connected to chat server`);
@@ -93,8 +90,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 	@SubscribeMessage('message')
 	async sendMessage(@MessageBody() dto: CreateMessageDto, @ConnectedSocket() client: Socket, @GetUserWs() user)
 	{
-		this.logger.debug('in message event', { dto });
-
 		const newDto = { ...dto, userId: user.id }
 		// const newMessage: Message = await this.messageService.create(newDto);
 		this.server.emit('message', dto);
@@ -118,8 +113,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 	async test(@GetUserWs() user, @ConnectedSocket() client: Socket)
 	{
 		client.data.prout = { prout: 'prout', lol: 'lol' }
-		this.logger.debug(client.data);
-		this.logger.debug({ user });
 	}
 
 	@SubscribeMessage('testMsg')

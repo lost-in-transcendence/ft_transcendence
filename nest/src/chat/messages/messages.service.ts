@@ -17,7 +17,11 @@ export class MessagesService
 		try
 		{
 			const newMessage = await this.prisma.message.create({
-				data
+				data,
+				include:
+				{
+					sender: { select: {userName: true} }
+				}
 			});
 			return (newMessage);
 		}
@@ -37,7 +41,11 @@ export class MessagesService
 		const manyMessages = await this.prisma.message.findMany({
 			where: { channelId: channelId },
 			take: -nb,
-			orderBy: { createdAt: 'asc' }
+			orderBy: { createdAt: 'asc' },
+			include:
+			{
+				sender: { select: {userName: true} }
+			}
 		})
 		return (manyMessages);
 	}

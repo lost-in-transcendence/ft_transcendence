@@ -6,7 +6,7 @@ import * as events from "../../../../shared/constants"
 import { Socket } from "socket.io-client";
 import { flushSync } from "react-dom";
 
-export function ChatWindow({ className }: { className?: string })
+export function ChatWindow({ className, users }: {users: any[], className?: string })
 {
 	const ctx = useContext(ChatContext);
 	const socket = ctx.ChatState.socket;
@@ -38,9 +38,10 @@ export function ChatWindow({ className }: { className?: string })
 							const newMessage: MessageDto =
 							{
 								channelId: channel.id,
-								userId: channel.channelName,
+								userId: channel.id,
 								content: payload.content,
-								createdAt: Date.now()
+								createdAt: Date.now(),
+								sender: { userName: channel.channelName }
 							}
 							return ([...prev, newMessage])
 						})
@@ -104,22 +105,24 @@ export function ChatWindow({ className }: { className?: string })
 							if (prev)
 								prevUser = prev.userId;
 							if (prevUser != m.userId && m.userId != channel?.channelName)
+							{
 								displayName = true;
-
+							}
 							return (
 								<li
 									key={i}
 									ref={i === visibleMessages.length - 1 ? selfRef : null}
-									className={`overflow-x-hidden break-words ${m.userId === channel?.channelName && 'text-yellow-500'}`}
+									className={`overflow-x-hidden break-words ${m.userId === channel?.id && 'text-yellow-500'}`}
 								>
 									{
 										displayName &&
 										<>
-											<span className="text-red-500">{m.userId}</span>
+											<br className="bg-gray-500 m-0 p-0"/>
+											<span className="text-red-500">{m.sender.userName}</span>
 											<br />
 										</>
 									}
-									{m.content}
+									<span className="px-1">{m.content}</span>
 								</li>
 							)
 						})
