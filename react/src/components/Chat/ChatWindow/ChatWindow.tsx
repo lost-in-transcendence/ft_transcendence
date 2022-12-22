@@ -6,7 +6,7 @@ import * as events from "../../../../shared/constants"
 import { Socket } from "socket.io-client";
 import { flushSync } from "react-dom";
 
-export function ChatWindow({ className, users }: {users: any[], className?: string })
+export function ChatWindow({ className, users }: { users: any[], className?: string })
 {
 	const ctx = useContext(ChatContext);
 	const socket = ctx.ChatState.socket;
@@ -26,25 +26,25 @@ export function ChatWindow({ className, users }: {users: any[], className?: stri
 			})
 		})
 
-		socket?.on(events.NOTIFY, (payload: {channelId: string, content: string}) =>
+		socket?.on(events.NOTIFY, (payload: { channelId: string, content: string }) =>
 		{
-			console.log('received notify', {payload});
+			console.log('received notify', { payload });
 			if (channel && payload.channelId === channel.id)
 			{
 				flushSync(() =>
 				{
-						setVisibles((prev) =>
+					setVisibles((prev) =>
+					{
+						const newMessage: MessageDto =
 						{
-							const newMessage: MessageDto =
-							{
-								channelId: channel.id,
-								userId: channel.id,
-								content: payload.content,
-								createdAt: Date.now(),
-								sender: { userName: channel.channelName }
-							}
-							return ([...prev, newMessage])
-						})
+							channelId: channel.id,
+							userId: channel.id,
+							content: payload.content,
+							createdAt: Date.now(),
+							sender: { userName: channel.channelName }
+						}
+						return ([...prev, newMessage])
+					})
 				})
 			}
 		})
@@ -76,8 +76,8 @@ export function ChatWindow({ className, users }: {users: any[], className?: stri
 
 	async function leaveChannel()
 	{
-		await socket?.emit(events.LEAVE_CHANNEL, {channelId: channel?.id});
-		ctx.ChatDispatch({type: 'update_active', payload: undefined});
+		await socket?.emit(events.LEAVE_CHANNEL, { channelId: channel?.id });
+		ctx.ChatDispatch({ type: 'update_active', payload: undefined });
 	}
 
 	return (
@@ -104,7 +104,7 @@ export function ChatWindow({ className, users }: {users: any[], className?: stri
 
 							if (prev)
 								prevUser = prev.userId;
-							if (prevUser != m.userId && m.userId != channel?.channelName)
+							if (prevUser != m.userId && m.userId != channel?.id)
 							{
 								displayName = true;
 							}
@@ -112,17 +112,16 @@ export function ChatWindow({ className, users }: {users: any[], className?: stri
 								<li
 									key={i}
 									ref={i === visibleMessages.length - 1 ? selfRef : null}
-									className={`overflow-x-hidden break-words ${m.userId === channel?.id && 'text-yellow-500'}`}
+									className={`overflow-x-hidden break-words ${m.userId === channel?.id && 'text-yellow-500 font-bold'}`}
 								>
 									{
 										displayName &&
 										<>
-											<br className="bg-gray-500 m-0 p-0"/>
-											<span className="text-red-500">{m.sender.userName}</span>
+											<span className="text-red-600 font-semibold">{m.sender.userName}</span>
 											<br />
 										</>
 									}
-									<span className="px-1">{m.content}</span>
+									<span className={`${m.userId !== channel?.id && 'px-1'}`}>{m.content}</span>
 								</li>
 							)
 						})
