@@ -1,4 +1,5 @@
-export * from './users.requests'
-export * from './auth.requests'
+export * from './http/users.requests'
+export * from './http/auth.requests'
+export * from './http/friends.requests'
 export * from './constants'
 export * from './cookies'

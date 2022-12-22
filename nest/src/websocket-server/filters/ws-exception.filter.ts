@@ -27,7 +27,7 @@ export class CustomWsFilter extends BaseWsExceptionFilter
 		if (exception instanceof PrismaClientKnownRequestError)
 			return (client.emit('exception', {status: exception.code, message: `${exception.name} ${exception.message}`}));
 		// if (exception instanceof ValidationError)
-		client.emit('exception', { status: '500', message: 'Internal server error' });
+		client.emit('exception', {status: 500, message: exception})
 		super.catch(exception, host);
 	}
 

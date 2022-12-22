@@ -1,20 +1,20 @@
-import { useEffect, useState } from 'react'
-import '../../App.css'
-import Navbar from '../Navbar/Navbar'
+// import '../../App.css'
+// import './Core.css'
 
-import './Core.css'
-import { Outlet } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import {Navbar} from '../Menu/Navbar'
+
+import { Link, Outlet } from 'react-router-dom'
+import { SideBar } from '../Menu/Sidebar'
 
 function Core() {
 	return (
-		<>
-			<Navbar />
-			<div className="wrapper">
-				<div className="game">
-					<Outlet />
-				</div>
+		<div className='flex flex-row'>
+			<SideBar />
+			<div className='bg-gray-800 basis-full overflow-auto'>
+				<Outlet />
 			</div>
-		</>
+		</div>
 	)
 }
 
