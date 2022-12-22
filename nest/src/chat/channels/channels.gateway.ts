@@ -1,6 +1,6 @@
 import { Body, ForbiddenException, Get, Global, Logger, ParseIntPipe, ParseUUIDPipe, UseFilters, UseInterceptors, UsePipes, ValidationPipe } from "@nestjs/common";
 import { BaseWsExceptionFilter, ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer, WsException } from "@nestjs/websockets";
-import { Prisma, User, Channel, ChannelMember, Message } from "@prisma/client";
+import { Prisma, User, Channel, ChannelMember, Message, RoleType } from "@prisma/client";
 import { IsString } from "class-validator";
 import { Namespace, Server, Socket } from 'socket.io';
 import * as bcrypt from 'bcrypt';
@@ -15,17 +15,13 @@ import { joinChannelDto, joinChannelMessageDto } from "./dto/join-channel.dto";
 import { UserInterceptor } from "src/websocket-server/interceptor";
 import { UsersService } from "src/users/users.service";
 import * as events from 'shared/constants';
-<<<<<<< HEAD
 import { MessagesService } from "../messages/messages.service";
 import { getManyMessageDto } from "../messages/dto";
-import { ChannelMemberService } from "./channel-member/channel-member.service";
 import { SharedPartialUserDto } from "shared/dtos";
-=======
 import { UserSocketStore } from "../global/user-socket.store";
 import { ChannelMemberDto } from "./channel-member/dto";
 //import { env } from "process";
 import { ChannelMemberService } from "./channel-member/channel-member.service";
->>>>>>> chat
 
 @UseInterceptors(UserInterceptor)
 @UseFilters(new CustomWsFilter())
@@ -35,16 +31,10 @@ export class ChannelsGateway implements OnGatewayConnection
 {
 	private readonly logger = new Logger(ChannelsGateway.name);
 
-<<<<<<< HEAD
 	constructor(private readonly channelService: ChannelsService,
 		private readonly userService: UsersService,
 		private readonly messageService: MessagesService,
 		private readonly channelMemberService: ChannelMemberService) { }
-=======
-	constructor(private readonly channelService: ChannelsService, 
-				private readonly userService: UsersService,
-				private readonly channelMember: ChannelMemberService) { }
->>>>>>> chat
 
 	@WebSocketServer()
 	server: Namespace;
@@ -96,25 +86,18 @@ export class ChannelsGateway implements OnGatewayConnection
 		@ConnectedSocket() client: Socket,
 		@GetUserWs() user: User)
 	{
-<<<<<<< HEAD
-		const joinedChans: any[] = client.data.user.channels;
-		const thisChan = joinedChans?.find((c) => c.channelId === body.channelId);
-		if (thisChan?.role === 'BANNED')
-			return;
-=======
 		const channelMemberDto: ChannelMemberDto = {
 			userId: user.id,
 			channelId: body.channelId,
 			role: "MEMBER"
 		}
-		const channelMember = await this.channelMember.getOne(channelMemberDto)
+		const channelMember = await this.channelMemberService.getOne(channelMemberDto)
 		if (channelMember && channelMember.role === 'BANNED')
 		{
 			this.logger.debug("JE SUIS BANNI")
 			return ;
 		}
 		console.log("COUCOU")
->>>>>>> chat
 		const dto: joinChannelDto = {
 			channelId: body.channelId,
 			userId: user.id,
@@ -159,7 +142,7 @@ export class ChannelsGateway implements OnGatewayConnection
 			channelId,
 			role: null
 		}
-		const channelMember = await this.channelMember.getOne(channelMemberDto);
+		const channelMember = await this.channelMemberService.getOne(channelMemberDto);
 		if (!channelMember)
 			throw new WsException({ status: 'Error', message: 'Cannot leave channel you are not a part of !' });
 		if (channelMember.role === 'OWNER')
@@ -208,16 +191,10 @@ export class ChannelsGateway implements OnGatewayConnection
 				// return;
 			}
 		}
-<<<<<<< HEAD
-		if (thisChan.role !== 'BANNED')
-			await this.channelService.leaveChannel({ userId_channelId: { userId: user.id, channelId } });
-=======
 		if (channelMember.role !== 'BANNED')
 			await this.channelService.leaveChannel({userId_channelId: {userId: user.id, channelId}});
->>>>>>> chat
 		client.leave(channelId);
 		this.notify(channelId, `${user.userName} has left the channel`);
-
 		this.alert({event: events.CHANNELS});
 		this.alert({event: events.USERS, args: {channelId: channelId}});
 
@@ -229,13 +206,6 @@ export class ChannelsGateway implements OnGatewayConnection
 	@SubscribeMessage('banUser')
 	async banUser(
 		@ConnectedSocket() client: Socket,
-<<<<<<< HEAD
-		@MessageBody('channelId') channelId: string
-	)
-	{
-		return (this.channelService.banUser(client.data.user.id, channelId))
-	}
-=======
 		@MessageBody() body: any
 		)
 	{
@@ -245,7 +215,6 @@ export class ChannelsGateway implements OnGatewayConnection
 			n.leave(body.channelId)
 		return (this.channelService.banUser(body.userId, body.channelId))
 	}	
->>>>>>> chat
 
 	@SubscribeMessage(events.CHANNELS)
 	async channels(@ConnectedSocket() client: Socket, @GetUserWs('id', ParseUUIDPipe) userId: string)
@@ -314,6 +283,12 @@ export class ChannelsGateway implements OnGatewayConnection
 						{ mode: 'PROTECTED' },
 						{ members: { some: { userId } } }
 					],
+					NOT:
+                    [
+                        {
+                            members: { some: { userId , role: RoleType.BANNED} }
+                        }
+                    ]
 			},
 			select:
 			{

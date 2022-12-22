@@ -5,6 +5,7 @@ import { MessageDto } from "../dto";
 import * as events from "../../../../shared/constants"
 import { Socket } from "socket.io-client";
 import { flushSync } from "react-dom";
+import { backURL } from "../../../requests";
 
 export function ChatWindow({ className, users }: { users: any[], className?: string })
 {
@@ -117,11 +118,15 @@ export function ChatWindow({ className, users }: { users: any[], className?: str
 									{
 										displayName &&
 										<>
+											<span>
+												<img className="rounded-full h-14 w-14 inline mt-3 mb-1 mr-2"
+												src={`${backURL}/users/avatars/${m.sender.userName}?time=${Date.now()}`} />
+											</span>
 											<span className="text-red-600 font-semibold">{m.sender.userName}</span>
 											<br />
 										</>
 									}
-									<span className={`${m.userId !== channel?.id && 'px-1'}`}>{m.content}</span>
+									<span className={`${m.userId !== channel?.id && 'px-1 mb-'}`}>{m.content}</span>
 								</li>
 							)
 						})

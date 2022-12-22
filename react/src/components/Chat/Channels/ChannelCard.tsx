@@ -7,7 +7,7 @@ import * as events from '../../../../shared/constants'
 import { Channel } from "../../../dto/channels.dto";
 import Modal from "../../Modal/modal";
 
-export function ChannelCard({ channel, joinable = true }: { channel: Channel, joinable?: boolean })
+export function ChannelCard({ channel, joinable = true }: { channel: Channel, joinable?: boolean})
 {
 	const ctx = useContext(ChatContext);
 	const socket = ctx.ChatState.socket;

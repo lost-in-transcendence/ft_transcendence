@@ -21,7 +21,16 @@ interface ChannelMembersDto
 		id: string;
 		userName: string;
 		status: string;
-	}
+	};
+	role: RoleType
+}
+
+enum RoleType {
+    OWNER = "OWNER",
+    ADMIN = "ADMIN",
+    MEMBER = "MEMBER",
+    MUTED = "MUTED",
+    BANNED = "BANNED"
 }
 
 export interface SharedPartialChannelDto

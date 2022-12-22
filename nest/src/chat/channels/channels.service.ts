@@ -90,7 +90,6 @@ export class ChannelsService
 		const dto: ChannelMemberDto = {userId, channelId, role: 'BANNED'};
 		console.log("BANUSER UPDATE ROLE", dto)
 		await this.channelMember.changeRole(dto);
-
 	}
 
 	async findAll(): Promise<Channel[]>
