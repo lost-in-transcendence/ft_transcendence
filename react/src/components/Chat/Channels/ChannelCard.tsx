@@ -11,21 +11,21 @@ export function ChannelCard({ channel, joinable = true }: { channel: Channel, jo
 {
 	const ctx = useContext(ChatContext);
 	const socket = ctx.ChatState.socket;
-	const isActive: boolean = ctx.ChatState.activeChannel?.id === channel.id;
+
 	const [isOpen, setIsOpen] = useState(false)
+
+	const isActive: boolean = ctx.ChatState.activeChannel?.id === channel.id;
 
 	function joinChannel()
 	{
 		if (channel.mode === "PUBLIC")
 		{
 			const payload = { channelId: channel.id };
-			console.log('in handleClick', { payload });
 			socket?.emit(events.JOIN_CHANNEL, payload);
 			ctx.ChatDispatch({ type: 'update_active', payload: channel })
 		}
 		else if (channel.mode === "PROTECTED")
 		{
-			console.log('in protected join button')
 			setIsOpen(true);
 		}
 	}
@@ -39,14 +39,13 @@ export function ChannelCard({ channel, joinable = true }: { channel: Channel, jo
 
 	let formatedName = channel.channelName;
 	if (channel.channelName.length > 25)
-		formatedName = channel.channelName.slice(0, 25) + "...";
+		formatedName = channel.channelName.slice(0, 15) + "...";
 
 	return (
-		<div className={`${isActive && 'bg-gray-500 rounded'} hover:bg-gray-500 hover:text-white`} >
+		<div className={`${isActive && 'bg-gray-500 rounded'} hover:bg-gray-500 hover:text-white text-left shadow`} >
 			<p
 				onClick={setActiveChannel}
-				style={{ flex: 4, textAlign: 'left', overflow: 'hidden' }}
-				className={`${!joinable && 'cursor-pointer'} mx-3 text-sm`} >
+				className={`${!joinable && 'cursor-pointer'} mx-3 text-xl overflow-hidden break-words`} >
 				{formatedName}
 				{
 					channel.mode === 'PROTECTED' && joinable &&
@@ -59,8 +58,8 @@ export function ChannelCard({ channel, joinable = true }: { channel: Channel, jo
 					onClick={joinChannel}
 					className='rounded bg-gray-800 hover:bg-gray-700'>
 					Join
-					<Modal isOpen={isOpen} onClose={() => {console.log('in modal onClose'); setIsOpen(false)}}>
-						<FormProtectedChannel onClose={() => { console.log('in from onClose'); setIsOpen(false) }} channel={channel} />
+					<Modal isOpen={isOpen} onClose={() => {setIsOpen(false)}}>
+						<FormProtectedChannel onClose={() => {setIsOpen(false)}} channel={channel} />
 					</Modal>
 				</button>}
 		</div>
@@ -69,10 +68,10 @@ export function ChannelCard({ channel, joinable = true }: { channel: Channel, jo
 
 function FormProtectedChannel({ onClose, channel }: any)
 {
-	console.log('Render form');
+	const context = useContext(ChatContext);
+
 	const [data, setData] = useState("")
 	const [passwordHidden, setPasswordHidden] = useState(true);
-	const context = useContext(ChatContext);
 	const [unauthorized, setUnauthorized] = useState<'empty' | 'correct' | 'incorrect'>('empty')
 
 	useEffect(() =>

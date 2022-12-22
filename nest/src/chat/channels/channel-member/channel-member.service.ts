@@ -1,4 +1,5 @@
 import { ImATeapotException, Injectable, Logger, PreconditionFailedException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { joinChannelDto } from '../dto';
@@ -81,7 +82,7 @@ export class ChannelMemberService {
 
 	async getMany(dto: ChannelMemberDto)
 	{
-		if (dto.channelId === null) 
+		if (dto.channelId === null)
 		{
 			return (await this.prisma.channelMember.findMany({
 				where: {userId: dto.userId}
@@ -90,5 +91,14 @@ export class ChannelMemberService {
 		return (await this.prisma.channelMember.findMany({
 			where: {channelId: dto.channelId}
 		}))
+	}
+
+	async usersFromChannel(params: Prisma.ChannelMemberFindManyArgs)
+	{
+		const {where, select} = params;
+		return this.prisma.channelMember.findMany({
+			where,
+			select
+		})
 	}
 }

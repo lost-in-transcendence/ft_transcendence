@@ -36,8 +36,8 @@ export class MessagesService
 	{
 		const manyMessages = await this.prisma.message.findMany({
 			where: { channelId: channelId },
-			take: nb,
-			orderBy: { createdAt: 'desc' }
+			take: -nb,
+			orderBy: { createdAt: 'asc' }
 		})
 		return (manyMessages);
 	}

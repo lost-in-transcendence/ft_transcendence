@@ -22,7 +22,7 @@ export function HomePage()
 	// 	console.log(socket, {socket});
 	// console.info({user});
 	return (
-		<div className="home-page">
+		<div className="home-page p-0">
 			<h1>Home Page</h1>
 			<p>{user.userName}</p>
 			<img src={`${backURL}/users/avatars/${user.userName}?time=${Date.now()}`} />
@@ -33,7 +33,7 @@ export function HomePage()
 				</p>
 			</div>
 			<span>ok</span>
-			<span>okkodwjqoidjwqiodjoiwqjdoiwqhduihwqodhwquidhokkodwjqoidjwqiodjoiwqjdoiwqhduihwqodhwquidhokkodwjqoidjwqiodjoiwqjdoiwqhduihwqodhwquidhokkodwjqoidjwqiodjoiwqjdoiwqhduihwqodhwquidhokkodwjqoidjwqiodjoiwqjdoiwqhduihwqodhwquidhokkodwjqoidjwqiodjoiwqjdoiwqhduihwqodhwquidhokkodwjqoidjwqiodjoiwqjdoiwqhduihwqodhwquidhokkodwjqoidjwqiodjoiwqjdoiwqhduihwqodhwquidhokkodwjqoidjwqiodjoiwqjdoiwqhduihwqodhwquidhokkodwjqoidjwqiodjoiwqjdoiwqhduihwqodhwquidhokkodwjqoidjwqiodjoiwqjdoiwqhduihwqodhwquidh</span>
+			<span>okkodwjqoidjwqiodjoiwqjdoiwqhduihwqodhwquidhokkodwjqoidjwqiodjoiwqjdoiwqhduihwqodhwquidhokkodwjqoidjwqiodjoiwqjdoiwqhduihwqodhwquidhokkodwjqoidjwqiodjoiwqjdoiwqhduihwqodhwquidhokkodwjqoidjwqiodjoiwqjdoiwqhduihwqodhwquidhokkodwjqoidjwqiodjoiwqjdoiwqhduihwqodhwquidhokkodwjqoidjwqiodjoiwqjdoiwqhduihwqodhwquidhokkodwjqoidjwqiodjoiwqjdoiwqhduihwqodhwquidhokkodwjqoidjwqiodjoiwqjdoiwqhduihwqodhwquidhokkodwjqoidjwqiodjoiwqjdoiwqhduihwqodhwquidhokkodwjqoidjwqiodjoiwqjdoiwqhduihwqodhwquidhuio    </span>
 			<p>lol</p>
 			<p>lol</p>
 			<p>lol</p>

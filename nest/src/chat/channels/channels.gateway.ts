@@ -1,6 +1,6 @@
-import { ForbiddenException, Get, Global, Logger, ParseIntPipe, ParseUUIDPipe, UseFilters, UseInterceptors, UsePipes, ValidationPipe } from "@nestjs/common";
+import { Body, ForbiddenException, Get, Global, Logger, ParseIntPipe, ParseUUIDPipe, UseFilters, UseInterceptors, UsePipes, ValidationPipe } from "@nestjs/common";
 import { BaseWsExceptionFilter, ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer, WsException } from "@nestjs/websockets";
-import { Prisma, User, Channel, ChannelMember } from "@prisma/client";
+import { Prisma, User, Channel, ChannelMember, Message } from "@prisma/client";
 import { IsString } from "class-validator";
 import { Namespace, Server, Socket } from 'socket.io';
 import * as bcrypt from 'bcrypt';
@@ -15,16 +15,23 @@ import { joinChannelDto, joinChannelMessageDto } from "./dto/join-channel.dto";
 import { UserInterceptor } from "src/websocket-server/interceptor";
 import { UsersService } from "src/users/users.service";
 import * as events from 'shared/constants';
+import { MessagesService } from "../messages/messages.service";
+import { getManyMessageDto } from "../messages/dto";
+import { ChannelMemberService } from "./channel-member/channel-member.service";
+import { SharedPartialUserDto } from "shared/dtos";
 
 @UseInterceptors(UserInterceptor)
 @UseFilters(new CustomWsFilter())
 @UsePipes(new WsValidationPipe({ whitelist: true }))
-@WebSocketGateway({ cors: `${env.PROTOCOL}${env.APP_HOST}:${env.FRONT_PORT}`, namespace: 'chat'})
+@WebSocketGateway({ cors: `${env.PROTOCOL}${env.APP_HOST}:${env.FRONT_PORT}`, namespace: 'chat' })
 export class ChannelsGateway implements OnGatewayConnection
 {
 	private readonly logger = new Logger(ChannelsGateway.name);
 
-	constructor(private readonly channelService: ChannelsService, private readonly userService: UsersService) { }
+	constructor(private readonly channelService: ChannelsService,
+		private readonly userService: UsersService,
+		private readonly messageService: MessagesService,
+		private readonly channelMemberService: ChannelMemberService) { }
 
 	@WebSocketServer()
 	server: Namespace;
@@ -40,7 +47,6 @@ export class ChannelsGateway implements OnGatewayConnection
 	{
 		const newChannel: PartialChannelDto = await this.channelService.create(dto, id);
 		client.join(newChannel.id);
-		this.logger.debug({newChannel});
 		const retChannel = await this.channelService.channelSelect({
 			where: { id: newChannel.id },
 			select:
@@ -65,7 +71,6 @@ export class ChannelsGateway implements OnGatewayConnection
 				}
 			}
 		})
-		this.logger.debug({retChannel});
 		if (dto.mode === 'PROTECTED' || dto.mode === 'PUBLIC')
 			this.server.emit(events.NEW_CHANNEL, retChannel);
 		else
@@ -81,7 +86,7 @@ export class ChannelsGateway implements OnGatewayConnection
 		const joinedChans: any[] = client.data.user.channels;
 		const thisChan = joinedChans?.find((c) => c.channelId === body.channelId);
 		if (thisChan?.role === 'BANNED')
-			return ;
+			return;
 		const dto: joinChannelDto = {
 			channelId: body.channelId,
 			userId: user.id,
@@ -94,7 +99,6 @@ export class ChannelsGateway implements OnGatewayConnection
 		if (channel.mode === 'PROTECTED')
 		{
 			const compare = await bcrypt.compare(body.password || "", channel.hash);
-			this.logger.debug({ compare });
 			if (!compare)
 				throw new WsException({ status: 'Unauthorized', message: 'Incorrect password' });
 		}
@@ -104,11 +108,12 @@ export class ChannelsGateway implements OnGatewayConnection
 				await this.channelService.joinChannel(dto)
 					.then((c) => c.channel)
 			);
-		this.logger.debug({ joinedChannel });
-		const members = joinedChannel.members;
-		this.server.to(joinedChannel.id).emit(events.USERS, {users: members});
-		client.join(joinedChannel.id);
 		this.notify(joinedChannel.id, `${user.userName} has joined ${joinedChannel.channelName} !`)
+		client.join(joinedChannel.id);
+		const members = await this.getUsersFromChannel({ channelId: joinedChannel.id, userId: user.id });
+		if (!members)
+			throw new WsException({ status: '401', message: 'You are not part of this channel' });
+		this.server.to(joinedChannel.id).emit(events.USERS, members);
 		const newChanList = await this.getVisibleChannels(user.id);
 		this.server.to(client.id).emit('channels', newChanList);
 	}
@@ -162,22 +167,23 @@ export class ChannelsGateway implements OnGatewayConnection
 				});
 			}
 			else
-				return (this.DstroyChannel(channelId));
+			{
+				client.leave(channelId);
+				this.DstroyChannel(channelId)
+				const newChanList = await this.getVisibleChannels(user.id);
+				// return;
+			}
 		}
 		if (thisChan.role !== 'BANNED')
-			await this.channelService.leaveChannel({userId_channelId: {userId: user.id, channelId}});
+			await this.channelService.leaveChannel({ userId_channelId: { userId: user.id, channelId } });
 		client.leave(channelId);
 		this.notify(channelId, `${user.userName} has left the channel`);
-		const res: {members?: ChannelMember[]} = await this.channelService.channelSelect({
-			where: { id: channelId },
-			select:
-			{
-				members: true
-			}
-		});
-		const members = res.members;
-		this.logger.debug({members});
-		this.server.to(channelId).emit(events.USERS, {members});
+
+		this.alert({event: events.CHANNELS});
+		this.alert({event: events.USERS, args: {channelId: channelId}});
+
+		// const newChanList = await this.getVisibleChannels(user.id);
+		// this.server.to(client.id).emit('channels', newChanList);
 		// TODO Handle leave message
 	}
 
@@ -185,7 +191,7 @@ export class ChannelsGateway implements OnGatewayConnection
 	async banUser(
 		@ConnectedSocket() client: Socket,
 		@MessageBody('channelId') channelId: string
-		)
+	)
 	{
 		return (this.channelService.banUser(client.data.user.id, channelId))
 	}
@@ -211,10 +217,26 @@ export class ChannelsGateway implements OnGatewayConnection
 		this.server.to(client.id).emit(events.JOINABLE_CHANNELS, joignableChans);
 	}
 
+	@SubscribeMessage(events.GET_MESSAGES)
+	async GetMessages(@ConnectedSocket() client: Socket, @MessageBody() dto: getManyMessageDto)
+	{
+		const messages: Message[] = await this.messageService.getMany(dto.channelId, dto.amount);
+		this.server.to(client.id).emit(events.GET_MESSAGES, messages);
+	}
+
+	@SubscribeMessage(events.USERS)
+	async channelUsers(@ConnectedSocket() client: Socket, @MessageBody('channelId', ParseUUIDPipe) channelId: string, @GetUserWs('id', ParseUUIDPipe) userId: string)
+	{
+		const users = await this.getUsersFromChannel({ channelId, userId });
+		this.logger.debug({ users });
+		if (!users)
+			throw new WsException({ status: '401', message: 'You are not part of this channel' });
+		this.server.to(client.id).emit(events.USERS, users);
+	}
+
 	// @SubscribeMessage('handshake')
 	// async handshake(@ConnectedSocket() client: Socket, @GetUserWs('id', ParseUUIDPipe) userId: string)
 	// {
-	// 	this.logger.debug('Receiving handshake event from client in channels gateway');
 	// 	const channels: PartialChannelDto[] = await this.getVisibleChannels(userId);
 	// 	this.server.to(client.id).emit('handshake', channels);
 	// }
@@ -222,6 +244,13 @@ export class ChannelsGateway implements OnGatewayConnection
 	/*************************/
 	/*        UTILS          */
 	/*************************/
+
+	async getUsersFromChannel({ channelId, userId }: { channelId: string, userId: string })
+	{
+		const channels: any = await this.getVisibleChannels(userId);
+		const users = channels.find((c) => c.id === channelId).members;
+		return (users);
+	}
 
 	async getVisibleChannels(userId: string): Promise<PartialChannelDto[]>
 	{
@@ -242,8 +271,10 @@ export class ChannelsGateway implements OnGatewayConnection
 				channelName: true,
 				members:
 				{
-					include:
+					select:
 					{
+						role: true,
+						timeJoined: true,
 						user:
 						{
 							select:
@@ -251,6 +282,7 @@ export class ChannelsGateway implements OnGatewayConnection
 								id: true,
 								userName: true,
 								status: true,
+								avatarPath: true
 							}
 						}
 					}
@@ -289,10 +321,10 @@ export class ChannelsGateway implements OnGatewayConnection
 			where:
 			{
 				OR:
-				[
-					{ mode: 'PUBLIC' },
-					{ mode: 'PROTECTED' }
-				],
+					[
+						{ mode: 'PUBLIC' },
+						{ mode: 'PROTECTED' }
+					],
 				AND:
 				{
 					members: { every: { NOT: { userId: userId } } }
@@ -318,11 +350,11 @@ export class ChannelsGateway implements OnGatewayConnection
 
 	notify(channelId: string, content: string)
 	{
-		this.server.to(channelId).emit(events.NOTIFY, content);
+		this.server.to(channelId).emit(events.NOTIFY, { channelId, content });
 	}
 
-	alert(channelId: string, content: string)
+	alert({event, args}: {event: string, args?: any})
 	{
-		this.server.to(channelId).emit(events.ALERT, content);
+		this.server.emit(events.ALERT, {event, args});
 	}
 }

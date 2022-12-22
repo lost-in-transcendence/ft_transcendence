@@ -5,24 +5,32 @@ import { Channel } from "../../../dto/channels.dto";
 import { User } from "../../../dto/users.dto";
 import { useState } from "react";
 
-export function ChatComposer({channel, user}: {channel: Channel, user: User})
+export function ChatComposer({ user, className }: { user: User, className?: string })
 {
 	const ctx = useContext(ChatContext);
+	const channel = ctx.ChatState.activeChannel;
 	const socket = ctx.ChatState.socket;
 	const [message, setMessage] = useState("");
 
 	function sendText(e: any)
 	{
 		e.preventDefault()
-		socket?.emit(events.MESSAGE, {userId: user.id, channelId: channel.id, message})
+		console.log("input sent")
+		socket?.emit(events.TO_CHANNEL, { channelId: channel?.id, content: message })
+		setMessage("")
 	}
 
 	return (
-		<input
-			className="basis-1/2 rounded shadow px-2"
-			placeholder="type your message"
-			onChange={(e) => setMessage(e.target.value)}
-			onSubmit={sendText}
-		/>
+		<div className={className}>
+			<form
+				onSubmit={sendText}>
+			<input
+				className="basis-1/2 rounded shadow px-2 text-black w-full"
+				placeholder="type your message"
+				value={message}
+				onChange={(e) => setMessage(e.target.value)}
+			/>
+			</form>
+		</div>
 	)
 }

@@ -20,10 +20,12 @@ export function ChatSidebar({ user }: any)
 	const visibleChans = ctx.ChatState.visibleChannels.filter((c) => !(c.members?.find((m) => m.user.id === user.id)) && c.mode !== 'PRIVMSG')
 
 	const [isOpen, setIsOpen] = useState(false);
+	const [loading, setLoading] = useState(true);
 
 	useEffect(() =>
 	{
 		ctx.ChatState.socket?.emit(events.CHANNELS);
+		setLoading(false);
 	}, [])
 
 
@@ -34,9 +36,14 @@ export function ChatSidebar({ user }: any)
 		ctx.ChatDispatch({ type: 'update_active', payload: undefined });
 	}
 
+	if (loading)
+		return (
+			<div>Loading Channels</div>
+		)
+
 	return (
-		<div className="flex w-full h-screen">
-			<div className="bg-gray-700 w-full h-full rounded drop-shadow-lg
+		<div className="basis-0 flex">
+			<div className="bg-gray-700 w-full h-screen rounded drop-shadow-lg
 						md:w-52
 						text-gray-300 overflow-auto">
 				<button className="flex flex-row gap-4 m-2 items-center h-12 w-11/12
