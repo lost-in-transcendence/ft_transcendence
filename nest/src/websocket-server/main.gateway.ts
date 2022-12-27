@@ -2,7 +2,7 @@ import { Logger, ParseEnumPipe, ParseUUIDPipe, UseFilters, UseInterceptors, UseP
 import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
 import { Socket, Server, Namespace } from 'socket.io';
 import { env } from "process";
-import { StatusType, User } from "@prisma/client";
+import { StatusType, GameStatusType, User } from "@prisma/client";
 
 import { UsersService } from "src/users/users.service";
 import { CustomWsFilter } from "./filters";
@@ -43,8 +43,11 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	handleDisconnect(client: Socket)
 	{
 		this.logger.log(`Client ${client.id} disconnected from Main websocket Gateway`);
-		this.userService.updateUser({where: {id: client.data.user.id}, data: {status: StatusType.OFFLINE}});
 		this.socketStore.removeUserSocket(client.data.user.id, client);
+		if (!this.socketStore.getUserSockets(client.data.user.id))
+		{
+			this.userService.updateUser({where: {id: client.data.user.id}, data: {status: StatusType.OFFLINE, gameStatus: GameStatusType.NONE}});
+		}
 	}
 
 	@SubscribeMessage(events.CHANGE_STATUS)
@@ -55,6 +58,16 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			data: { status: newStatus }
 		});
 		this.server.to(client.id).emit(events.UPDATE_USER, { status: updatedUser.status });
+	}
+
+	@SubscribeMessage('changeGameStatus')
+	async changeGameStatus(@ConnectedSocket() client: Socket, @GetUserWs() user: User, @MessageBody('gameStatus', new ParseEnumPipe(GameStatusType)) gameStatus: GameStatusType)
+	{
+		const updatedUser = await this.userService.updateUser({
+			where: { id: user.id },
+			data: { gameStatus }
+		});
+		// this.server.to(client.id).emit(events.UPDATE_USER, { gameStatus: updatedUser.gameStatus });
 	}
 
 	@SubscribeMessage('test')
@@ -68,6 +81,11 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	{
 		const {gameId, invitedUser} = body;
 		const sockets = this.socketStore.getUserSockets(invitedUser);
+		if (!sockets)
+		{
+			this.server.to(client.id).emit('userOffline');
+			return;
+		}
 		sockets.forEach((v) =>
 		{
 			// console.log("in here");

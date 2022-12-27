@@ -1,4 +1,4 @@
-import { ForbiddenException, Logger, UseFilters, UseInterceptors, UsePipes } from "@nestjs/common";
+import { ForbiddenException, Logger, ParseEnumPipe, UseFilters, UseInterceptors, UsePipes } from "@nestjs/common";
 import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer, WsException } from "@nestjs/websockets";
 import { env } from "process";
 import { CustomWsFilter } from "src/websocket-server/filters";
@@ -326,7 +326,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     }
 
     @SubscribeMessage('paddleMove')
-    async paddleMove(@ConnectedSocket() client: Socket, @GetUserWs() user: User, @MessageBody('direction') direction: PaddleDirection)
+    async paddleMove(@ConnectedSocket() client: Socket, @GetUserWs() user: User, @MessageBody('direction', new ParseEnumPipe(PaddleDirection)) direction: PaddleDirection)
     {
         this.gameComputer.paddleMove(client.id, direction);
     }
