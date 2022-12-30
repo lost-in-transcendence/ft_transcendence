@@ -54,6 +54,11 @@ export function ChatContextComponent(props: any)
 			console.info('new channel event received', payload);
 			ChatDispatch({type: 'new_channel', payload});
 		})
+
+		socket.on(events.ALERT, (payload: {event: string, args: any}) =>
+		{
+			socket.emit(payload.event, payload.args);
+		})
 	}
 
 	function clearListeners()

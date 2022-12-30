@@ -1,4 +1,4 @@
-import { Global, Logger, UseFilters, UseInterceptors, UsePipes } from '@nestjs/common';
+import { Logger, UseFilters, UseInterceptors, UsePipes } from '@nestjs/common';
 import
 {
 	WebSocketGateway,
@@ -23,6 +23,8 @@ import { CustomWsFilter } from 'src/websocket-server/filters';
 import { UserInterceptor } from 'src/websocket-server/interceptor';
 import { env } from 'process';
 import { UserSocketStore } from './global/user-socket.store';
+import { ChannelMemberService } from './channels/channel-member/channel-member.service';
+import { ChannelMemberDto } from './channels/channel-member/dto';
 
 @UseInterceptors(UserInterceptor)
 @UseFilters(new CustomWsFilter())
@@ -46,7 +48,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 	constructor(
 		private readonly chatService: ChatService,
 		private readonly channelService: ChannelsService,
-		private readonly messageService: MessagesService) { }
+		private readonly messageService: MessagesService,
+		private readonly channelMemberService: ChannelMemberService) { }
 
 	@WebSocketServer()
 	server: Namespace;
@@ -62,13 +65,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
 	async handleConnection(client: Socket)
 	{
-		this.logger.debug('In chat connection');
 		try
 		{
-			UserSocketStore.setUserSockets(client.data.user.id, client.id)
-			this.logger.debug("COUCOU:", UserSocketStore.getUserSockets(client.id))
+			UserSocketStore.setUserSockets(client.data.user.id, client)
+			const log: Socket[] = UserSocketStore.getUserSockets(client.data.user.id);
+			for (let index of log)
+				this.logger.debug("SocketIds:", index.id)
 			const channels = client.data.user.channels;
-			this.logger.debug("hellooo");
 			for (let chan of channels)
 				client.join(chan.channel.id);
 			this.logger.log(`Client ${client.data.user.userName} connected to chat server`);
@@ -84,6 +87,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 	async handleDisconnect(client: Socket)
 	{
 		const user: User = client.data.user;
+		UserSocketStore.removeUserSocket(client.data.user.id, client);
 		this.logger.log(`Client ${user.userName} disconnected from chat server`);
 	}
 
@@ -93,16 +97,19 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 	@SubscribeMessage('message')
 	async sendMessage(@MessageBody() dto: CreateMessageDto, @ConnectedSocket() client: Socket, @GetUserWs() user)
 	{
-		this.logger.debug('in message event', { dto });
-
 		const newDto = { ...dto, userId: user.id }
 		// const newMessage: Message = await this.messageService.create(newDto);
 		this.server.emit('message', dto);
 	}
 
 	@SubscribeMessage('toChannel')
-	async toRoom(@MessageBody() dto: CreateMessageDto, @ConnectedSocket() client: Socket, @GetUserWs() user)
+	async toRoom(@MessageBody() dto: CreateMessageDto, @ConnectedSocket() client: Socket, @GetUserWs() user: any)
 	{
+		this.logger.debug("in toChannel event")
+		const channelMember = await this.channelMemberService.getOne({channelId: dto.channelId, userId: user.id , role: null})
+
+		if (!channelMember || channelMember.role === "BANNED")
+			return ;
 		const newMessage = await this.messageService.create({
 			content: dto.content,
 			channel: { connect: { id: dto.channelId } },
@@ -118,8 +125,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 	async test(@GetUserWs() user, @ConnectedSocket() client: Socket)
 	{
 		client.data.prout = { prout: 'prout', lol: 'lol' }
-		this.logger.debug(client.data);
-		this.logger.debug({ user });
 	}
 
 	@SubscribeMessage('testMsg')

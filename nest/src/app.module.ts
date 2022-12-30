@@ -7,12 +7,13 @@ import { AuthModule } from './auth/auth.module';
 import { ChatModule } from './chat/chat.module';
 import { ChannelsModule } from './chat/channels/channels.module';
 import { TwofaModule } from './auth/twofa.module';
+import { ChannelMemberModule } from './chat/channels/channel-member/channel-member.module';
 import { MainGateway } from './websocket-server/main.gateway';
 import { WebsocketModule } from './websocket-server/websocket.module';
 import { GameModule } from './game/game.module';
 
 @Module({
-  imports: [PrismaModule, UsersModule, ChannelsModule, AuthModule, ChatModule, TwofaModule, WebsocketModule, GameModule/*, ConfigModule.forRoot({isGlobal: true}) */],
+  imports: [PrismaModule, UsersModule, ChannelsModule, AuthModule, ChatModule, TwofaModule, WebsocketModule, GameModule, ChannelMemberModule/*, ConfigModule.fobbrRoot({isGlobal: true}) */],
   controllers: [AppController],
   providers: [AppService],
 })
