@@ -6,6 +6,7 @@ import { Navigate } from "react-router-dom";
 import { backURL, getUserMeFull } from '../requests'
 import SocketContext from "../components/Socket/socket-context";
 import { toast } from "react-toastify";
+import { Spinner } from "../components/Spinner/Spinner";
 
 export async function loader()
 {
@@ -36,6 +37,7 @@ export function HomePage()
 			</div>
 			<span>ok</span>
 			<span>okkodwjqoidjwqiodjoiwqjdoiwqhduihwqodhwquidhokkodwjqoidjwqiodjoiwqjdoiwqhduihwqodhwquidhokkodwjqoidjwqiodjoiwqjdoiwqhduihwqodhwquidhokkodwjqoidjwqiodjoiwqjdoiwqhduihwqodhwquidhokkodwjqoidjwqiodjoiwqjdoiwqhduihwqodhwquidhokkodwjqoidjwqiodjoiwqjdoiwqhduihwqodhwquidhokkodwjqoidjwqiodjoiwqjdoiwqhduihwqodhwquidhokkodwjqoidjwqiodjoiwqjdoiwqhduihwqodhwquidhokkodwjqoidjwqiodjoiwqjdoiwqhduihwqodhwquidhokkodwjqoidjwqiodjoiwqjdoiwqhduihwqodhwquidhokkodwjqoidjwqiodjoiwqjdoiwqhduihwqodhwquidhuio    </span>
+			<Spinner />
 			<p>lol</p>
 			<p>lol</p>
 			<p>lol</p>
