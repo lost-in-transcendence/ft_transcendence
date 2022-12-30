@@ -18,12 +18,8 @@ export class SocketStore
 	removeUserSocket(id: string, socket: Socket)
 	{
 		const array = this.getUserSockets(id);
-		const index = array.indexOf(socket);
-		const newArray = array.splice(index,  1);
-
-		this.userSockets.delete(id);
-		for (let n of newArray)
-			this.setUserSockets(id, n)
+		const newArray = array.filter((v) => v.id !== socket.id);
+		this.userSockets.set(id, newArray);
 	}
 
 	getUserSockets(id: string): Socket[]

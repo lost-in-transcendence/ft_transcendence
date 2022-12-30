@@ -38,16 +38,31 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		this.logger.log(`Client ${client.id} connected to Main websocket Gateway`);
 		this.server.to(client.id).emit('handshake', client.data.user);
 		this.socketStore.setUserSockets(client.data.user.id, client);
+		// this.logger.debug(this.socketStore.getUserSockets(client.data.user.id).map((v) => {
+		// 	return (v.id)
+		// }));
 	}
 
-	handleDisconnect(client: Socket)
+	async handleDisconnect(client: Socket)
 	{
 		this.logger.log(`Client ${client.id} disconnected from Main websocket Gateway`);
 		this.socketStore.removeUserSocket(client.data.user.id, client);
-		if (!this.socketStore.getUserSockets(client.data.user.id))
+		// if (!this.socketStore.getUserSockets(client.data.user.id))
+		// {
+		const ret = await this.userService.user({id: client.data.user.id});
+		if (ret.gameStatus !== 'NONE' && !this.socketStore.getUserSockets(client.data.user.id))
 		{
 			this.userService.updateUser({where: {id: client.data.user.id}, data: {status: StatusType.OFFLINE, gameStatus: GameStatusType.NONE}});
+			// emit message to everyone
 		}
+		else if (ret.gameStatus === 'NONE')
+		{
+			//emit message to everyone
+		}
+		// this.logger.debug(this.socketStore.getUserSockets(client.data.user.id).map((v) => {
+		// 	return (v.id)
+		// }));
+		// }
 	}
 
 	@SubscribeMessage(events.CHANGE_STATUS)
@@ -63,6 +78,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	@SubscribeMessage('changeGameStatus')
 	async changeGameStatus(@ConnectedSocket() client: Socket, @GetUserWs() user: User, @MessageBody('gameStatus', new ParseEnumPipe(GameStatusType)) gameStatus: GameStatusType)
 	{
+		this.logger.debug("changing status:", user.userName, "to:", gameStatus);
 		const updatedUser = await this.userService.updateUser({
 			where: { id: user.id },
 			data: { gameStatus }
@@ -81,6 +97,8 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	{
 		const {gameId, invitedUser} = body;
 		const sockets = this.socketStore.getUserSockets(invitedUser);
+		this.logger.debug("invite:", invitedUser);
+		this.logger.debug(sockets.length);
 		if (!sockets)
 		{
 			this.server.to(client.id).emit('userOffline');
@@ -101,6 +119,8 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	{
 		console.log('declineInvite');
 		const sockets = this.socketStore.getUserSockets(inviterId);
+		this.logger.debug("declining invite from", inviterId)
+		this.logger.debug(sockets.length);
 		sockets.forEach((v) =>
 		{
 			this.server.to(v.id).emit('invitationDeclined');

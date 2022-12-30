@@ -28,6 +28,7 @@ export function Profile()
 	{
 		console.log({ f });
 	})
+	// console.log({user.})
 	return (
 		<div className="profilePage
 							flex flex-col items-center gap-6
@@ -45,6 +46,7 @@ export function Profile()
 					<h3 className="font-bold text-5xl">{user.userName}</h3>
 					<p className="text-center">{user.email}</p>
 					<p className="text-center">{status}</p>
+					<p className="text-center">{user.gameStatus}</p>
 				</div>
 			</div>
 			<div className="profilePong
