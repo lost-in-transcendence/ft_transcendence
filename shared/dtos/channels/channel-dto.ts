@@ -5,7 +5,7 @@ export interface SharedChannelDto
 	mode: string;
 	hash?: string;
 	createdAt: Date;
-	members?: SharedChannelMembersDto[];
+	members?: SharedChannelMembersDto[] | any[];
 }
 
 export interface SharedFindUniqueChannelDto

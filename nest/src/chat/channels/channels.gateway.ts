@@ -247,7 +247,7 @@ export class ChannelsGateway implements OnGatewayConnection
 	@SubscribeMessage(events.USERS)
 	async channelUsers(@ConnectedSocket() client: Socket, @MessageBody('channelId', ParseUUIDPipe) channelId: string, @GetUserWs('id', ParseUUIDPipe) userId: string)
 	{
-		const users: SharedChannelMembersDto[] = await this.getUsersFromChannel({ channelId, userId });
+		const users: SharedChannelMembersDto[] | ChannelMember[] = await this.getUsersFromChannel({ channelId, userId });
 		this.logger.debug({ users });
 		if (!users)
 			throw new WsException({ status: '401', message: 'You are not part of this channel' });
@@ -265,10 +265,10 @@ export class ChannelsGateway implements OnGatewayConnection
 	/*        UTILS          */
 	/*************************/
 
-	async getUsersFromChannel({ channelId, userId }: { channelId: string, userId: string }): Promise<SharedChannelMembersDto[]>
+	async getUsersFromChannel({ channelId, userId }: { channelId: string, userId: string }): Promise<SharedChannelMembersDto[] | ChannelMember[]>
 	{
 		const channels: PartialChannelDto[] = await this.getVisibleChannels(userId);
-		const users: SharedChannelMembersDto[] = channels.find((c) => c.id === channelId).members;
+		const users: SharedChannelMembersDto[] | ChannelMember[]= channels.find((c) => c.id === channelId).members;
 		return (users);
 	}
 

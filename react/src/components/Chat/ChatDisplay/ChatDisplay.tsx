@@ -24,6 +24,12 @@ export function ChatDisplay({ user }: { user: User })
 			setUsers(payload);
 		})
 
+		socket?.on(events.ALERT, (payload: { event: string, args?: string }) =>
+		{
+			if (payload.event === events.USERS)
+				socket.emit(events.USERS, { channelId: channel?.id });
+		})
+
 		socket?.emit(events.USERS, { channelId: channel?.id });
 		return (() =>
 		{
