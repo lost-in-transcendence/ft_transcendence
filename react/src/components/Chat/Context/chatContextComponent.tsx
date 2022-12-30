@@ -5,6 +5,7 @@ import { backURL, getCookie } from "../../../requests";
 import { ChatContextProvider, ChatReducer, defaultChatContextState } from "./chatContext";
 import * as events from '../../../../shared/constants/chat'
 import { Channel, PartialChannel } from "../../../dto/channels.dto";
+import { Spinner } from "../../Spinner/Spinner";
 
 export function ChatContextComponent(props: any)
 {
@@ -70,7 +71,7 @@ export function ChatContextComponent(props: any)
 
 	if (loading)
 		return (
-			<p>Loading Chat...</p>
+			<Spinner />
 		);
 
 	return (
