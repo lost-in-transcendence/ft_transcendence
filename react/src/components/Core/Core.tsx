@@ -1,8 +1,10 @@
 // import '../../App.css'
 // import './Core.css'
 
+import { useContext } from 'react'
 import { Link, Outlet } from 'react-router-dom'
 import { SideBar } from '../Menu/Sidebar'
+import SocketContext from '../Socket/socket-context'
 
 function Core()
 {
