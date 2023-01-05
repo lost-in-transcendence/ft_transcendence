@@ -84,7 +84,7 @@ export function ChatWindow({ className, users }: { users: any[], className?: str
 	return (
 		<>
 			<div className="channelTitle
-								bg-gray-800 text-gray-300 text-center text-3xl px-1
+								bg-gray-800 text-gray-800 text-center text-3xl px-1
 								shadow-lg
 								flex flex-row items-center justify-center">
 				<span className="overflow-hidden basis-full">

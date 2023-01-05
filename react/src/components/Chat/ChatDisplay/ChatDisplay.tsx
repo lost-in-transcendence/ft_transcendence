@@ -5,6 +5,8 @@ import { ChatComposer } from "../ChatComposer/ChatComposer";
 import { ChatWindow } from "../ChatWindow/ChatWindow";
 import ChatContext from "../Context/chatContext";
 import * as events from '../../../../shared/constants'
+import { backURL } from "../../../requests";
+import { useNavigate } from "react-router-dom";
 
 export function ChatDisplay({ user }: { user: User })
 {
@@ -13,6 +15,11 @@ export function ChatDisplay({ user }: { user: User })
 	const socket = ctx.ChatState.socket;
 
 	const [users, setUsers] = useState([]);
+	const navigate = useNavigate();
+
+	const goToProfile = (userName: string) => {
+		navigate('/profile/view/' + userName)
+	}
 
 	useEffect(() =>
 	{
@@ -37,19 +44,53 @@ export function ChatDisplay({ user }: { user: User })
 				<ChatComposer className="justify-self-end"
 					user={user} />
 			</div>
-			<div className="bg-orange-300 w-60 overflow-hidden break-words">
+			<div className="bg-zinc-700 w-60 overflow-hidden break-words">
+				<li className={"ml-2 text-zinc-400"}>
+					ONLINE
+				</li>
 				<ul>
 					{
 						users.map((u: any, i) =>
 						{
 							const user = u.user;
-							return (
-									<li key={i} className='text-center'>
-										<p>{user.userName} - {user.status}</p>
-										<p>{u.role}</p>
-										<br/>
-									</li>
-							)
+							if (user.status === 'ONLINE')
+								return (
+									<div>
+										<span key={i} 
+										onClick={goToProfile(user.userName)}
+										className='overflow-x-hidden'>
+											<img className="float-left rounded-full h-10 w-10 inline mt-3 mb-2 mr-2"
+											src={`${backURL}/users/avatars/${user.userName}?time=${Date.now()}`} />
+											<span className={"flex mt-5 "}> {user.userName} </span>
+											<span>{u.role}</span>
+											<br/>
+											<br/>
+										</span>
+									</div>
+								)
+						})
+					}
+				</ul>
+				<li className={"mt-5 ml-2 text-zinc-400"}>
+					OFFLINE
+				</li>
+				<ul>
+					{
+						users.map((u: any, i) =>
+						{
+							const user = u.user;
+							if (user.status === 'OFFLINE')
+								return (
+									<div>
+										<span key={i} className='text-center inline mt-5 mb-1 mr-2'>
+											<img className="float-left rounded-full h-14 w-14"
+											src={`${backURL}/users/avatars/${user.userName}?time=${Date.now()}`} />
+											<p> {user.userName} </p>
+											<p>{u.role}</p>
+											<br/>
+										</span>
+									</div>
+								)
 						})
 					}
 				</ul>
