@@ -5,6 +5,7 @@ import { ChatComposer } from "../ChatComposer/ChatComposer";
 import { ChatWindow } from "../ChatWindow/ChatWindow";
 import ChatContext from "../Context/chatContext";
 import * as events from '../../../../shared/constants'
+import { Member } from "../dto";
 
 export function ChatDisplay({ user }: { user: User })
 {
@@ -12,16 +13,22 @@ export function ChatDisplay({ user }: { user: User })
 	const channel = ctx.ChatState.activeChannel;
 	const socket = ctx.ChatState.socket;
 
-	const [users, setUsers] = useState([]);
+	const [users, setUsers] = useState<Member[]>([]);
 
 	useEffect(() =>
 	{
 		console.log('in chatDisplay useEffect');
-		socket?.on(events.USERS, (payload: any) =>
+		socket?.on(events.USERS, (payload: Member[]) =>
 		{
 			console.log({ payload });
 			setUsers(payload);
 		})
+
+		// socket?.on(events.ALERT, (payload: { event: string, args?: string }) =>
+		// {
+		// 	if (payload.event === events.USERS)
+		// 		socket.emit(events.USERS, { channelId: channel?.id });
+		// })
 
 		socket?.emit(events.USERS, { channelId: channel?.id });
 		return (() =>
@@ -40,7 +47,7 @@ export function ChatDisplay({ user }: { user: User })
 			<div className="bg-orange-300 w-60 overflow-hidden break-words">
 				<ul>
 					{
-						users.map((u: any, i) =>
+						users.map((u: Member, i) =>
 						{
 							const user = u.user;
 							return (

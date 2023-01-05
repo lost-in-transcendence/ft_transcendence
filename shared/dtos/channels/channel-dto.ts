@@ -5,7 +5,7 @@ export interface SharedChannelDto
 	mode: string;
 	hash?: string;
 	createdAt: Date;
-	members?: ChannelMembersDto[];
+	members?: SharedChannelMembersDto[] | any[];
 }
 
 export interface SharedFindUniqueChannelDto
@@ -14,7 +14,7 @@ export interface SharedFindUniqueChannelDto
 	channelName: string;
 }
 
-interface ChannelMembersDto
+export interface SharedChannelMembersDto
 {
 	user:
 	{
@@ -22,7 +22,9 @@ interface ChannelMembersDto
 		userName: string;
 		status: string;
 	};
-	role: RoleType
+	role: RoleType;
+	avatarPath?: string;
+	timeJoined?: Date;
 }
 
 enum RoleType {
@@ -40,5 +42,5 @@ export interface SharedPartialChannelDto
 	mode?: string;
 	hash?: string;
 	createdAt?: Date;
-	members?: ChannelMembersDto[];
+	members?: SharedChannelMembersDto[];
 }

@@ -58,7 +58,10 @@ export function ChatContextComponent(props: any)
 
 		socket.on(events.ALERT, (payload: {event: string, args: any}) =>
 		{
-			socket.emit(payload.event, payload.args);
+			if (payload.event === events.USERS && !payload.args)
+				socket.emit(payload.event, { channelId: ChatState.activeChannel?.id })
+			else
+				socket.emit(payload.event, payload.args);
 		})
 	}
 
