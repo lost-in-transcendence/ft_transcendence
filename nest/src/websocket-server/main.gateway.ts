@@ -77,6 +77,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		{
 			this.server.to(v.id).emit(events.UPDATE_USER, { status: updatedUser.status });
 		})
+		this.updateUser(client, user, {status: updatedUser.status});
 	}
 
 	@SubscribeMessage('changeGameStatus')
@@ -91,6 +92,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		{
 			this.server.to(v.id).emit(events.UPDATE_USER, { gameStatus: updatedUser.gameStatus });
 		})
+		this.updateUser(client, user, {gameStatus: updatedUser.gameStatus});
 		// this.server.to(client.id).emit(events.UPDATE_USER, { gameStatus: updatedUser.gameStatus });
 	}
 
@@ -101,6 +103,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		{
 			this.server.to(v.id).emit(events.UPDATE_USER, { userName });
 		})
+		this.updateUser(client, user, {userName});
 	}
 
 	async updateUser(client: Socket, user: User, payload: any)

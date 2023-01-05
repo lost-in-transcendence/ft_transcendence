@@ -18,15 +18,20 @@ export function ChatDisplay({ user }: { user: User })
 
 	function updateUserInfo(id: string, data: any)
 	{
+		console.log("updating", id, "with", data);
 		setUsers((prev) =>
 		{
 			const index = prev.findIndex((v) => {return v.user.id === id});
 			if (index === -1)
 				return prev;
-			const updated = {...prev};
-			const updatedUser = prev[index];
-			Object.assign(updateUser, data);
-			updated[index] = updatedUser;
+			const updated = prev.map((v, i) =>
+			{
+				if (i !== index)
+					return v;
+				const updatedUser = {...v.user};
+				Object.assign(updatedUser, data);
+				return {...v, user: updatedUser};
+			});
 			return updated;
 		})
 	}
@@ -51,6 +56,7 @@ export function ChatDisplay({ user }: { user: User })
 		// 		socket.emit(events.USERS, { channelId: channel?.id });
 		// })
 
+		socket?.emit(events.USERS, { channelId: channel?.id });	
 		return (() =>
 		{
 			socket?.off(events.USERS);
@@ -79,7 +85,6 @@ export function ChatDisplay({ user }: { user: User })
 									<li key={i} className='text-center'>
 										<p>{user.userName} - {user.status}</p>
 										<p>{u.role}</p>
-										<p>{user.gameStatus}</p>
 										<br/>
 									</li>
 							)
