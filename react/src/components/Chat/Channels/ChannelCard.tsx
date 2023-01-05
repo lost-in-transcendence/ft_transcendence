@@ -45,10 +45,11 @@ export function ChannelCard({ channel, joinable = true }: { channel: Channel, jo
 		<div className={`${isActive && 'bg-gray-500 rounded'} hover:bg-gray-500 hover:text-white text-left shadow`} >
 			<span
 				onClick={setActiveChannel}
-				className={`${!joinable && 'cursor-pointer'} mx-3 text-xl overflow-hidden break-words inline-flex`} >
+				className={`${!joinable && 'cursor-pointer'} flex flex-row items-center mx-3 text-xl overflow-hidden break-words inline-flex`} >
 				{
 					channel.mode === 'PROTECTED' && joinable &&
-					<LockedIcon size={'20'} />
+					<LockedIcon className='mr-1'
+					size={'17'} />
 				}
 				{formatedName}
 			</span>

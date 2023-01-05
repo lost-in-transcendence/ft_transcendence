@@ -84,13 +84,13 @@ export function ChatWindow({ className, users }: { users: any[], className?: str
 	return (
 		<>
 			<div className="channelTitle
-								bg-gray-800 text-gray-800 text-center text-3xl px-1
+								bg-gray-800 text-zinc-400 text-center text-3xl px-1
 								shadow-lg
 								flex flex-row items-center justify-center">
 				<span className="overflow-hidden basis-full">
 					{channel?.channelName}
 				</span>
-				<button className="basis-0 px-1 bg-red-800 rounded text-sm" onClick={leaveChannel}>
+				<button className="basis-0 text-gray-800 px-1 bg-red-800 rounded text-sm" onClick={leaveChannel}>
 					Leave
 				</button>
 			</div>
