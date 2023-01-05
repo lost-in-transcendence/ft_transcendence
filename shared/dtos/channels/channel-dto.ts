@@ -1,3 +1,6 @@
+import { SharedGameStatusDto } from "../game";
+import { SharedUserStatus } from "../users";
+
 export interface SharedChannelDto
 {
 	id: string;
@@ -20,7 +23,8 @@ export interface SharedChannelMembersDto
 	{
 		id: string;
 		userName: string;
-		status: string;
+		status: SharedUserStatus;
+		gameStatus: SharedGameStatusDto;
 	};
 	role: RoleType;
 	avatarPath?: string;

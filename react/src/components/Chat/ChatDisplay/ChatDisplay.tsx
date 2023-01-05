@@ -6,6 +6,7 @@ import { ChatWindow } from "../ChatWindow/ChatWindow";
 import ChatContext from "../Context/chatContext";
 import * as events from '../../../../shared/constants'
 import { Member } from "../dto";
+import { updateUser } from "../../../requests";
 
 export function ChatDisplay({ user }: { user: User })
 {
@@ -14,6 +15,21 @@ export function ChatDisplay({ user }: { user: User })
 	const socket = ctx.ChatState.socket;
 
 	const [users, setUsers] = useState<Member[]>([]);
+
+	function updateUserInfo(id: string, data: any)
+	{
+		setUsers((prev) =>
+		{
+			const index = prev.findIndex((v) => {return v.user.id === id});
+			if (index === -1)
+				return prev;
+			const updated = {...prev};
+			const updatedUser = prev[index];
+			Object.assign(updateUser, data);
+			updated[index] = updatedUser;
+			return updated;
+		})
+	}
 
 	useEffect(() =>
 	{
@@ -24,17 +40,26 @@ export function ChatDisplay({ user }: { user: User })
 			setUsers(payload);
 		})
 
+		socket?.on("updateUser", (payload: any) =>
+		{
+			const {id, data} = payload;
+			updateUserInfo(id, data);
+		})
 		// socket?.on(events.ALERT, (payload: { event: string, args?: string }) =>
 		// {
 		// 	if (payload.event === events.USERS)
 		// 		socket.emit(events.USERS, { channelId: channel?.id });
 		// })
 
-		socket?.emit(events.USERS, { channelId: channel?.id });
 		return (() =>
 		{
 			socket?.off(events.USERS);
 		})
+	}, [])
+
+	useEffect(() =>
+	{
+		socket?.emit(events.USERS, { channelId: channel?.id });	
 	}, [channel])
 
 	return (
@@ -54,6 +79,7 @@ export function ChatDisplay({ user }: { user: User })
 									<li key={i} className='text-center'>
 										<p>{user.userName} - {user.status}</p>
 										<p>{u.role}</p>
+										<p>{user.gameStatus}</p>
 										<br/>
 									</li>
 							)
