@@ -21,6 +21,7 @@ export class SocketStore
 		const array = this.getUserSockets(id);
 		const newArray = array.filter((v) => v.id !== socket.id);
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 		this.userSockets.delete(id);
 		for (let n of newArray)
@@ -28,6 +29,9 @@ export class SocketStore
 =======
 		this.userSockets.set(id, newArray);
 >>>>>>> 4fca00844b715674b56d9e51c3a8a934e3e998df
+=======
+		this.userSockets.set(id, newArray);
+>>>>>>> leo-menuContext
 	}
 
 	getUserSockets(id: string): Socket[]
