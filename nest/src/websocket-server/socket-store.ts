@@ -3,6 +3,7 @@ import { Socket} from 'socket.io';
 
 export class SocketStore
 {
+	private readonly logger = new Logger(SocketStore.name);
 	userSockets = new Map()
 
 	setUserSockets(id: string, socket: Socket) 
@@ -18,8 +19,7 @@ export class SocketStore
 	removeUserSocket(id: string, socket: Socket)
 	{
 		const array = this.getUserSockets(id);
-		const index = array.indexOf(socket);
-		const newArray = array.splice(index,  1);
+		const newArray = array.filter((v) => v.id !== socket.id);
 
 		this.userSockets.delete(id);
 		for (let n of newArray)

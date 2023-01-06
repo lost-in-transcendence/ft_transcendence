@@ -38,16 +38,23 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		this.logger.log(`Client ${client.id} connected to Main websocket Gateway`);
 		this.server.to(client.id).emit('handshake', client.data.user);
 		this.socketStore.setUserSockets(client.data.user.id, client);
+		// this.logger.debug(this.socketStore.getUserSockets(client.data.user.id).map((v) => {
+		// 	return v.id;
+		// }))
 	}
 
 	handleDisconnect(client: Socket)
 	{
 		this.logger.log(`Client ${client.id} disconnected from Main websocket Gateway`);
+		this.logger.debug(`socket id : ${client.id}`);
 		this.socketStore.removeUserSocket(client.data.user.id, client);
 		if (!this.socketStore.getUserSockets(client.data.user.id))
 		{
 			this.userService.updateUser({where: {id: client.data.user.id}, data: {status: StatusType.OFFLINE, gameStatus: GameStatusType.NONE}});
 		}
+		// this.logger.debug("handleDisconnect", this.socketStore.getUserSockets(client.data.user.id).map((v) => {
+		// 	return v.id;
+		// }))
 	}
 
 	@SubscribeMessage(events.CHANGE_STATUS)
