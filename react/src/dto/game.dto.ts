@@ -1,7 +1,6 @@
-
 export enum GameStatus
 {
-    NONE = "NONE",
-    WAITING = "WAITING",
-    INGAME = "INGAME"
+	NONE = "NONE",
+	WAITING = "WAITING",
+	INGAME = "INGAME"
 }

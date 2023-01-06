@@ -1,4 +1,3 @@
-import { GameStatus } from "../../dto/game.dto";
 import { useContext, useEffect, useState } from "react";
 import { GameStatus } from "../../dto/game.dto";
 import { Canvas } from "../Canvas/canvas";
@@ -70,18 +69,18 @@ export function Pong(props: {goBack: any, asSpectator: boolean})
 			paddle2Pos: Math.round((gameHeight / 2) - paddleSize / 2),
 			ballPos:
 			{
-				x: gameWidth / 2, 
+				x: gameWidth / 2,
 				y: gameHeight / 2
 			},
 			player1Score: 0,
 			player2Score: 0,
 		})
-	
+
 	const [timer, setTimer] = useState(0);
 
 	useEffect( () =>
 	{
-		const interval = setInterval(() => 
+		const interval = setInterval(() =>
 			{
 				if (showEndScreen === false)
 				{
@@ -93,7 +92,7 @@ export function Pong(props: {goBack: any, asSpectator: boolean})
 
     useEffect(() =>
     {
-		socket?.on('disconnected', () => 
+		socket?.on('disconnected', () =>
 		{
 			setStatus('playerDisconnected');
 			setError('Someone disconnected');
@@ -209,7 +208,7 @@ export function Pong(props: {goBack: any, asSpectator: boolean})
                 <></>
             }
 			<button onClick={goBack}>Go Back</button>
-        </> 
+        </>
     )
 }
 
