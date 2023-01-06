@@ -72,6 +72,7 @@ export function ChatDisplay({ currentUser }: { currentUser: User })
 				<ChatWindow users={users} className="bg-slate-400 basis-full overflow-y-auto px-1 py-2" />
 				<ChatComposer className="justify-self-end"
 					user={currentUser} />
+			</div>
 				<div className="bg-zinc-700 w-60 overflow-hidden break-words">
 					<h3 className={"ml-2 mt-2 text-zinc-400"}>
 						ONLINE
@@ -141,7 +142,6 @@ export function ChatDisplay({ currentUser }: { currentUser: User })
 					</ul>
 
 				</div>
-			</div>
 		</div>
 	)
 }
