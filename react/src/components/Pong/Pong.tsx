@@ -1,4 +1,3 @@
-import { GameStatus } from "../../dto/game.dto";
 import { useContext, useEffect, useState } from "react";
 import { Canvas } from "../Canvas/canvas";
 import GameSocketContext from "../Game/Context/game-socket-context";

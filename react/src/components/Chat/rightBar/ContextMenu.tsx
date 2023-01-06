@@ -35,18 +35,10 @@ export function ContextMenu({
       >
         Profile
       </li>
+      <li className={liClassName}>Invite to play</li>
+      <li className={liClassName}>[conditional friend]</li>
+      <li className={liClassName}>Invite to channel</li>
+      <li className={liClassName}>Mute</li>*/
     </ul>
   );
 }
-/*			/<li className={liClassName}>
-				Invite to play
-			</li>
-			<li className={liClassName}>
-				[conditional friend]
-			</li>
-			<li className={liClassName}>
-				Invite to channel 
-			</li>
-			<li className={liClassName}>
-				Mute
-			</li>*/
