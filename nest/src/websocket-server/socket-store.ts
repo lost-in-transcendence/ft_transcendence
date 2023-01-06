@@ -20,10 +20,7 @@ export class SocketStore
 	{
 		const array = this.getUserSockets(id);
 		const newArray = array.filter((v) => v.id !== socket.id);
-
-		this.userSockets.delete(id);
-		for (let n of newArray)
-			this.setUserSockets(id, n)
+		this.userSockets.set(id, newArray);
 	}
 
 	getUserSockets(id: string): Socket[]

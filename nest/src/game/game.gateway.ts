@@ -5,7 +5,7 @@ import { CustomWsFilter } from "src/websocket-server/filters";
 import { UserInterceptor } from "src/websocket-server/interceptor";
 import { WsValidationPipe } from "src/websocket-server/pipes";
 import { Socket, Namespace } from 'socket.io';
-import { User } from '@prisma/client';
+import { GameStatusType, User } from '@prisma/client';
 import { GetUserWs } from "src/users/decorator/get-user-ws";
 import { GamesService } from "./game.service";
 import { create } from "domain";
@@ -14,6 +14,7 @@ import { GameComputer, GameStatusValue, Objective, PaddleDirection } from "./gam
 import { Subscriber } from "rxjs";
 import { userInfo } from "os";
 import { IsEnum } from "class-validator";
+import { UsersService } from "src/users/users.service";
 
 export enum GameType
 {
@@ -64,8 +65,11 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     @WebSocketServer()
     server: Namespace;
 
-	constructor(private readonly gamesService: GamesService, private readonly gameComputer: GameComputer) {
-     }
+	constructor(
+        private readonly gamesService: GamesService,
+        private readonly userService: UsersService,
+        private readonly gameComputer: GameComputer)
+    {}
 
 
     afterInit()
@@ -95,6 +99,10 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
         {
             this.waitingRooms = this.waitingRooms.filter((v) => v.user1SocketId !== client.id);
             this.emitWaitingRooms();
+            const updatedUser = await this.userService.updateUser({
+                where: { id: client.data.user.id },
+                data: { gameStatus: GameStatusType.NONE }
+            });
             return true;
         }
         const onGoingroom = await this.gameComputer.findGameBySocketId(client.id);
@@ -104,6 +112,10 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
             // if so gracefully close and notify everything
             this.gameComputer.playerDisconnected(client.id);
             this.gameComputer.emitOngoingGames();
+            const updatedUser = await this.userService.updateUser({
+                where: { id: client.data.user.id },
+                data: { gameStatus: GameStatusType.NONE }
+            });
         }
         // is socket id a spectator?
         const spectatorRoom = await this.gameComputer.findGameBySpectatorSocketId(client.id);

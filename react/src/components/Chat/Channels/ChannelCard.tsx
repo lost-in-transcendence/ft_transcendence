@@ -38,30 +38,32 @@ export function ChannelCard({ channel, joinable = true }: { channel: Channel, jo
 	}
 
 	let formatedName = channel.channelName;
-	if (channel.channelName.length > 25)
-		formatedName = channel.channelName.slice(0, 15) + "...";
+	if (channel.channelName.length > 13)
+		formatedName = channel.channelName.slice(0, 13) + "...";
 
 	return (
 		<div className={`${isActive && 'bg-gray-500 rounded'} hover:bg-gray-500 hover:text-white text-left shadow`} >
-			<p
+			<span
 				onClick={setActiveChannel}
-				className={`${!joinable && 'cursor-pointer'} mx-3 text-xl overflow-hidden break-words`} >
-				{formatedName}
+				className={`${!joinable && 'cursor-pointer'} flex flex-row items-center mx-3 text-xl overflow-hidden break-words inline-flex`} >
 				{
 					channel.mode === 'PROTECTED' && joinable &&
-					<LockedIcon size={'20'} />
+					<LockedIcon className='mr-1'
+					size={'17'} />
 				}
-			</p>
+				{formatedName}
+			</span>
 			{
 				joinable &&
 				<button
 					onClick={joinChannel}
-					className='rounded bg-gray-800 hover:bg-gray-700'>
+					className='rounded bg-gray-800 hover:bg-gray-700 absolute right-0 mt-[2px] mr-[2px]'>
 					Join
 					<Modal isOpen={isOpen} onClose={() => {setIsOpen(false)}}>
 						<FormProtectedChannel onClose={() => {setIsOpen(false)}} channel={channel} />
 					</Modal>
-				</button>}
+				</button>
+			}
 		</div>
 	)
 }

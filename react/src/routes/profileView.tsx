@@ -46,6 +46,7 @@ export function ProfileView() {
 					<div className="profileInfo">
 						<h3>{profile.userName}</h3>
 						<p>{profile.status}</p>
+						<p>{profile.gameStatus}</p>
 					</div>
 				</div>
 				<div className="profilePong">

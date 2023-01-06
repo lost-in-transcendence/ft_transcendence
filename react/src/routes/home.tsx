@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
 import { redirect, useLoaderData } from "react-router-dom";
 import { AuthContext } from "../auth/AuthContext";
 import { getCookie } from "../requests/cookies"
@@ -6,6 +6,9 @@ import { Navigate } from "react-router-dom";
 import { backURL, getUserMeFull } from '../requests'
 import SocketContext from "../components/Socket/socket-context";
 import { toast } from "react-toastify";
+import { Spinner } from "../components/Spinner/Spinner";
+import { SharedUserStatus } from "../../shared/dtos";
+import { UserAvatarStatus } from "../components/Avatar/UserAvatarStatus";
 
 export async function loader()
 {
@@ -25,6 +28,7 @@ export function HomePage()
 	return (
 		<div className="home-page p-0">
 			<h1>Home Page</h1>
+			<UserAvatarStatus userName={user.userName} status={socketState.user.status} size={'12'} border={'border-gray-800'} className={''}/>
 			<button onClick={() => toast("wow so easy")}>Notify</button>
 			<p>{user.userName}</p>
 			<img src={`${backURL}/users/avatars/${user.userName}?time=${Date.now()}`} />
@@ -36,6 +40,7 @@ export function HomePage()
 			</div>
 			<span>ok</span>
 			<span>okkodwjqoidjwqiodjoiwqjdoiwqhduihwqodhwquidhokkodwjqoidjwqiodjoiwqjdoiwqhduihwqodhwquidhokkodwjqoidjwqiodjoiwqjdoiwqhduihwqodhwquidhokkodwjqoidjwqiodjoiwqjdoiwqhduihwqodhwquidhokkodwjqoidjwqiodjoiwqjdoiwqhduihwqodhwquidhokkodwjqoidjwqiodjoiwqjdoiwqhduihwqodhwquidhokkodwjqoidjwqiodjoiwqjdoiwqhduihwqodhwquidhokkodwjqoidjwqiodjoiwqjdoiwqhduihwqodhwquidhokkodwjqoidjwqiodjoiwqjdoiwqhduihwqodhwquidhokkodwjqoidjwqiodjoiwqjdoiwqhduihwqodhwquidhokkodwjqoidjwqiodjoiwqjdoiwqhduihwqodhwquidhuio    </span>
+			<Spinner />
 			<p>lol</p>
 			<p>lol</p>
 			<p>lol</p>
