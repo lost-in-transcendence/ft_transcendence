@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { FaCrown, FaAngleDoubleUp } from 'react-icons/fa'
+
 import { backURL } from "../../../requests";
 import { ContextMenuData, Member } from "../dto";
 import { ContextMenu } from "./ContextMenu";
@@ -32,35 +34,42 @@ export function MemberList({ members, status }: { members: Member[], status: 'ON
 					members.map((u: Member, i) =>
 					{
 						const user = u.user;
+						const displayName = u.user.userName.length > 7 ? u.user.userName.slice(0, 7) + '...' : user.userName;
 						return (
-							<div key={i}>
-								<span
-									onContextMenu={(e) =>
-									{
-										e.preventDefault();
-										setDisplay({
-											x: e.pageX,
-											y: e.pageY,
-											userName: user.userName,
-											targetId: user.id
-										});
-									}}
-									className="flex rounded items-center ml-2 mr-2 hover:bg-zinc-400 cursor-pointer"
-								>
-									<img
-										className="float-left rounded-full h-10 w-10 inline mt-3 mb-2 mr-2"
-										src={`${backURL}/users/avatars/${user.userName
-											}?time=${Date.now()}`}
-									/>
-									<div className="flex flex-col justify-center items-center">
-										<span> {user.userName} </span>
-										<span>{u.role}</span>
-										{/* <span>{user.gameStatus}</span> */}
-										<br />
-										<br />
-									</div>
-								</span>
-							</div>
+							<li
+								key={i}
+								onContextMenu={(e) =>
+								{
+									e.preventDefault();
+									setDisplay({
+										x: e.pageX,
+										y: e.pageY,
+										userName: user.userName,
+										targetId: user.id
+									});
+								}}
+								className="flex items-center gap-3 py-1 my-1 rounded hover:bg-zinc-500 cursor-pointer"
+							>
+								<img
+									className="rounded-full h-10 w-10 ml-1"
+									src={`${backURL}/users/avatars/${user.userName}?time=${Date.now()}`}
+								/>
+								<span> {displayName} </span>
+								{
+									u.role === 'OWNER' &&
+									<span className="text-yellow-500 " >
+										<FaCrown />
+									</span>
+								}
+								{
+									u.role === 'ADMIN' &&
+									<span className="text-slate-400" >
+										<FaAngleDoubleUp />
+									</span>
+								}
+								{/* <span>{user.gameStatus}</span> */}
+								<br />
+							</li>
 						);
 					})
 				}

@@ -25,7 +25,7 @@ export function ChatComposer({ user, className }: { user: User, className?: stri
 			<form
 				onSubmit={sendText}>
 			<input
-				className="basis-1/2 rounded shadow px-2 text-black w-full"
+				className="basis-1/2 rounded shadow px-2 text-black w-full h-10 "
 				placeholder="type your message"
 				value={message}
 				onChange={(e) => setMessage(e.target.value)}
