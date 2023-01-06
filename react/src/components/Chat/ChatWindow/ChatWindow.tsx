@@ -1,9 +1,10 @@
-import {
-  useContext,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
+import
+{
+	useContext,
+	useEffect,
+	useLayoutEffect,
+	useRef,
+	useState,
 } from "react";
 
 import { Channel } from "../../../dto/channels.dto";
@@ -16,196 +17,220 @@ import { backURL } from "../../../requests";
 import { ContextMenu } from "../rightBar/ContextMenu";
 import { GiConsoleController } from "react-icons/gi";
 
-interface ContextMenuData {
-  x: number;
-  y: number;
-  userName: string;
+interface ContextMenuData
+{
+	x: number;
+	y: number;
+	userName: string;
 }
 import SocketContext from "../../Socket/socket-context";
 
 export function ChatWindow({
-  className,
-  users,
+	className,
+	users,
 }: {
-  users: any[];
-  className?: string;
-}) {
-  const ctx = useContext(ChatContext);
-  const mainCtx = useContext(SocketContext);
+	users: any[];
+	className?: string;
+})
+{
+	const ctx = useContext(ChatContext);
+	const mainCtx = useContext(SocketContext);
 
-  const blackList = useContext(SocketContext).SocketState.user.blacklist;
-  const mainSocket = mainCtx.SocketState.socket;
-  const currentUser = mainCtx.SocketState.user;
+	const blackList = useContext(SocketContext).SocketState.user.blacklist;
+	const mainSocket = mainCtx.SocketState.socket;
+	const currentUser = mainCtx.SocketState.user;
 
-  const socket = ctx.ChatState.socket;
-  const channel = ctx.ChatState.activeChannel;
+	const socket = ctx.ChatState.socket;
+	const channel = ctx.ChatState.activeChannel;
 
-  const [visibleMessages, setVisibles] = useState<MessageDto[]>([]);
-  const [display, setDisplay] = useState<ContextMenuData | undefined>(
-    undefined
-  );
+	const [visibleMessages, setVisibles] = useState<MessageDto[]>([]);
+	const [display, setDisplay] = useState<ContextMenuData | undefined>(
+		undefined
+	);
 
-  const selfRef = useRef<HTMLLIElement>(null);
+	const selfRef = useRef<HTMLLIElement>(null);
 
-  useEffect(() => {
-    socket?.on(events.GET_MESSAGES, (payload: MessageDto[]) => {
-      flushSync(() => {
-        setVisibles(payload);
-      });
-    });
+	useEffect(() =>
+	{
+		socket?.on(events.GET_MESSAGES, (payload: MessageDto[]) =>
+		{
+			flushSync(() =>
+			{
+				setVisibles(payload);
+			});
+		});
 
-    socket?.on(
-      events.NOTIFY,
-      (payload: { channelId: string; content: string }) => {
-        if (channel && payload.channelId === channel.id) {
-          flushSync(() => {
-            setVisibles((prev) => {
-              const newMessage: MessageDto = {
-                channelId: channel.id,
-                userId: channel.id,
-                content: payload.content,
-                createdAt: Date.now(),
-                sender: { userName: channel.channelName },
-              };
-              return [...prev, newMessage];
-            });
-          });
-        }
-      }
-    );
+		socket?.on(
+			events.NOTIFY,
+			(payload: { channelId: string; content: string }) =>
+			{
+				if (channel && payload.channelId === channel.id)
+				{
+					flushSync(() =>
+					{
+						setVisibles((prev) =>
+						{
+							const newMessage: MessageDto = {
+								channelId: channel.id,
+								userId: channel.id,
+								content: payload.content,
+								createdAt: Date.now(),
+								sender: { userName: channel.channelName },
+							};
+							return [...prev, newMessage];
+						});
+					});
+				}
+			}
+		);
 
-    mainSocket?.on(events.NOTIFY, (payload: { content: string }) => {
-      if (channel) {
-        flushSync(() => {
-          setVisibles((prev) => {
-            const newMessage: MessageDto = {
-              channelId: channel.id,
-              userId: channel.id,
-              content: payload.content,
-              createdAt: Date.now(),
-              sender: { userName: channel.channelName },
-            };
-            return [...prev, newMessage];
-          });
-        });
-      }
-    });
+		mainSocket?.on(events.NOTIFY, (payload: { content: string }) =>
+		{
+			if (channel)
+			{
+				flushSync(() =>
+				{
+					setVisibles((prev) =>
+					{
+						const newMessage: MessageDto = {
+							channelId: channel.id,
+							userId: channel.id,
+							content: payload.content,
+							createdAt: Date.now(),
+							sender: { userName: channel.channelName },
+						};
+						return [...prev, newMessage];
+					});
+				});
+			}
+		});
 
-    socket?.on(events.TO_CHANNEL, (payload: MessageDto) => {
-      if (payload.channelId === channel?.id) {
-        flushSync(() => {
-          setVisibles((prev) => [...prev, payload]);
-        });
-        selfRef.current?.scrollIntoView({ block: "end", behavior: "smooth" });
-      }
-    });
+		socket?.on(events.TO_CHANNEL, (payload: MessageDto) =>
+		{
+			if (payload.channelId === channel?.id)
+			{
+				flushSync(() =>
+				{
+					setVisibles((prev) => [...prev, payload]);
+				});
+				selfRef.current?.scrollIntoView({ block: "end", behavior: "smooth" });
+			}
+		});
 
-    socket?.emit(events.GET_MESSAGES, { channelId: channel?.id, amount: 50 });
+		socket?.emit(events.GET_MESSAGES, { channelId: channel?.id, amount: 50 });
 
-    return () => {
-      socket?.off(events.GET_MESSAGES);
-      socket?.off(events.TO_CHANNEL);
-      socket?.off(events.NOTIFY);
-      mainSocket?.off(events.NOTIFY);
-    };
-  }, [channel]);
+		return () =>
+		{
+			socket?.off(events.GET_MESSAGES);
+			socket?.off(events.TO_CHANNEL);
+			socket?.off(events.NOTIFY);
+			mainSocket?.off(events.NOTIFY);
+		};
+	}, [channel]);
 
-  useEffect(() => {
-    selfRef.current?.scrollIntoView({ block: "end", behavior: "smooth" });
-  });
+	useEffect(() =>
+	{
+		selfRef.current?.scrollIntoView({ block: "end", behavior: "smooth" });
+	});
 
-  async function leaveChannel() {
-    await socket?.emit(events.LEAVE_CHANNEL, { channelId: channel?.id });
-    ctx.ChatDispatch({ type: "update_active", payload: undefined });
-  }
+	useEffect(() =>
+	{
+		const handleClick = () => setDisplay(undefined);
+		window.addEventListener("click", handleClick);
+		return () =>
+		{
+			window.removeEventListener("click", handleClick);
+		};
+	}, []);
 
-  return (
-    <>
-      <div
-        className="channelTitle
+	async function leaveChannel()
+	{
+		await socket?.emit(events.LEAVE_CHANNEL, { channelId: channel?.id });
+		ctx.ChatDispatch({ type: "update_active", payload: undefined });
+	}
+
+	return (
+		<>
+			<div
+				className="channelTitle
 								bg-gray-800 text-zinc-400 text-center text-3xl px-1
 								shadow-lg
 								flex flex-row items-center justify-center"
-      >
-        <span className="overflow-hidden basis-full">
-          {channel?.channelName}
-        </span>
-        <button
-          className="basis-0 text-gray-800 px-1 bg-red-800 rounded text-sm"
-          onClick={leaveChannel}
-        >
-          Leave
-        </button>
-      </div>
-      {display && (
-        <ContextMenu x={display.x} y={display.y} userName={display.userName} />
-      )}
-      <div className={className}>
-        <ul>
-          {visibleMessages.map((m, i, all) => {
-            let displayName = false;
-            let prevUser;
-            const prev = all[i - 1];
+			>
+				<span className="overflow-hidden basis-full">
+					{channel?.channelName}
+				</span>
+				<button
+					className="basis-0 text-gray-800 px-1 bg-red-800 rounded text-sm"
+					onClick={leaveChannel}
+				>
+					Leave
+				</button>
+			</div>
+			{display && (
+				<ContextMenu x={display.x} y={display.y} userName={display.userName} />
+			)}
+			<div className={className}>
+				<ul>
+					{visibleMessages.map((m, i, all) =>
+					{
+						let displayName = false;
+						let prevUser;
+						const prev = all[i - 1];
 
-            if (blackList) {
-              if (blackList.find((u) => u.id === m.userId)) return;
-            }
+						if (blackList)
+						{
+							if (blackList.find((u) => u.id === m.userId)) return;
+						}
 
-            if (prev) prevUser = prev.userId;
-            if (prevUser !== m.userId && m.userId !== channel?.id) {
-              displayName = true;
-            }
-            return (
-              <li
-                key={i}
-                ref={i === visibleMessages.length - 1 ? selfRef : null}
-                className={`overflow-x-hidden break-words ${
-                  m.userId === channel?.id && "text-yellow-500 font-bold"
-                }`}
-              >
-                {displayName && (
-                  <>
-                    <span
-                      onContextMenu={(e) => {
-                        e.preventDefault();
-                        setDisplay({
-                          x: e.pageX,
-                          y: e.pageY,
-                          userName: m.sender.userName,
-                        });
-                      }}
-                    >
-                      <img
-                        className="rounded-full h-14 w-14 inline mt-3 mb-1 mr-2 cursor-pointer"
-                        src={`${backURL}/users/avatars/${
-                          m.sender.userName
-                        }?time=${Date.now()}`}
-                      />
-                    </span>
-                    <span
-                      onContextMenu={(e) => {
-                        e.preventDefault();
-                        setDisplay({
-                          x: e.pageX,
-                          y: e.pageY,
-                          userName: m.sender.userName,
-                        });
-                      }}
-                      className="text-red-600 font-semibold cursor-pointer"
-                    >
-                      {m.sender.userName}
-                    </span>
-                    <br />
-                  </>
-                )}
-                <span className={`${m.userId !== channel?.id && "px-1 mb-2"}`}>
-                  {m.content}
-                </span>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
-    </>
-  );
+						if (prev) prevUser = prev.userId;
+						if (prevUser !== m.userId && m.userId !== channel?.id)
+						{
+							displayName = true;
+						}
+						return (
+							<li
+								key={i}
+								ref={i === visibleMessages.length - 1 ? selfRef : null}
+								className={`overflow-x-hidden break-words ${m.userId === channel?.id && "text-yellow-500 font-bold"
+									}`}
+							>
+								{displayName &&
+									<div
+										className="hover:bg-slate-600 cursor-pointer rounded px-1"
+										onContextMenu={(e) =>
+										{
+											e.preventDefault();
+											setDisplay({
+												x: e.pageX,
+												y: e.pageY,
+												userName: m.sender.userName,
+											});
+										}}
+									>
+										<span>
+											<img
+												className="rounded-full h-14 w-14 inline mt-3 mb-1 mr-2"
+												src={`${backURL}/users/avatars/${m.sender.userName
+													}?time=${Date.now()}`}
+											/>
+										</span>
+										<span
+											className="text-red-600 font-semibold"
+										>
+											{m.sender.userName}
+										</span>
+										<br />
+									</div>
+								}
+								<span className={`${m.userId !== channel?.id && "px-1 mb-2"}`}>
+									{m.content}
+								</span>
+							</li>
+						);
+					})}
+				</ul>
+			</div>
+		</>
+	);
 }
