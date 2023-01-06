@@ -7,12 +7,13 @@ export function ContextMenu({ x, y, userName }: { x: number, y: number, userName
 		navigate(`/profile/view/${userName}`)
 	}
 
-	const liClassName: string = "hover:bg-zinc-400 rounded cursor-pointer"
+	const liClassName: string = "hover:bg-indigo-600 rounded cursor-pointer text-white"
 	console.log('inside contextMenu')
 	console.log(x)
 	console.log(y)
+
 	return (
-		<div className={`w-32 rounded p-2 bg-zinc-800 left-[${x}px] top-[${y}px]`}>
+		<div className={`w-32 rounded p-2 bg-zinc-800 absolute left-[${x}px] top-[${y}px]`}>
 			<li className={liClassName}
 				onClick={() => { goToProfile(userName) }}>
 				Profile

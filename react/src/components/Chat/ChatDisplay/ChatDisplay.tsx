@@ -37,6 +37,7 @@ export function ChatDisplay({ user }: { user: User }) {
 		window.addEventListener('click', handleClick)
 		return () => window.removeEventListener('click', handleClick)
 	}, [])
+
 	return (
 		<div className="flex flex-row bg-slate-500 h-screen">
 			<div className="flex flex-col basis-full overflow-x-hidden">
