@@ -7,6 +7,13 @@ import { Socket } from "socket.io-client";
 import { flushSync } from "react-dom";
 import { backURL } from "../../../requests";
 import { ContextMenu } from "../rightBar/ContextMenu";
+import { GiConsoleController } from "react-icons/gi";
+
+interface ContextMenuData {
+	x: number;
+	y: number;
+	userName: string;
+}
 
 export function ChatWindow({ className, users }: { users: any[], className?: string }) {
 	const ctx = useContext(ChatContext);
@@ -14,7 +21,7 @@ export function ChatWindow({ className, users }: { users: any[], className?: str
 	const channel = ctx.ChatState.activeChannel;
 
 	const [visibleMessages, setVisibles] = useState<MessageDto[]>([]);
-	const [display, setDisplay] = useState(false)
+	const [display, setDisplay] = useState<ContextMenuData | undefined>(undefined)
 	const [pos, setPos] = useState({ x: 0, y: 0 })
 
 	const selfRef = useRef<HTMLLIElement>(null);
@@ -73,9 +80,21 @@ export function ChatWindow({ className, users }: { users: any[], className?: str
 
 
 	useEffect(() => {
-		const handleClick = () => setDisplay(false);
+		const handleClick = () => setDisplay(undefined);
+/*		const handleRightClick = (e: MouseEvent) =>
+		{
+			console.clear();
+			console.log('right clicking somewhere');
+			console.log(e.target);
+				setPos(() => ({ x: e.clientX, y: e.clientY }))
+			console.log(pos.x + ' ' + pos.y);
+		}*/
 		window.addEventListener('click', handleClick)
-		return () => window.removeEventListener('click', handleClick)
+		//window.addEventListener('contextmenu', handleRightClick);
+		return () =>{
+			window.removeEventListener('click', handleClick)
+			//window.removeEventListener('contextmenu', handleRightClick);
+		} 
 	}, [])
 
 	return (
@@ -91,6 +110,7 @@ export function ChatWindow({ className, users }: { users: any[], className?: str
 					Leave
 				</button>
 			</div>
+			{display && <ContextMenu x={display.x} y={display.y} userName={display.userName} />}
 			<div className={className} >
 				<ul>
 					{
@@ -115,24 +135,26 @@ export function ChatWindow({ className, users }: { users: any[], className?: str
 										<>
 											<span onContextMenu={(e) => {
 												e.preventDefault()
-												setDisplay(true)
-												setPos({ x: e.pageX, y: e.pageY })
+												setDisplay({x: e.pageX, y: e.pageY, userName: m.sender.userName})
 											}}>
 												<img className="rounded-full h-14 w-14 inline mt-3 mb-1 mr-2 cursor-pointer"
 													src={`${backURL}/users/avatars/${m.sender.userName}?time=${Date.now()}`} />
 											</span>
-											<span onContextMenu={(e) => {
+											<span
+												onContextMenu={(e) =>
+												{
+													console.log('Context Menu Opened');
 												e.preventDefault()
-												setDisplay(true)
-												setPos({ x: e.pageX, y: e.pageY })
-											}}
-												className="text-red-600 font-semibold cursor-pointer">{m.sender.userName}
-												{display && <ContextMenu x={pos.x} y={pos.y} userName={m.sender.userName} />}
+												setDisplay({x: e.pageX, y: e.pageY, userName: m.sender.userName})
+												}}
+												className="text-red-600 font-semibold cursor-pointer"
+											>
+												{m.sender.userName}
 											</span>
 											<br />
 										</>
 									}
-									<span className={`${m.userId !== channel?.id && 'px-1 mb-'}`}>{m.content}</span>
+									<span className={`${m.userId !== channel?.id && 'px-1 mb-2'}`}>{m.content}</span>
 								</li>
 							)
 						})
