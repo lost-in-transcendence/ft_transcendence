@@ -10,10 +10,18 @@ import { backURL } from "../../../requests";
 import { ChatRightBar } from "../rightBar/ChatRightBar";
 import { ContextMenu } from "../rightBar/ContextMenu";
 
-export function ChatDisplay({ user }: { user: User }) {
+import SocketContext from "../../Socket/socket-context";
+
+export function ChatDisplay({ currentUser }: { currentUser: User })
+{
 	const ctx = useContext(ChatContext);
+	const mainCtx = useContext(SocketContext);
+
 	const channel = ctx.ChatState.activeChannel;
 	const socket = ctx.ChatState.socket;
+
+	const mainSocket = mainCtx.SocketState.socket;
+	const blackList = mainCtx.SocketState.user.blacklist;
 
 	const [users, setUsers] = useState<Member[]>([]);
 
@@ -38,7 +46,19 @@ export function ChatDisplay({ user }: { user: User }) {
 		return (() => {
 			socket?.off(events.USERS);
 		})
-	}, [channel])
+	}, [])
+
+	useEffect(() => { socket?.emit(events.USERS, { channelId: channel?.id }); }, [channel]);
+
+	function blockUser(userId: string)
+	{
+		mainSocket?.emit(events.BLOCK_USER, { userId });
+	}
+
+	function unblockUser(userId: string)
+	{
+		mainSocket?.emit(events.UNBLOCK_USER, { userId });
+	}
 
 	useEffect(() => {
 		const handleClick = () => setDisplay(false);
@@ -51,8 +71,7 @@ export function ChatDisplay({ user }: { user: User }) {
 			<div className="flex flex-col basis-full overflow-x-hidden">
 				<ChatWindow users={users} className="bg-slate-400 basis-full overflow-y-auto px-1 py-2" />
 				<ChatComposer className="justify-self-end"
-					user={user} />
-			</div>
+					user={currentUser} />
 				<div className="bg-zinc-700 w-60 overflow-hidden break-words">
 					<h3 className={"ml-2 mt-2 text-zinc-400"}>
 						ONLINE
@@ -122,6 +141,7 @@ export function ChatDisplay({ user }: { user: User }) {
 					</ul>
 
 				</div>
+			</div>
 		</div>
 	)
 }

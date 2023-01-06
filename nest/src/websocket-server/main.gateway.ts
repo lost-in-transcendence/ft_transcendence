@@ -1,5 +1,5 @@
 import { Logger, ParseEnumPipe, ParseUUIDPipe, UseFilters, UseInterceptors, UsePipes, ValidationPipe } from "@nestjs/common";
-import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
+import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer, WsException } from "@nestjs/websockets";
 import { Socket, Server, Namespace } from 'socket.io';
 import { env } from "process";
 import { StatusType, GameStatusType, User } from "@prisma/client";
@@ -10,6 +10,7 @@ import { UserInterceptor } from "./interceptor";
 import { WsValidationPipe } from "./pipes";
 import { GetUserWs } from "src/users/decorator/get-user-ws";
 import * as events from 'shared/constants/users'
+import * as chatEvents from 'shared/constants/chat'
 import { type } from "os";
 import { SocketStore } from "./socket-store";
 import { IsNotEmpty, IsUUID } from "class-validator";
@@ -17,13 +18,13 @@ import { IsNotEmpty, IsUUID } from "class-validator";
 @UseInterceptors(UserInterceptor)
 @UseFilters(new CustomWsFilter())
 @UsePipes(new WsValidationPipe({ whitelist: true }))
-@WebSocketGateway({cors: `${env.PROTOCOL}${env.APP_HOST}:${env.FRONT_PORT}`})
+@WebSocketGateway({ cors: `${env.PROTOCOL}${env.APP_HOST}:${env.FRONT_PORT}` })
 export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
 	private readonly logger = new Logger(MainGateway.name);
 	private readonly socketStore = new SocketStore();
 
-	constructor(private readonly userService: UsersService) {}
+	constructor(private readonly userService: UsersService) { }
 
 	@WebSocketServer()
 	server: Server;
@@ -49,10 +50,10 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		this.socketStore.removeUserSocket(client.data.user.id, client);
 		// if (!this.socketStore.getUserSockets(client.data.user.id))
 		// {
-		const ret = await this.userService.user({id: client.data.user.id});
+		const ret = await this.userService.user({ id: client.data.user.id });
 		if (ret.gameStatus !== 'NONE' && !this.socketStore.getUserSockets(client.data.user.id))
 		{
-			this.userService.updateUser({where: {id: client.data.user.id}, data: {status: StatusType.OFFLINE, gameStatus: GameStatusType.NONE}});
+			this.userService.updateUser({ where: { id: client.data.user.id }, data: { status: StatusType.OFFLINE, gameStatus: GameStatusType.NONE } });
 			// emit message to everyone
 		}
 		else if (ret.gameStatus === 'NONE')
@@ -89,13 +90,13 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	@SubscribeMessage('test')
 	async testfunct()
 	{
-		this.server.of('/chat').emit('notify', {status: 'this is a test'});
+		this.server.of('/chat').emit('notify', { status: 'this is a test' });
 	}
 
 	@SubscribeMessage('invite')
 	async invite(@ConnectedSocket() client: Socket, @GetUserWs() user: User, @MessageBody() body: any)
 	{
-		const {gameId, invitedUser} = body;
+		const { gameId, invitedUser } = body;
 		const sockets = this.socketStore.getUserSockets(invitedUser);
 		this.logger.debug("invite:", invitedUser);
 		this.logger.debug(sockets.length);
@@ -107,7 +108,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		sockets.forEach((v) =>
 		{
 			// console.log("in here");
-			this.server.to(v.id).emit('notification', {type: 'invite', inviter: user.userName, inviterId: user.id, gameId});
+			this.server.to(v.id).emit('notification', { type: 'invite', inviter: user.userName, inviterId: user.id, gameId });
 		})
 		// find uid corresponding socket(s)
 		// send a "notification" message to socket(s)
@@ -125,6 +126,54 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		{
 			this.server.to(v.id).emit('invitationDeclined');
 		})
+	}
+
+	@SubscribeMessage(events.BLOCK_USER)
+	async blockUser(@ConnectedSocket() client: Socket, @MessageBody('userId', ParseUUIDPipe) userId: string, @GetUserWs() user: User)
+	{
+		if (user.id === userId)
+		{
+			throw new WsException("You can't blacklist yourself !");
+		}
+		await this.userService.updateUser({
+			where:
+			{
+				id: user.id,
+			},
+			data:
+			{
+				blacklist: { connect: { id: userId } }
+			},
+		});
+		const blackList = (await this.userService.userSelect({ id: user.id }, { blacklist: true })).blacklist;
+		const blockedName = blackList?.find((u) => u.id === userId).userName;
+		this.socketStore.getUserSockets(user.id).forEach((v) =>
+		{
+			this.server.to(v.id).emit(events.UPDATE_USER, { blacklist: blackList });
+			this.server.to(v.id).emit(chatEvents.NOTIFY, { content: `You have blocked ${blockedName}` })
+
+		});
+	}
+
+	@SubscribeMessage(events.UNBLOCK_USER)
+	async unblockUser(@ConnectedSocket() client: Socket, @MessageBody('userId', ParseUUIDPipe) userId: string, @GetUserWs() user: User)
+	{
+		if (user.id === userId)
+			return;
+		await this.userService.updateUser({
+			where: { id: user.id },
+			data:
+			{
+				blacklist: { disconnect: { id: userId } }
+			}
+		});
+		const blackList = (await this.userService.userSelect({ id: user.id }, { blacklist: true })).blacklist;
+		const blockedName = (await this.userService.user({ id: userId })).userName;
+		this.socketStore.getUserSockets(user.id).forEach((v) =>
+		{
+			this.server.to(v.id).emit(events.UPDATE_USER, { blacklist: blackList });
+			this.server.to(v.id).emit(chatEvents.NOTIFY, { content: `You have unblocked ${blockedName}` })
+		});
 	}
 }
 

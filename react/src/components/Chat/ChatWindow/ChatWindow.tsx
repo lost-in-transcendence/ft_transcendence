@@ -1,4 +1,5 @@
 import { useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
+
 import { Channel } from "../../../dto/channels.dto";
 import ChatContext from "../Context/chatContext";
 import { MessageDto } from "../dto";
@@ -14,15 +15,21 @@ interface ContextMenuData {
 	y: number;
 	userName: string;
 }
+import SocketContext from "../../Socket/socket-context";
 
 export function ChatWindow({ className, users }: { users: any[], className?: string }) {
 	const ctx = useContext(ChatContext);
+	const mainCtx = useContext(SocketContext);
+
+	const blackList = useContext(SocketContext).SocketState.user.blacklist;
+	const mainSocket = mainCtx.SocketState.socket;
+	const currentUser = mainCtx.SocketState.user;
+
 	const socket = ctx.ChatState.socket;
 	const channel = ctx.ChatState.activeChannel;
 
 	const [visibleMessages, setVisibles] = useState<MessageDto[]>([]);
 	const [display, setDisplay] = useState<ContextMenuData | undefined>(undefined)
-	const [pos, setPos] = useState({ x: 0, y: 0 })
 
 	const selfRef = useRef<HTMLLIElement>(null);
 
@@ -33,11 +40,14 @@ export function ChatWindow({ className, users }: { users: any[], className?: str
 			})
 		})
 
-		socket?.on(events.NOTIFY, (payload: { channelId: string, content: string }) => {
-			console.log('received notify', { payload });
-			if (channel && payload.channelId === channel.id) {
-				flushSync(() => {
-					setVisibles((prev) => {
+		socket?.on(events.NOTIFY, (payload: { channelId: string, content: string }) =>
+		{
+			if (channel && payload.channelId === channel.id)
+			{
+				flushSync(() =>
+				{
+					setVisibles((prev) =>
+					{
 						const newMessage: MessageDto =
 						{
 							channelId: channel.id,
@@ -52,9 +62,34 @@ export function ChatWindow({ className, users }: { users: any[], className?: str
 			}
 		})
 
-		socket?.on(events.TO_CHANNEL, (payload: MessageDto) => {
-			if (payload.channelId === channel?.id) {
-				flushSync(() => {
+		mainSocket?.on(events.NOTIFY, (payload: { content: string }) =>
+		{
+			if (channel)
+			{
+				flushSync(() =>
+				{
+					setVisibles((prev) =>
+					{
+						const newMessage: MessageDto =
+						{
+							channelId: channel.id,
+							userId: channel.id,
+							content: payload.content,
+							createdAt: Date.now(),
+							sender: { userName: channel.channelName }
+						}
+						return ([...prev, newMessage])
+					})
+				})
+			}
+		})
+
+		socket?.on(events.TO_CHANNEL, (payload: MessageDto) =>
+		{
+			if (payload.channelId === channel?.id)
+			{
+				flushSync(() =>
+				{
 					setVisibles((prev) => [...prev, payload]);
 				})
 				selfRef.current?.scrollIntoView({ block: 'end', behavior: 'smooth' });
@@ -67,7 +102,7 @@ export function ChatWindow({ className, users }: { users: any[], className?: str
 			socket?.off(events.GET_MESSAGES);
 			socket?.off(events.TO_CHANNEL);
 			socket?.off(events.NOTIFY);
-			// socket?.offAny();
+			mainSocket?.off(events.NOTIFY);
 		})
 	}, [channel])
 
@@ -119,9 +154,16 @@ export function ChatWindow({ className, users }: { users: any[], className?: str
 							let prevUser;
 							const prev = all[i - 1];
 
+							if (blackList)
+							{
+								if (blackList.find((u) => u.id === m.userId))
+									return;
+							}
+
 							if (prev)
 								prevUser = prev.userId;
-							if (prevUser != m.userId && m.userId != channel?.id) {
+							if (prevUser !== m.userId && m.userId !== channel?.id)
+							{
 								displayName = true;
 							}
 							return (
