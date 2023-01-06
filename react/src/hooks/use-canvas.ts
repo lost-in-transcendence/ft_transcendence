@@ -10,6 +10,16 @@ export function useCanvas(draw: any)
         const context = canvas?.getContext('2d');
         let animationFrameId: any;
 
+        function updateDimensions()
+        {
+            canvas.width = window.innerWidth * 75 / 100;
+            canvas.height = window.innerHeight * 75 / 100;
+        }
+
+        updateDimensions();
+
+        window.addEventListener('resize', updateDimensions);
+
         const render = () =>
         {
             draw(context);
@@ -20,6 +30,7 @@ export function useCanvas(draw: any)
         return () =>
         {
             window.cancelAnimationFrame(animationFrameId);
+            window.removeEventListener('resize', updateDimensions);
         }
     }, [draw])
 

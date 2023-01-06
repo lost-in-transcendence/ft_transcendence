@@ -134,3 +134,17 @@ export async function getAllUsersSelect(params : URLSearchParams)
 	}
 	return res;
 }
+
+export async function getMyMatchHistory()
+{
+	const res = await fetch (`${backURL}/match-history/me`,
+	{
+		method: 'GET',
+		headers: {"Authorization": "Bearer " + getCookie("jwt")}
+	});
+	if (res.status !== 200)
+	{
+		throw res;
+	}
+	return res;
+}

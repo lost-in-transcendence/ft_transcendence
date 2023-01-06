@@ -10,14 +10,22 @@ import Modal from '../Modal/modal';
 import * as events from '../../../shared/constants/chat'
 
 import '../Modal/modal.css'
+import { Channel } from '../../dto/channels.dto';
 
 export function ChatSidebar({ user }: any)
 {
 	const ctx = useContext(ChatContext);
 
-	const privMsgs = ctx.ChatState.visibleChannels.filter((c) => c.mode === 'PRIVMSG');
-	const joinedChans = ctx.ChatState.visibleChannels.filter((c) => (c.members?.find((m) => m.user.id === user.id)) && c.mode !== 'PRIVMSG')
-	const visibleChans = ctx.ChatState.visibleChannels.filter((c) => !(c.members?.find((m) => m.user.id === user.id)) && c.mode !== 'PRIVMSG')
+	let privMsgs: Channel[] = [];
+	let joinedChans: Channel[] = [];
+	let visibleChans: Channel[] = [];
+
+	if (ctx.ChatState.visibleChannels)
+	{
+		privMsgs = ctx.ChatState.visibleChannels.filter((c) => c.mode === 'PRIVMSG');
+		joinedChans = ctx.ChatState.visibleChannels.filter((c) => (c.members?.find((m) => m.user.id === user.id)) && c.mode !== 'PRIVMSG')
+		visibleChans = ctx.ChatState.visibleChannels.filter((c) => !(c.members?.find((m) => m.user.id === user.id)) && c.mode !== 'PRIVMSG')
+	}
 
 	const [isOpen, setIsOpen] = useState(false);
 	const [loading, setLoading] = useState(true);

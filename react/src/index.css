@@ -21,7 +21,8 @@
 				transition-all duration-200 ease-linear origin-left scale-0;
 	}
 }
-/* p, div, input, button
+
+ /* p, div, input, button
 {
 	color: white
 }

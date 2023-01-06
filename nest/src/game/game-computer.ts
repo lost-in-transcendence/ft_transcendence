@@ -362,8 +362,8 @@ export class GameComputer
             //check game status etc
             if (game.endGame !== EndGameValue.ONGOING)
             {
-                this.endGame(game);
                 clearInterval(timerId);
+                this.endGame(game);
                 this.deleteGame(game.id);
             }
             if (game.status === GameStatusValue.ONGOING)
@@ -398,7 +398,7 @@ export class GameComputer
                         clearInterval(timerId2);
                     }
                 }
-        }, 500);
+        }, 250);
     }
 
     async deleteGame(gameId: string)

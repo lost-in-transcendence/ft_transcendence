@@ -17,7 +17,7 @@ import { UsersService } from "src/users/users.service";
 import * as events from 'shared/constants';
 import { MessagesService } from "../messages/messages.service";
 import { getManyMessageDto } from "../messages/dto";
-import { SharedPartialUserDto } from "shared/dtos";
+import { SharedChannelMembersDto, SharedPartialUserDto } from "shared/dtos";
 import { UserSocketStore } from "../global/user-socket.store";
 import { ChannelMemberDto } from "./channel-member/dto";
 //import { env } from "process";
@@ -214,7 +214,7 @@ export class ChannelsGateway implements OnGatewayConnection
 		for (let n of array)
 			n.leave(body.channelId)
 		return (this.channelService.banUser(body.userId, body.channelId))
-	}	
+	}
 
 	@SubscribeMessage(events.CHANNELS)
 	async channels(@ConnectedSocket() client: Socket, @GetUserWs('id', ParseUUIDPipe) userId: string)
@@ -247,7 +247,7 @@ export class ChannelsGateway implements OnGatewayConnection
 	@SubscribeMessage(events.USERS)
 	async channelUsers(@ConnectedSocket() client: Socket, @MessageBody('channelId', ParseUUIDPipe) channelId: string, @GetUserWs('id', ParseUUIDPipe) userId: string)
 	{
-		const users = await this.getUsersFromChannel({ channelId, userId });
+		const users: SharedChannelMembersDto[] | ChannelMember[] = await this.getUsersFromChannel({ channelId, userId });
 		this.logger.debug({ users });
 		if (!users)
 			throw new WsException({ status: '401', message: 'You are not part of this channel' });
@@ -265,10 +265,10 @@ export class ChannelsGateway implements OnGatewayConnection
 	/*        UTILS          */
 	/*************************/
 
-	async getUsersFromChannel({ channelId, userId }: { channelId: string, userId: string })
+	async getUsersFromChannel({ channelId, userId }: { channelId: string, userId: string }): Promise<SharedChannelMembersDto[] | ChannelMember[]>
 	{
-		const channels: any = await this.getVisibleChannels(userId);
-		const users = channels.find((c) => c.id === channelId).members;
+		const channels: PartialChannelDto[] = await this.getVisibleChannels(userId);
+		const users: SharedChannelMembersDto[] | ChannelMember[]= channels.find((c) => c.id === channelId).members;
 		return (users);
 	}
 
@@ -308,6 +308,7 @@ export class ChannelsGateway implements OnGatewayConnection
 								id: true,
 								userName: true,
 								status: true,
+								gameStatus: true,
 								avatarPath: true
 							}
 						}

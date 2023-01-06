@@ -31,7 +31,6 @@ export class UsersController {
 		}
 	}
 
-
 	@UseGuards(FullAuthGuard)
 	@Get('/me')
 	@HttpCode(200)
@@ -151,7 +150,6 @@ export class UsersController {
 	@HttpCode(200)
 	async getModalProfile(@Param('userName') userName, @Query() include: UserIncludeQueryDto)
 	{
-		this.logger.debug(userName);
 		const res = await this.userService.userModal({ userName }, include)
 		if (!res) {
 			throw (new NotFoundException(`Cannot find user with userName: ${userName}`));
