@@ -1,21 +1,10 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext} from "react";
 import { redirect, useLoaderData } from "react-router-dom";
-import io, { Socket } from 'socket.io-client'
-import { FaUserFriends } from 'react-icons/fa'
-
-import { AuthContext } from "../auth/AuthContext";
-import { getCookie } from "../requests/cookies"
-import { backURL, getUserMe, getUserMeModal } from "../requests";
-import { ChannelList } from "../components/Chat/Channels/ChannelList";
-import ChatContext, { ChatChannelDto } from '../components/Chat/Context/chatContext'
-import { useSocket } from "../hooks/use-socket";
-import { ChatContextComponent } from "../components/Chat/Context/chatContextComponent";
-import { Channel } from '../dto/channels.dto'
-import { MemberList } from "../components/Chat/Members/MemberList";
-import { Accordeon } from "../components/Menu/Accordeon";
+import { getUserMeModal } from "../requests";
+import ChatContext from '../components/Chat/Context/chatContext'
 import { ChatSidebar } from "../components/Menu/ChatSideBar";
-import { ChatWindow } from "../components/Chat/ChatWindow/ChatWindow";
 import { ChatDisplay } from "../components/Chat/ChatDisplay/ChatDisplay";
+import SocketContext from "../components/Socket/socket-context";
 
 export async function loader()
 {
@@ -43,9 +32,33 @@ export function Chat()
 					state.activeChannel ?
 						<ChatDisplay currentUser={user} />
 						:
-						<h1 className="text-5xl text-center">Friends</h1>
+						<>
+							<h1 className="text-5xl text-center">Friends</h1>
+							<ChatFriendList />
+						</>
 				}
 			</div>
 		</div>
+	)
+}
+
+export function ChatFriendList()
+{
+	const mainCtx = useContext(SocketContext);
+	const {user} = mainCtx.SocketState;
+
+	return (
+		<ul>
+			{
+				user.friends?.map((v) =>
+				{
+					return (
+						<li key={v.id}>
+							<p>{v.userName}</p>
+						</li>
+					)
+				})
+			}
+		</ul>
 	)
 }

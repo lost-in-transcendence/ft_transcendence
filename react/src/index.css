@@ -20,6 +20,22 @@
 				bg-slate-900 rounded-lg text-white text-center font-bold text-base
 				transition-all duration-200 ease-linear origin-left scale-0;
 	}
+
+	.menu-items
+	{
+		@apply	relative text-slate-900
+	}
+
+  	.menu-button
+  	{
+    @apply   flex items-center text-inherit text-base border-0 bg-transparent cursor-pointer w-full
+ 	}
+
+	.dropdown
+	{
+		@apply	absolute left-[56px] shadow-lg z-[9999] min-w-[10rem] px-2
+				list-none bg-gray-800
+	}
 }
 
  /* p, div, input, button
