@@ -1,24 +1,35 @@
+import { useContext } from "react";
 import { useNavigate } from "react-router-dom";
 
-export function ContextMenu({
-	x,
-	y,
-	userName,
-}: {
-	x: number;
-	y: number;
-	userName: string;
-})
-{
-	const navigate = useNavigate();
+import SocketContext from "../../Socket/socket-context";
+import { ContextMenuData } from "../dto";
+import * as events from '../../../../shared/constants'
 
-	console.log("Rendering contextMenu");
-	console.log("x : " + x);
-	console.log("y : " + y);
+export function ContextMenu({ x, y, userName, targetId }: ContextMenuData)
+{
+	const mainCtx = useContext(SocketContext);
+
+	const currentUser = mainCtx.SocketState.user;
+	const mainSocket = mainCtx.SocketState.socket;
+	const blacklist = mainCtx.SocketState.user.blacklist;
+
+	const isInBlacklist: boolean = blacklist?.find((u) => u.id === targetId) ? true : false;
+
+	const navigate = useNavigate();
 
 	function goToProfile(userName: string)
 	{
 		navigate(`/profile/view/${userName}`);
+	}
+
+	function blockUser()
+	{
+		mainSocket?.emit(events.BLOCK_USER, { userId: targetId });
+	}
+
+	function unblockUser()
+	{
+		mainSocket?.emit(events.UNBLOCK_USER, { userId: targetId });
 	}
 
 	const liClassName: string =
@@ -38,10 +49,30 @@ export function ContextMenu({
 			>
 				Profile
 			</li>
-			<li className={liClassName}>Invite to play</li>
-			<li className={liClassName}>[conditional friend]</li>
-			<li className={liClassName}>Invite to channel</li>
-			<li className={liClassName}>Mute</li>
+			{
+				currentUser.id !== targetId &&
+				<>
+					<li className={liClassName}>Invite to play</li>
+					<li className={liClassName}>[conditional friend]</li>
+					<li className={liClassName}>Invite to channel</li>
+					{
+						isInBlacklist ?
+							<li
+								className={liClassName}
+								onClick={unblockUser}
+							>
+								Unblock
+							</li>
+							:
+							<li
+								className={liClassName}
+								onClick={blockUser}
+							>
+								Block
+							</li>
+					}
+				</>
+			}
 		</ul>
 	);
 }

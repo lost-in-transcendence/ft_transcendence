@@ -9,7 +9,7 @@ import
 
 import { Channel } from "../../../dto/channels.dto";
 import ChatContext from "../Context/chatContext";
-import { MessageDto } from "../dto";
+import { ContextMenuData, MessageDto } from "../dto";
 import * as events from "../../../../shared/constants";
 import { Socket } from "socket.io-client";
 import { flushSync } from "react-dom";
@@ -17,12 +17,6 @@ import { backURL } from "../../../requests";
 import { ContextMenu } from "../rightBar/ContextMenu";
 import { GiConsoleController } from "react-icons/gi";
 
-interface ContextMenuData
-{
-	x: number;
-	y: number;
-	userName: string;
-}
 import SocketContext from "../../Socket/socket-context";
 
 export function ChatWindow({
@@ -168,7 +162,7 @@ export function ChatWindow({
 				</button>
 			</div>
 			{display && (
-				<ContextMenu x={display.x} y={display.y} userName={display.userName} />
+				<ContextMenu x={display.x} y={display.y} userName={display.userName} targetId={display.targetId} />
 			)}
 			<div className={className}>
 				<ul>
@@ -205,6 +199,7 @@ export function ChatWindow({
 												x: e.pageX,
 												y: e.pageY,
 												userName: m.sender.userName,
+												targetId: m.userId,
 											});
 										}}
 									>
