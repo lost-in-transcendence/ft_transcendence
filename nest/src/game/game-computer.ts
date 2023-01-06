@@ -44,13 +44,13 @@ class Ball
 {
     position: {x: number, y: number};
     direction: {x:number, y: number};
-    speed: number;
+    speed: { x: number, y : number};
     size: number;
     constructor(position : any, direction: any,  size: any)
     {
         this.position = position;
         this.direction = direction;
-        this.speed = 3;
+        this.speed = {x: 3, y: 3};
         this.size = size;
     }
 }
@@ -65,11 +65,17 @@ class Paddle
     {
         this.position = position;
         this.direction = PaddleDirection.IDLE;
-        this.speed = 10;
+        this.speed = 0;
         this.size = size;
     }
     updatePosition()
     {
+        if (this.direction === PaddleDirection.IDLE)
+            this.speed = 0;
+        else
+            this.speed += 0.5;
+        if (this.speed > 25)
+            this.speed = 25;
         this.position = this.position + (this.speed * this.direction);
         if (this.position < 0)
         {
@@ -192,10 +198,28 @@ export class GameComputer
             const isPlayer = this.isAPlayer(game, userSocketId);
             if (isPlayer === 1)
             {
+                // if (game.paddle1.speed === 0)
+                //     game.paddle1.speed = 5;
+                // else
+                //     game.paddle1.speed += 2.5;
+                // if (game.paddle1.speed > 30)
+                //     game.paddle1.speed = 30;
+                // if (direction === PaddleDirection.IDLE)
+                //     game.paddle1.speed = 0;
+                // this.logger.debug(`paddle 1 speed = ${game.paddle1.speed}`);
                 game.paddle1.direction = direction;
             }
             else if (isPlayer === 2)
             {
+                // if (game.paddle2.speed === 0)
+                //     game.paddle2.speed = 5;
+                // else
+                //     game.paddle2.speed += 2.5;
+                // if (game.paddle2.speed > 30)
+                //     game.paddle2.speed = 30;
+                // if (direction === PaddleDirection.IDLE)
+                //     game.paddle2.speed = 0;
+                // this.logger.debug(`paddle 2 speed = ${game.paddle2.speed}`);
                 game.paddle2.direction = direction;
             }
         }
@@ -212,23 +236,35 @@ export class GameComputer
             else
                 game.ball.position.x = width - game.ball.size;
             game.ball.direction.x *= -1;
-            if (game.ball.position.y <= paddle.position + paddle.size / 3)
-            {
-                game.ball.direction.y = -1;
-            }
-            else if (game.ball.position.y >= paddle.position + paddle.size - paddle.size / 3)
-            {
-                game.ball.direction.y = 1;
-            }
-            else
-            {
-                game.ball.direction.y = 0;
-            }
+            // if (game.ball.position.y <= paddle.position + paddle.size / 3)
+            // {
+            //     game.ball.direction.y = -1;
+            // }
+            // else if (game.ball.position.y >= paddle.position + paddle.size - paddle.size / 3)
+            // {
+            //     game.ball.direction.y = 1;
+            // }
+            // else
+            // {
+            //     game.ball.direction.y = 0;
+            // }
+            const paddleHalf = paddle.size / 2;
+            const paddleCenter = paddle.position + paddleHalf;
+            const distToPaddle = game.ball.position.y - paddleCenter;
+            const paddleRatio = (distToPaddle / paddleHalf);
+            game.ball.speed.y += ((paddleRatio < 0 ? -paddleRatio : paddleRatio) - 0.1) + (paddle.speed / 12.5);
+            if (game.ball.speed.y < 1)
+                game.ball.speed.y = 1;
+            else if (game.ball.speed.y > 25)
+                game.ball.speed.y = 25;
+            game.ball.direction.y = paddleRatio;
+            this.logger.debug(`ball hit paddle, speedY = ${game.ball.speed.y}`);
         }
         else
         {
             game.ball.position.x = width / 2;
             game.ball.position.y = height / 2;
+            game.ball.speed.y = 3;
             if (player === 1)
             {
                 game.score2++;
@@ -253,7 +289,7 @@ export class GameComputer
 
     async updateBallPosition(game: OngoingGame)
     {
-        game.ball.position.x = game.ball.position.x + (game.ball.speed * game.ball.direction.x);
+        game.ball.position.x = game.ball.position.x + (game.ball.speed.x * game.ball.direction.x);
         if (game.ball.position.x < 0 + game.ball.size / 2)
         {
             this.handleBounces(game, game.paddle1, 1);
@@ -262,7 +298,7 @@ export class GameComputer
         {
             this.handleBounces(game, game.paddle2, 2);
         }
-        game.ball.position.y = game.ball.position.y + (game.ball.speed * game.ball.direction.y);
+        game.ball.position.y = game.ball.position.y + (game.ball.speed.y * game.ball.direction.y);
         if (game.ball.position.y < game.ball.size / 2)
         {
             game.ball.direction.y *= -1;
