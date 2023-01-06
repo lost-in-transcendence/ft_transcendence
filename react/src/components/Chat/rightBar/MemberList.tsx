@@ -24,7 +24,7 @@ export function MemberList({ members, status }: { members: Member[], status: 'ON
 		<>
 			{
 				display &&
-				<ContextMenu x={display.x} y={display.y} userName={display.userName} />
+				<ContextMenu x={display.x} y={display.y} userName={display.userName} targetId={display.targetId} />
 			}
 			<h3 className={"ml-2 mt-2 text-zinc-400"}>{status}</h3>
 			<ul>
@@ -42,6 +42,7 @@ export function MemberList({ members, status }: { members: Member[], status: 'ON
 											x: e.pageX,
 											y: e.pageY,
 											userName: user.userName,
+											targetId: user.id
 										});
 									}}
 									className="flex rounded items-center ml-2 mr-2 hover:bg-zinc-400 cursor-pointer"

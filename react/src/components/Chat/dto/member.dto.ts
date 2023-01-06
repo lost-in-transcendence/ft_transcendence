@@ -7,4 +7,5 @@ export interface ContextMenuData
 	x: number;
 	y: number;
 	userName: string;
+	targetId: string;
 }
