@@ -28,7 +28,28 @@ export function ChatDisplay({ currentUser }: { currentUser: User })
 	const [pos, setPos] = useState({ x: 0, y: 0 })
 	const [display, setDisplay] = useState(false)
 
-	useEffect(() => {
+	function updateUserInfo(id: string, data: any)
+	{
+		console.log("updating", id, "with", data);
+		setUsers((prev) =>
+		{
+			const index = prev.findIndex((v) => {return v.user.id === id});
+			if (index === -1)
+				return prev;
+			const updated = prev.map((v, i) =>
+			{
+				if (i !== index)
+					return v;
+				const updatedUser = {...v.user};
+				Object.assign(updatedUser, data);
+				return {...v, user: updatedUser};
+			});
+			return updated;
+		})
+	}
+
+	useEffect(() =>
+	{
 		console.log('in chatDisplay useEffect');
 		socket?.on(events.USERS, (payload: Member[]) =>
 		{
@@ -36,14 +57,20 @@ export function ChatDisplay({ currentUser }: { currentUser: User })
 			setUsers(payload);
 		})
 
+		socket?.on("updateUser", (payload: any) =>
+		{
+			const {id, data} = payload;
+			updateUserInfo(id, data);
+		})
 		// socket?.on(events.ALERT, (payload: { event: string, args?: string }) =>
 		// {
 		// 	if (payload.event === events.USERS)
 		// 		socket.emit(events.USERS, { channelId: channel?.id });
 		// })
 
-		socket?.emit(events.USERS, { channelId: channel?.id });
-		return (() => {
+		socket?.emit(events.USERS, { channelId: channel?.id });	
+		return (() =>
+		{
 			socket?.off(events.USERS);
 		})
 	}, [])
@@ -73,6 +100,7 @@ export function ChatDisplay({ currentUser }: { currentUser: User })
 				<ChatComposer className="justify-self-end"
 					user={currentUser} />
 			</div>
+				{/* <ChatRightBar/> */}
 				<div className="bg-zinc-700 w-60 overflow-hidden break-words">
 					<h3 className={"ml-2 mt-2 text-zinc-400"}>
 						ONLINE
@@ -98,6 +126,7 @@ export function ChatDisplay({ currentUser }: { currentUser: User })
 												<div className="flex flex-col justify-center items-center">
 													<span> {user.userName} </span>
 													<span>{u.role}</span>
+													{/* <span>{user.gameStatus}</span> */}
 													<br />
 													<br />
 												</div>

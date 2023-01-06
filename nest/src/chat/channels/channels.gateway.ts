@@ -308,6 +308,7 @@ export class ChannelsGateway implements OnGatewayConnection
 								id: true,
 								userName: true,
 								status: true,
+								gameStatus: true,
 								avatarPath: true
 							}
 						}

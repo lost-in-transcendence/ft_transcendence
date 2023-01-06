@@ -11,7 +11,6 @@ import SocketContext from '../Socket/socket-context'
 export function SideBar()
 {
 	const {user} = useContext(SocketContext).SocketState;
-	const navigate = useNavigate();
 
 	return (
 		<div className="grow-0 shrink-0 basis-14
@@ -24,9 +23,9 @@ export function SideBar()
 			</div>
 			<hr className='self-center w-12 border-gray-700' />
 			<div className='basis-full overflow-hidden scrollbar-hide'>
-				<a onClick={() => navigate("/game")}>
+				<NavLink to={'/game'}>
 					<SideBarIcon icon={<PongIcon size='20' />} tooltip='Play !' />
-				</a>
+				</NavLink>
 
 				<NavLink to={'/chat'}>
 					<SideBarIcon icon={<ChatIcon size='20' />} tooltip='Chat' />

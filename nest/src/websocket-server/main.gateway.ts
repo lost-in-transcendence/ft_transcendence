@@ -2,7 +2,7 @@ import { Logger, ParseEnumPipe, ParseUUIDPipe, UseFilters, UseInterceptors, UseP
 import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer, WsException } from "@nestjs/websockets";
 import { Socket, Server, Namespace } from 'socket.io';
 import { env } from "process";
-import { StatusType, GameStatusType, User } from "@prisma/client";
+import { StatusType, GameStatusType, User, RoleType } from "@prisma/client";
 
 import { UsersService } from "src/users/users.service";
 import { CustomWsFilter } from "./filters";
@@ -14,6 +14,7 @@ import * as chatEvents from 'shared/constants/chat'
 import { type } from "os";
 import { SocketStore } from "./socket-store";
 import { IsNotEmpty, IsUUID } from "class-validator";
+import { ChannelsService } from "src/chat/channels/channels.service";
 
 @UseInterceptors(UserInterceptor)
 @UseFilters(new CustomWsFilter())
@@ -24,7 +25,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	private readonly logger = new Logger(MainGateway.name);
 	private readonly socketStore = new SocketStore();
 
-	constructor(private readonly userService: UsersService) { }
+	constructor(private readonly userService: UsersService, private readonly channelService: ChannelsService) {}
 
 	@WebSocketServer()
 	server: Server;
@@ -73,7 +74,11 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			where: { id: user.id },
 			data: { status: newStatus }
 		});
-		this.server.to(client.id).emit(events.UPDATE_USER, { status: updatedUser.status });
+		this.socketStore.getUserSockets(user.id).forEach((v) =>
+		{
+			this.server.to(v.id).emit(events.UPDATE_USER, { status: updatedUser.status });
+		})
+		this.updateUser(client, user, {status: updatedUser.status});
 	}
 
 	@SubscribeMessage('changeGameStatus')
@@ -84,7 +89,56 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			where: { id: user.id },
 			data: { gameStatus }
 		});
+		this.socketStore.getUserSockets(user.id).forEach((v) =>
+		{
+			this.server.to(v.id).emit(events.UPDATE_USER, { gameStatus: updatedUser.gameStatus });
+		})
+		this.updateUser(client, user, {gameStatus: updatedUser.gameStatus});
 		// this.server.to(client.id).emit(events.UPDATE_USER, { gameStatus: updatedUser.gameStatus });
+	}
+
+	@SubscribeMessage('changeUserName')
+	async changeUserName(@ConnectedSocket() client: Socket, @GetUserWs() user: User, @MessageBody('userName') userName: string)
+	{
+		this.socketStore.getUserSockets(user.id).forEach((v) =>
+		{
+			this.server.to(v.id).emit(events.UPDATE_USER, { userName });
+		})
+		this.updateUser(client, user, {userName});
+	}
+
+	async updateUser(client: Socket, user: User, payload: any)
+	{
+		// get joined chans
+		const joinedChans = await this.channelService.channels(
+			{
+				where:
+				{
+					AND: {members: {some: {userId: user.id}}},
+					NOT: {members: {some: {userId: user.id, role: RoleType.BANNED}}},	
+				},
+				select: {id: true}
+			}
+		);
+		const chanIds = joinedChans.map((v) => v.id);
+		//get friendlist
+		const friendList = await this.userService.userSelect(
+			{id: user.id},
+			{friendTo: {select: {id: true}}}
+		)
+		const friendSockets = friendList.friendTo.map((v) => 
+		{
+			const sockets = this.socketStore.getUserSockets(v.id);
+			if (!sockets)
+				return;
+			return sockets.map(v => v.id);
+		})
+		const flatSockets = friendSockets.flat(1);
+
+		if (chanIds)
+			this.server.of('/chat').to(chanIds).emit("updateUser", {id: user.id, data: payload})
+		if (flatSockets)
+			this.server.to(flatSockets).emit("updateFriend", {id: user.id, data:payload});
 	}
 
 	@SubscribeMessage('test')
@@ -176,7 +230,6 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		});
 	}
 }
-
 
 export class InviteNotificationDto
 {
