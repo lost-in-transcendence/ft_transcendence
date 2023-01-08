@@ -1,18 +1,32 @@
-import { BsPersonFill as ProfileIcon } from 'react-icons/bs'
+import { BsPencilFill, BsPersonFill as ProfileIcon } from 'react-icons/bs'
 import { GiPingPongBat as PongIcon, GiStarsStack as LeaderBoardIcon } from 'react-icons/gi'
 import { AiOutlineHome as HomeIcon, AiOutlinePoweroff as LogoutIcon } from 'react-icons/ai'
 import { IoChatbubbleEllipsesSharp as ChatIcon } from 'react-icons/io5'
-import { NavLink, useNavigate } from 'react-router-dom'
-import { logout } from '../../requests'
-import { UserAvatarStatus } from '../Avatar/UserAvatarStatus'
-import { useContext, useState } from 'react'
+import { Navigate, NavLink, useNavigate } from 'react-router-dom'
+import { backURL, logout } from '../../requests'
+import { CurrentStatus, UserAvatarStatus, UserAvatarStatusProfile } from '../Avatar/UserAvatarStatus'
+import { useContext, useEffect, useRef, useState } from 'react'
 import SocketContext from '../Socket/socket-context'
 import { SharedUserStatus } from '../../../shared/dtos'
+import {IoIosArrowForward} from "react-icons/io"
+
+import './UserCardMenu.css'
+import { changeStatus } from '../../requests/ws/users.messages'
 
 export function SideBar()
 {
 	const {user} = useContext(SocketContext).SocketState;
 	const [dropdownDisplay, setDropdownDisplay] = useState(false);
+
+	useEffect(() =>
+	{
+		const handleClick = () => setDropdownDisplay(false);
+		window.addEventListener('click', handleClick)
+		
+		return () => {
+			window.removeEventListener("click", handleClick);
+		}
+	}, [])
 
 	return (
 		<div className="grow-0 shrink-0 basis-14
@@ -45,18 +59,12 @@ export function SideBar()
 			<div className='basis-1/10'>
 
 				<div 
-				className={`text-center group flex relative py-2 hover:bg-gray-800 transition-all duration-300 ease-linear`} 
-				onClick={() => setDropdownDisplay(true)} >
-				{/* // onMouseLeave={() => setDropdownDisplay(false)}> */}
-						{/* <span className='icon-tooltip group-hover:scale-100'>{'ta mere'}</span> */}
-						{ dropdownDisplay ? <SideBarAvatarMenu userName={user.userName} status={user.status} /> : <></>}
-						<UserAvatarStatus userName={user.userName} status={user.status} size={'12'} border={'border-gray-900'} className={''}/>
-						{/* { dropdownDisplay ? <SideBarAvatarMenu userName={user.userName} status={user.status} /> : <></>} */}
+				className={`cursor-pointer text-center group flex relative py-2 hover:bg-gray-800 transition-all duration-300 ease-linear`} 
+				onClick={(e) => {e.preventDefault(); e.stopPropagation(); setDropdownDisplay(true)}} >
+						<UserAvatarStatus userName={user.userName} status={user.status} size={'12'} border={'border-gray-900'} className={''}/>				</div>
+				<div className="relative">
+					{ dropdownDisplay ? <SideBarAvatarMenu close={() => {setDropdownDisplay(false); console.log("close fired")}}/> : <></>}
 				</div>
-
-				{/* <NavLink to={'/login'}>
-					<SideBarIcon icon={<LogoutIcon size='20' />} tooltip='LogOut' />
-				</NavLink> */}
 			</div>
 		</div>
 	)
@@ -76,75 +84,97 @@ function SideBarIcon({ icon, tooltip = 'tooltip' }: any)
 	)
 }
 
-function SideBarAvatarMenu(props: {userName: string, status: SharedUserStatus})
+function SideBarAvatarMenu(props: {close: any})
 {
 	const [dropdownDisplay, setDropdownDisplay] = useState(false);
-	const {user} = useContext(SocketContext).SocketState;
-
-	// return (
-	// 	<ul className='dropdown'>
-	// 		<li key={1} className='menu-items'>
-	// 			<div onMouseEnter={() => setDropdownDisplay(true)} onMouseLeave={() => setDropdownDisplay(false)}>
-	// 				<button className='menu-button'>
-	// 					Change Status
-    //                     <span>&raquo;</span>
-	// 				</button>
-	// 				{
-	// 					dropdownDisplay ?
-	// 					<ul className='dropdown'>
-	// 						<li className='menu-items'>
-	// 							fuck yeah
-	// 						</li>
-	// 					</ul>
-	// 					:
-	// 					<>
-	// 					</>
-	// 				}
-	// 			</div>
-	// 		</li>
-	// 	</ul>
-	//	)
+	const {user, socket} = useContext(SocketContext).SocketState;
+	const {userName, status} = user;
+	const ref: any = useRef(null)
 	const offset = 64;
+	let scrollHeight: number = -345;
+	const {close} = props;
+
+	useEffect(() =>
+	{
+		scrollHeight = ref.current.scrollHeight * -1;
+		console.log({ref});
+		console.log(scrollHeight);
+	}, []);
+
 	return (
-		// <ul className='dropdown top-[-336px]'>
-		// 	<div className="w-28 h-[400px]">
-		// 	<UserAvatarStatus userName={user.userName} status={user.status} size={'14'} border={'border-gray-900'} className={''}/>
-		// 		Hello how are you
-		// 	</div>
-		// 	{/* <li className='menu-items'> */}
-		// 		{/* Hello */}
-		// 	{/* </li> */}
-		// </ul>
-
-		<div className="absolute left-[56px] top-[-300px] z-[9999] w-[250px] mt-auto mx-auto mb-0 rounded-[4px] border-1 border-white bg-[#2f3136] flex flex-col">
-			<div className="pt-[15px] mx-0 my-auto w-full justify-center bg-[#202225] text-white">
-				<div className="mx-auto my-auto overflow-hidden w-[80px] h-[80px]">
-					{/* <img src="https://discord.com/assets/6debd47ed13483642cf09e832ed0bc1b.png" /> */}
-					<UserAvatarStatus userName={user.userName} status={user.status} size={'full'} border={'border-gray-900'} className={''}/>
-
+  		<div ref={ref} className="card absolute left-[56px]" style={{top: `${scrollHeight}` + "px"}}
+		onClick={(e) => e.stopPropagation()}>
+    		<div className="card-header">
+      			<div className="banner relative bg-[#262525]">
+					<NavLink to={'/profile/edit'} onClick={close}>
+						<div className="group absolute right-[10px] top-[10px]">
+							<div className='group relative bg-[#171717] w-[30px] h-[30px] rounded-[50%] flex items-center'>	
+								<BsPencilFill size='15' className='mx-auto my-auto'/>
+								<span className='z-[250] icon-tooltip left-[3rem] group-hover:scale-100'>Edit Profile</span>
+							</div>
+						</div>
+					</NavLink>
 				</div>
-				<div className="mx-[15px] my-auto text-center font-thin text-[14px]">
-					<span><strong>Discordian</strong>#1234</span>
+      			<div className="infos">
+					<NavLink to={'/profile'} onClick={close}>
+        				<div className="profil-logo-image">
+							<UserAvatarStatusProfile userName={userName} status={status} border={"border-[#292B2F]"} />
+        				</div>
+					</NavLink>
+      			</div>
+    		</div>
+    		<div className="card-content">
+        		<div className="username pl-[5px]">{userName}</div>
+        		<hr />
+      			<div className="about-me pl-[5px]">
+        			<div className="category-title">About Me</div>
+					<p>Probably put game info right there</p>
+					<p>Like win/loss ratio, rank, gamestatus</p>
+      			</div>
+				<hr />
+				<div className='relative card-button my-[10px]'
+				onMouseEnter={() => {setDropdownDisplay(true)}} onMouseLeave={() => {setDropdownDisplay(false)}}>
+					<CurrentStatus className="w-[12px]" status={status}/>
+					<p className="">Status</p>
+					<IoIosArrowForward size='20'className='ml-auto'/>
+					{dropdownDisplay ?
+						<div className='absolute left-[240px] mx-[15px] px-[15px] w-full bg-transparent'>
+							<div className='bg-black px-[7px] py-[7px] rounded-[4px]'>
+								<div className='card-button'
+								 onClick={() => {changeStatus(socket, SharedUserStatus.ONLINE); close()}}> 
+									<img className="w-[12px]" src="/assets/online.png"/>
+									<p className="">Online</p>
+								</div>
+								<hr />
+								<div className='card-button'
+								 onClick={() => {changeStatus(socket, SharedUserStatus.AWAY); close()}}> 
+									<img className="w-[12px]" src="/assets/away.png"/>
+									<p className="">Away</p>
+								</div>
+								<hr />
+								<div className='card-button'
+								 onClick={() => {changeStatus(socket, SharedUserStatus.BUSY); close()}}> 
+									<img className="w-[12px]" src="/assets/busy.png"/>
+									<p className="">Busy</p>
+								</div>
+								<hr />
+								<div className='card-button'
+								 onClick={() => {changeStatus(socket, SharedUserStatus.OFFLINE); close()}}> 
+									<img className="w-[12px]" src="/assets/offline.png"/>
+									<p className="">Invisible</p>
+								</div>
+							</div>
+						</div>
+					:<></>
+				}
 				</div>
-			</div>
-			<div>
-				Hello fuck you
-			</div>
-			{/* <div className="role">
-				<span><strong>NO ROLES</strong></span>
-			</div>
-			<div className="note">
-				<div className="noteheader">
-					<span><strong>NOTE</strong></span>
-				</div>
-				<textarea>Click here to add a note</textarea>
-			</div>
-			<div className="message">
-				<input type="text" id="message" placeholder="Message @Discordian" autofocus />
-			</div>
-			<div className="tip">
-				<span><strong>PROTIP: </strong>Right click user for more actions</span>
-			</div> */}
+				<NavLink to='/login' onClick={() => {logout(); close()}} >
+					<div className="card-button gap-[6px]">
+						<LogoutIcon size='16' className='text-green-600 relative right-[2px]' />
+						<p>Logout</p>
+					</div>
+				</NavLink>
+    		</div>
 		</div>
 	)
 }

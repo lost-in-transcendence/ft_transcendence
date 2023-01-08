@@ -16,7 +16,7 @@
 
 	.icon-tooltip
 	{
-		@apply	absolute left-16 w-28 z-50
+		@apply	absolute left-16 w-28 z-[500]
 				bg-slate-900 rounded-lg text-white text-center font-bold text-base
 				transition-all duration-200 ease-linear origin-left scale-0;
 	}
