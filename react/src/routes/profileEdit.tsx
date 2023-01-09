@@ -11,6 +11,7 @@ import { backURL, frontURL } from "../requests/constants";
 import { getUserMeFull, updateUser, updateAvatar } from "../requests";
 import Modal from "../components/Modal/modal";
 import { TwoFa } from "../components/TwoFa/twofa";
+import SocketContext from "../components/Socket/socket-context";
 
 export async function loader()
 {
@@ -24,7 +25,6 @@ export async function action({request}: any)
 {
 	const formData = await request.formData();
 	const updates = Object.fromEntries(formData);
-	console.log(updates);
 	if (!updates?.userName || !updates?.email)
 	{
 		return {status: "empty field"};
@@ -38,7 +38,12 @@ export async function action({request}: any)
 	{
 		throw res;
 	}
-	return {status: "updated"};
+	let ret: any = {status: "updated"};
+	if (updates?.userName)
+	{
+		ret = {...ret, userName: updates.userName}
+	}
+	return ret;
 }
 
 async function handleToggleTwoFa()
@@ -68,6 +73,7 @@ export function ProfileEdit()
     const [upload, setUpload] = useState('idle');
     const [fileError, setFileError] = useState('ok');
     const action: any = useActionData();
+	const masterSocket = useContext(SocketContext).SocketState.socket;
 
 	const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -136,6 +142,11 @@ export function ProfileEdit()
 
 	useEffect(() =>
 	{
+		if (action?.status === "updated" && action?.userName)
+		{
+			masterSocket?.emit("changeUserName", {userName: action.userName});
+			action.userName = undefined;
+		}
 		if (action?.status === "updated" && edit === true)
 		{
 			setEdit(false);

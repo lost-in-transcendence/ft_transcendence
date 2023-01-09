@@ -1,0 +1,79 @@
+import { useEffect, useState } from "react";
+import { FaCrown, FaAngleDoubleUp } from 'react-icons/fa'
+
+import { backURL } from "../../../requests";
+import { ContextMenuData, Member } from "../dto";
+import { ContextMenu } from "./ContextMenu";
+
+export function MemberList({ members, status }: { members: Member[], status: 'ONLINE' | 'OFFLINE' })
+{
+	const [display, setDisplay] = useState<ContextMenuData | undefined>(undefined);
+
+	useEffect(() =>
+	{
+		const handleClick = () => setDisplay(undefined);
+		window.addEventListener("click", handleClick);
+		return () =>
+		{
+			window.removeEventListener("click", handleClick);
+		};
+	}, []);
+
+	if (members.length <= 0)
+		return <></>
+
+	return (
+		<>
+			{
+				display &&
+				<ContextMenu x={display.x} y={display.y} userName={display.userName} targetId={display.targetId} />
+			}
+			<h3 className={"ml-2 mt-2 text-zinc-400"}>{status}</h3>
+			<ul>
+				{
+					members.map((u: Member, i) =>
+					{
+						const user = u.user;
+						const displayName = u.user.userName.length > 7 ? u.user.userName.slice(0, 7) + '...' : user.userName;
+						return (
+							<li
+								key={i}
+								onContextMenu={(e) =>
+								{
+									e.preventDefault();
+									setDisplay({
+										x: e.pageX,
+										y: e.pageY,
+										userName: user.userName,
+										targetId: user.id
+									});
+								}}
+								className="flex items-center gap-3 py-1 my-1 rounded hover:bg-zinc-500 cursor-pointer"
+							>
+								<img
+									className="rounded-full h-10 w-10 ml-1"
+									src={`${backURL}/users/avatars/${user.userName}?time=${Date.now()}`}
+								/>
+								<span> {displayName} </span>
+								{
+									u.role === 'OWNER' &&
+									<span className="text-yellow-500 " >
+										<FaCrown />
+									</span>
+								}
+								{
+									u.role === 'ADMIN' &&
+									<span className="text-slate-400" >
+										<FaAngleDoubleUp />
+									</span>
+								}
+								{/* <span>{user.gameStatus}</span> */}
+								<br />
+							</li>
+						);
+					})
+				}
+			</ul>
+		</>
+	)
+}
