@@ -3,7 +3,7 @@ import { parseClassName } from "react-toastify/dist/utils";
 import { SharedUserStatus } from "../../../shared/dtos";
 import { backURL } from "../../requests";
 
-export function UserAvatarStatus({userName, status, size = '12', border = 'border-gray-900', className = ''} : {userName: string, status: SharedUserStatus, size: string, border: string, className: string})
+export function UserAvatarStatus({userName, status, size = '12', border = 'border-gray-900', className = ''} : {userName: string, status: SharedUserStatus, size?: string, border?: string, className?: string})
 {	
 	return (
 		<>

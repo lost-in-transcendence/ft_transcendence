@@ -191,7 +191,7 @@ export function ChatWindow({
 							>
 								{displayName &&
 									<div
-										className="hover:bg-slate-600 cursor-pointer rounded px-1"
+										className="hover:bg-slate-600 cursor-pointer rounded px-1 flex items-center"
 										onContextMenu={(e) =>
 										{
 											e.preventDefault();
@@ -203,24 +203,44 @@ export function ChatWindow({
 											});
 										}}
 									>
+										<div className="min-w-[48px] basis-12 my-2">
+
 										<span>
 											<img
-												className="rounded-full h-14 w-14 inline mt-3 mb-1 mr-2"
+												className="rounded-full h-10 w-10 inline my-auto"
 												src={`${backURL}/users/avatars/${m.sender.userName
-													}?time=${Date.now()}`}
-											/>
+												}?time=${Date.now()}`}
+												/>
 										</span>
+										</div>
+										<div>
+
 										<span
 											className="text-red-600 font-semibold"
-										>
+											>
 											{m.sender.userName}
 										</span>
-										<br />
+										{/* <br /> */}
+										{/* <span className={`${m.userId !== channel?.id && "mb-2"}`}>
+										{m.content}
+										</span> */}
+										</div>
 									</div>
+									
 								}
-								<span className={`${m.userId !== channel?.id && "px-1 mb-2"}`}>
-									{m.content}
-								</span>
+									<>
+										<div className="flex">
+
+											<div className="min-w-[48px] basis-12">
+
+											</div>
+											<div>
+												<span className={`${m.userId !== channel?.id && "px-1 mb-2"}`}>
+												{m.content}
+												</span>
+											</div>
+										</div>
+									</>
 							</li>
 						);
 					})}

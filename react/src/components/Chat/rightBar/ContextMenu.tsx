@@ -37,7 +37,7 @@ export function ContextMenu({ x, y, userName, targetId }: ContextMenuData)
 
 	return (
 		<ul
-			className={`list-none w-48 rounded p-2 bg-zinc-800 fixed`}
+			className={`list-none w-48 rounded p-2 bg-zinc-800 fixed z-[250]`}
 			style={{ top: `${y}px`, left: `${x}px` }}
 		>
 			<li
