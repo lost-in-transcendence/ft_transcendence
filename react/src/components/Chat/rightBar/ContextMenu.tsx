@@ -42,12 +42,9 @@ export function ContextMenu({ x, y, userName, targetId }: ContextMenuData)
 		const channelName = targetId > currentUser.id ? targetId + '_' + currentUser.id : currentUser.id + '_' + targetId;
 		const channelExists: Channel | undefined = channels.find((c) => c.channelName === channelName);
 
-		if (channelExists)
-			chatCtx.ChatDispatch({type: 'update_active', payload: channelExists});
-		else
-		{
+		if (!channelExists)
 			chatCtx.ChatState.socket?.emit(events.NEW_PRIVMSG, {userId: targetId});
-		}
+		chatCtx.ChatDispatch({type: 'update_active', payload: channelExists});
 	}
 
 	const liClassName: string =
