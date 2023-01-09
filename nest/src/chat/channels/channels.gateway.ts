@@ -1,10 +1,10 @@
-import { ForbiddenException, Get, Global, Logger, ParseIntPipe, ParseUUIDPipe, UseFilters, UseInterceptors, UsePipes, ValidationPipe } from "@nestjs/common";
+import { Body, ForbiddenException, Get, Global, Logger, ParseIntPipe, ParseUUIDPipe, UseFilters, UseInterceptors, UsePipes, ValidationPipe } from "@nestjs/common";
 import { BaseWsExceptionFilter, ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer, WsException } from "@nestjs/websockets";
-import { Prisma, User, Channel, ChannelMember } from "@prisma/client";
+import { Prisma, User, Channel, ChannelMember, Message, RoleType } from "@prisma/client";
 import { IsString } from "class-validator";
 import { Namespace, Server, Socket } from 'socket.io';
 import * as bcrypt from 'bcrypt';
-import { env } from "process";
+import { emit, env } from "process";
 
 import { GetUserWs } from "src/users/decorator/get-user-ws";
 import { CustomWsFilter } from "src/websocket-server/filters";
@@ -15,16 +15,26 @@ import { joinChannelDto, joinChannelMessageDto } from "./dto/join-channel.dto";
 import { UserInterceptor } from "src/websocket-server/interceptor";
 import { UsersService } from "src/users/users.service";
 import * as events from 'shared/constants';
+import { MessagesService } from "../messages/messages.service";
+import { getManyMessageDto } from "../messages/dto";
+import { SharedChannelMembersDto, SharedPartialUserDto } from "shared/dtos";
+import { UserSocketStore } from "../global/user-socket.store";
+import { ChannelMemberDto } from "./channel-member/dto";
+//import { env } from "process";
+import { ChannelMemberService } from "./channel-member/channel-member.service";
 
 @UseInterceptors(UserInterceptor)
 @UseFilters(new CustomWsFilter())
 @UsePipes(new WsValidationPipe({ whitelist: true }))
-@WebSocketGateway({ cors: `${env.PROTOCOL}${env.APP_HOST}:${env.FRONT_PORT}`, namespace: 'chat'})
+@WebSocketGateway({ cors: `${env.PROTOCOL}${env.APP_HOST}:${env.FRONT_PORT}`, namespace: 'chat' })
 export class ChannelsGateway implements OnGatewayConnection
 {
 	private readonly logger = new Logger(ChannelsGateway.name);
 
-	constructor(private readonly channelService: ChannelsService, private readonly userService: UsersService) { }
+	constructor(private readonly channelService: ChannelsService,
+		private readonly userService: UsersService,
+		private readonly messageService: MessagesService,
+		private readonly channelMemberService: ChannelMemberService) { }
 
 	@WebSocketServer()
 	server: Namespace;
@@ -40,7 +50,6 @@ export class ChannelsGateway implements OnGatewayConnection
 	{
 		const newChannel: PartialChannelDto = await this.channelService.create(dto, id);
 		client.join(newChannel.id);
-		this.logger.debug({newChannel});
 		const retChannel = await this.channelService.channelSelect({
 			where: { id: newChannel.id },
 			select:
@@ -65,7 +74,6 @@ export class ChannelsGateway implements OnGatewayConnection
 				}
 			}
 		})
-		this.logger.debug({retChannel});
 		if (dto.mode === 'PROTECTED' || dto.mode === 'PUBLIC')
 			this.server.emit(events.NEW_CHANNEL, retChannel);
 		else
@@ -78,23 +86,32 @@ export class ChannelsGateway implements OnGatewayConnection
 		@ConnectedSocket() client: Socket,
 		@GetUserWs() user: User)
 	{
-		const joinedChans: any[] = client.data.user.channels;
-		const thisChan = joinedChans?.find((c) => c.channelId === body.channelId);
-		if (thisChan?.role === 'BANNED')
+		const channelMemberDto: ChannelMemberDto = {
+			userId: user.id,
+			channelId: body.channelId,
+			role: "MEMBER"
+		}
+		const channelMember = await this.channelMemberService.getOne(channelMemberDto)
+		if (channelMember && channelMember.role === 'BANNED')
+		{
+			this.logger.debug("JE SUIS BANNI")
 			return ;
+		}
+		console.log("COUCOU")
 		const dto: joinChannelDto = {
 			channelId: body.channelId,
 			userId: user.id,
 			role: 'MEMBER'
 		}
+		console.log("COUCOU")
 		const channel: Channel = await this.channelService.findOne({ id: dto.channelId });
 
+		console.log("COUCOU")
 		if (channel.mode === 'PRIVATE' && !channel.whitelist.includes(user.id))
 			throw new WsException({ status: 'Unauthorized', message: 'Channel is Private ! Get out of here !' });
 		if (channel.mode === 'PROTECTED')
 		{
 			const compare = await bcrypt.compare(body.password || "", channel.hash);
-			this.logger.debug({ compare });
 			if (!compare)
 				throw new WsException({ status: 'Unauthorized', message: 'Incorrect password' });
 		}
@@ -104,11 +121,12 @@ export class ChannelsGateway implements OnGatewayConnection
 				await this.channelService.joinChannel(dto)
 					.then((c) => c.channel)
 			);
-		this.logger.debug({ joinedChannel });
-		const members = joinedChannel.members;
-		this.server.to(joinedChannel.id).emit(events.USERS, {users: members});
-		client.join(joinedChannel.id);
 		this.notify(joinedChannel.id, `${user.userName} has joined ${joinedChannel.channelName} !`)
+		client.join(joinedChannel.id);
+		const members = await this.getUsersFromChannel({ channelId: joinedChannel.id, userId: user.id });
+		if (!members)
+			throw new WsException({ status: '401', message: 'You are not part of this channel' });
+		this.server.to(joinedChannel.id).emit(events.USERS, members);
 		const newChanList = await this.getVisibleChannels(user.id);
 		this.server.to(client.id).emit('channels', newChanList);
 	}
@@ -119,11 +137,15 @@ export class ChannelsGateway implements OnGatewayConnection
 		@ConnectedSocket() client: Socket,
 		@GetUserWs() user: any)
 	{
-		const joinedChans: any[] = user.channels;
-		const thisChan = joinedChans.find((c) => c.channelId === channelId);
-		if (!thisChan)
+		const channelMemberDto: ChannelMemberDto = {
+			userId: client.data.user.id,
+			channelId,
+			role: null
+		}
+		const channelMember = await this.channelMemberService.getOne(channelMemberDto);
+		if (!channelMember)
 			throw new WsException({ status: 'Error', message: 'Cannot leave channel you are not a part of !' });
-		if (thisChan.role === 'OWNER')
+		if (channelMember.role === 'OWNER')
 		{
 			const channel: Channel & { members?: ChannelMember[] } = await this.channelService.channel({
 				where: { id: channelId },
@@ -162,32 +184,36 @@ export class ChannelsGateway implements OnGatewayConnection
 				});
 			}
 			else
-				return (this.DstroyChannel(channelId));
+			{
+				client.leave(channelId);
+				this.DstroyChannel(channelId)
+				const newChanList = await this.getVisibleChannels(user.id);
+				// return;
+			}
 		}
-		if (thisChan.role !== 'BANNED')
+		if (channelMember.role !== 'BANNED')
 			await this.channelService.leaveChannel({userId_channelId: {userId: user.id, channelId}});
 		client.leave(channelId);
 		this.notify(channelId, `${user.userName} has left the channel`);
-		const res: {members?: ChannelMember[]} = await this.channelService.channelSelect({
-			where: { id: channelId },
-			select:
-			{
-				members: true
-			}
-		});
-		const members = res.members;
-		this.logger.debug({members});
-		this.server.to(channelId).emit(events.USERS, {members});
+		this.alert({event: events.CHANNELS});
+		this.alert({event: events.USERS, args: {channelId: channelId}});
+
+		// const newChanList = await this.getVisibleChannels(user.id);
+		// this.server.to(client.id).emit('channels', newChanList);
 		// TODO Handle leave message
 	}
 
-	@SubscribeMessage('ban')
+	@SubscribeMessage('banUser')
 	async banUser(
 		@ConnectedSocket() client: Socket,
-		@MessageBody('channelId') channelId: string
+		@MessageBody() body: any
 		)
 	{
-		return (this.channelService.banUser(client.data.user.id, channelId))
+		this.logger.debug("BAN COUCOU")
+		const array: Socket[] = UserSocketStore.getUserSockets(body.userId);
+		for (let n of array)
+			n.leave(body.channelId)
+		return (this.channelService.banUser(body.userId, body.channelId))
 	}
 
 	@SubscribeMessage(events.CHANNELS)
@@ -211,10 +237,26 @@ export class ChannelsGateway implements OnGatewayConnection
 		this.server.to(client.id).emit(events.JOINABLE_CHANNELS, joignableChans);
 	}
 
+	@SubscribeMessage(events.GET_MESSAGES)
+	async GetMessages(@ConnectedSocket() client: Socket, @MessageBody() dto: getManyMessageDto)
+	{
+		const messages: Message[] = await this.messageService.getMany(dto.channelId, dto.amount);
+		this.server.to(client.id).emit(events.GET_MESSAGES, messages);
+	}
+
+	@SubscribeMessage(events.USERS)
+	async channelUsers(@ConnectedSocket() client: Socket, @MessageBody('channelId', ParseUUIDPipe) channelId: string, @GetUserWs('id', ParseUUIDPipe) userId: string)
+	{
+		const users: SharedChannelMembersDto[] | ChannelMember[] = await this.getUsersFromChannel({ channelId, userId });
+		this.logger.debug({ users });
+		if (!users)
+			throw new WsException({ status: '401', message: 'You are not part of this channel' });
+		this.server.to(client.id).emit(events.USERS, users);
+	}
+
 	// @SubscribeMessage('handshake')
 	// async handshake(@ConnectedSocket() client: Socket, @GetUserWs('id', ParseUUIDPipe) userId: string)
 	// {
-	// 	this.logger.debug('Receiving handshake event from client in channels gateway');
 	// 	const channels: PartialChannelDto[] = await this.getVisibleChannels(userId);
 	// 	this.server.to(client.id).emit('handshake', channels);
 	// }
@@ -222,6 +264,13 @@ export class ChannelsGateway implements OnGatewayConnection
 	/*************************/
 	/*        UTILS          */
 	/*************************/
+
+	async getUsersFromChannel({ channelId, userId }: { channelId: string, userId: string }): Promise<SharedChannelMembersDto[] | ChannelMember[]>
+	{
+		const channels: PartialChannelDto[] = await this.getVisibleChannels(userId);
+		const users: SharedChannelMembersDto[] | ChannelMember[]= channels.find((c) => c.id === channelId).members;
+		return (users);
+	}
 
 	async getVisibleChannels(userId: string): Promise<PartialChannelDto[]>
 	{
@@ -234,6 +283,12 @@ export class ChannelsGateway implements OnGatewayConnection
 						{ mode: 'PROTECTED' },
 						{ members: { some: { userId } } }
 					],
+					NOT:
+                    [
+                        {
+                            members: { some: { userId , role: RoleType.BANNED} }
+                        }
+                    ]
 			},
 			select:
 			{
@@ -242,8 +297,10 @@ export class ChannelsGateway implements OnGatewayConnection
 				channelName: true,
 				members:
 				{
-					include:
+					select:
 					{
+						role: true,
+						timeJoined: true,
 						user:
 						{
 							select:
@@ -251,6 +308,8 @@ export class ChannelsGateway implements OnGatewayConnection
 								id: true,
 								userName: true,
 								status: true,
+								gameStatus: true,
+								avatarPath: true
 							}
 						}
 					}
@@ -289,10 +348,10 @@ export class ChannelsGateway implements OnGatewayConnection
 			where:
 			{
 				OR:
-				[
-					{ mode: 'PUBLIC' },
-					{ mode: 'PROTECTED' }
-				],
+					[
+						{ mode: 'PUBLIC' },
+						{ mode: 'PROTECTED' }
+					],
 				AND:
 				{
 					members: { every: { NOT: { userId: userId } } }
@@ -318,11 +377,11 @@ export class ChannelsGateway implements OnGatewayConnection
 
 	notify(channelId: string, content: string)
 	{
-		this.server.to(channelId).emit(events.NOTIFY, content);
+		this.server.to(channelId).emit(events.NOTIFY, { channelId, content });
 	}
 
-	alert(channelId: string, content: string)
+	alert({event, args}: {event: string, args?: any})
 	{
-		this.server.to(channelId).emit(events.ALERT, content);
+		this.server.emit(events.ALERT, {event, args});
 	}
 }

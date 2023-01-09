@@ -21,6 +21,12 @@ enum StatusType {
     TA_GRAND_MERE
 }
 
+enum GameStatusType {
+    NONE
+    WAITING
+    INGAME
+}
+
 model User {
     id         String  @id @default(uuid())
     id42       Int     @unique
@@ -31,14 +37,16 @@ model User {
     twoFaEnabled Boolean @default(false)
     twoFaSecret  String?
 
+    createdAt  DateTime       @default(now())
+    status     StatusType     @default(OFFLINE)
+    gameStatus GameStatusType @default(NONE)
+
     friends  User[] @relation("friendList")
     friendTo User[] @relation("friendList")
 
     blacklist     User[] @relation("blacklist")
     blacklistedBy User[] @relation("blacklist")
 
-    createdAt    DateTime        @default(now())
-    status       StatusType      @default(OFFLINE)
     matchHistory PlayerGame[]
     playStats    PlayStats?
     channels     ChannelMember[]
@@ -49,6 +57,8 @@ model Game {
     id       String       @id @default(uuid())
     playedAt DateTime     @default(now())
     players  PlayerGame[]
+    // p1Id    String
+    // p2Id    String
 }
 
 model PlayerGame {

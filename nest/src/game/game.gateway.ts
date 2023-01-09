@@ -1,11 +1,11 @@
-import { ForbiddenException, Logger, UseFilters, UseInterceptors, UsePipes } from "@nestjs/common";
+import { ForbiddenException, Logger, ParseEnumPipe, UseFilters, UseInterceptors, UsePipes } from "@nestjs/common";
 import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer, WsException } from "@nestjs/websockets";
 import { env } from "process";
 import { CustomWsFilter } from "src/websocket-server/filters";
 import { UserInterceptor } from "src/websocket-server/interceptor";
 import { WsValidationPipe } from "src/websocket-server/pipes";
 import { Socket, Namespace } from 'socket.io';
-import { User } from '@prisma/client';
+import { GameStatusType, User } from '@prisma/client';
 import { GetUserWs } from "src/users/decorator/get-user-ws";
 import { GamesService } from "./game.service";
 import { create } from "domain";
@@ -14,6 +14,7 @@ import { GameComputer, GameStatusValue, Objective, PaddleDirection } from "./gam
 import { Subscriber } from "rxjs";
 import { userInfo } from "os";
 import { IsEnum } from "class-validator";
+import { UsersService } from "src/users/users.service";
 
 export enum GameType
 {
@@ -63,17 +64,17 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
     @WebSocketServer()
     server: Namespace;
-    // private gameComputer: GameComputer;
 
-	constructor(private readonly gamesService: GamesService, private readonly gameComputer: GameComputer) {
-        // this.gameComputer = new GameComputer(this.server, gamesService);
-     }
+	constructor(
+        private readonly gamesService: GamesService,
+        private readonly userService: UsersService,
+        private readonly gameComputer: GameComputer)
+    {}
 
 
     afterInit()
     {
         this.logger.log("Game Gateway initialized");
-        // this.gameComputer = new GameComputer(this.server, this.gamesService);
         this.gameComputer.initServer(this.server);
         // const timerId = setInterval(() => 
 		// {
@@ -98,6 +99,10 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
         {
             this.waitingRooms = this.waitingRooms.filter((v) => v.user1SocketId !== client.id);
             this.emitWaitingRooms();
+            const updatedUser = await this.userService.updateUser({
+                where: { id: client.data.user.id },
+                data: { gameStatus: GameStatusType.NONE }
+            });
             return true;
         }
         const onGoingroom = await this.gameComputer.findGameBySocketId(client.id);
@@ -107,6 +112,10 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
             // if so gracefully close and notify everything
             this.gameComputer.playerDisconnected(client.id);
             this.gameComputer.emitOngoingGames();
+            const updatedUser = await this.userService.updateUser({
+                where: { id: client.data.user.id },
+                data: { gameStatus: GameStatusType.NONE }
+            });
         }
         // is socket id a spectator?
         const spectatorRoom = await this.gameComputer.findGameBySpectatorSocketId(client.id);
@@ -128,12 +137,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
             this.gameComputer.emitOngoingGames();
             client.leave(ongoingRoom.id);
         }
-        // is socket id a spectator?
-        // const spectatorRoom = await this.gameComputer.findGameBySpectatorSocketId(client.id);
-        // if (spectatorRoom)
-        // {
-        //     this.gameComputer.spectatorDisconnected(spectatorRoom, client.id);
-        // }
     }
 
     @SubscribeMessage('leaveGameAsSpectator')
@@ -145,15 +148,12 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
             this.gameComputer.spectatorDisconnected(spectatorRoom, client.id);
             client.leave(spectatorRoom.id);
         }
-        // console.log()
     }
 
 
     @SubscribeMessage('quickplay')
     async quickplay(@ConnectedSocket() client: Socket, @GetUserWs() user: User)
     {
-        // throw new ForbiddenException("hellooooo");
-        // check if there are any waiting rooms where invitation === false, if so join it and create an actual room + game
         const availableRoom = this.waitingRooms.find((v) => {return (v.user1SocketId !== client.id && v.user1.id !== user.id && !v.user2 && v.invitation === false)});
         if (availableRoom)
         {
@@ -186,7 +186,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
             return;
         }
         const ret = await this.gamesService.create({data:{}});
-        // this.logger.debug("room id:", ret.id);
         this.waitingRooms.push(new GameWaitingRoom({id: ret.id, user1: user, user1SocketId: client.id, invitation: false, objective: Objective.SCORE, goal: 5, type: GameType.QUICKPLAY}));
         await this.gamesService.update({
             where: {id: ret.id},
@@ -214,19 +213,16 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
         if (room)
         {
             this.waitingRooms = this.waitingRooms.filter((v) => v.user1SocketId !== client.id);
-            // this.logger.debug("room id (leave)", room.id);
-            // this.logger.debug("room object", {room});
             this.gamesService.remove({
                 where: {id: room.id}
             })
-            // TODO if room gametype is custom, emit message to namespace with updated list of available and ongoing games
             this.server.to(client.id).emit('leftQueue');
             this.emitWaitingRooms();
             return;
         }
         else
         {
-            throw new Error("You're not in any queues");
+            throw new WsException({status: 404, message:"You're not in any queues"});
         }
     }
 
@@ -234,11 +230,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     async createCustomGame (@ConnectedSocket() client: Socket, @GetUserWs() user: User, @MessageBody() payload: CustomGame)
     {
         const ret = await this.gamesService.create({data:{}});
-        // this.logger.debug("room id:", ret.id);
-        // console.log({payload});
         const {objective, goal, invitation, invitedUser} = payload;
-        // const fuckyou = new GameWaitingRoom({id: ret.id, user1: user, user1SocketId: client.id, invitation: invitation, invitedUser: invitedUser, objective: objective, goal: goal, type: GameType.CUSTOM})
-        // console.log("update", {fuckyou});
         this.waitingRooms.push(new GameWaitingRoom({id: ret.id, user1: user, user1SocketId: client.id, invitation: invitation, invitedUser: invitedUser, objective: objective, goal: goal, type: GameType.CUSTOM}));
         await this.gamesService.update({
             where: {id: ret.id},
@@ -256,22 +248,25 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
                 }
             }
         })
-        this.server.to(client.id).emit('queueing');
+        if (invitation === true && invitedUser)
+        {
+            this.server.to(client.id).emit("inviteGameCreated", {gameId: ret.id, invitedUser});
+        }
+        else
+        {
+            this.server.to(client.id).emit('queueing');
+        }
         this.emitWaitingRooms();
-        // TODO send message to namespace with list of available and ongoing games
     }
 
     @SubscribeMessage('joinCustomGame')
     async joinCustomGame(@ConnectedSocket() client: Socket, @GetUserWs() user: User, @MessageBody('room') room: any)
     {
-        // console.log ('JOIN ROOM ', {room});
-        // client.join(room);
-        // this.gameComputer.userJoin(room, user, client.id);
-        // this.server.to(client.id).emit('matchAccepted');
+        console.log("enter join custom game");
         const customGameRoom = this.waitingRooms.find((v) => {return v.id === room});
         if (!customGameRoom)
         {
-            throw new Error("No such room");
+            throw new WsException({status: 404, message: "Could not find the requested game"})
         }
         customGameRoom.user2 = user;
         customGameRoom.user2SocketId = client.id;
@@ -343,18 +338,10 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     }
 
     @SubscribeMessage('paddleMove')
-    async paddleMove(@ConnectedSocket() client: Socket, @GetUserWs() user: User, @MessageBody('direction') direction: PaddleDirection)
+    async paddleMove(@ConnectedSocket() client: Socket, @GetUserWs() user: User, @MessageBody('direction', new ParseEnumPipe(PaddleDirection)) direction: PaddleDirection)
     {
         this.gameComputer.paddleMove(client.id, direction);
     }
-
-    // @SubscribeMessage('invite')
-    // async invite(@ConnectedSocket() client: Socket, @GetUserWs() user: User, @MessageBody() dto: any)
-    // {
-    //     // fetch invited userId first and check they're online (how do we know? Maybe only allow invite if invited.status !== OFFLINE or INVISIBLE)
-    //     this.waitingRooms.push(new GameWaitingRoom({user1: user, user1SocketId: client.id, invitation: true, invitedUser: dto.userId}));
-
-    // }
 
     getWaitingRooms()
     {
@@ -389,7 +376,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     {
         const {waitingRooms, ongoingGames} = {waitingRooms: this.getWaitingRooms(), ongoingGames: this.gameComputer.getOngoingGames()};
         this.server.to(client.id).emit('games', { waitingRooms, ongoingGames});
-        // this.logger.debug("ongoingGames:", ongoingGames);
     }
 }
 

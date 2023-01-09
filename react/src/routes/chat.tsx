@@ -14,6 +14,8 @@ import { Channel } from '../dto/channels.dto'
 import { MemberList } from "../components/Chat/Members/MemberList";
 import { Accordeon } from "../components/Menu/Accordeon";
 import { ChatSidebar } from "../components/Menu/ChatSideBar";
+import { ChatWindow } from "../components/Chat/ChatWindow/ChatWindow";
+import { ChatDisplay } from "../components/Chat/ChatDisplay/ChatDisplay";
 
 export async function loader()
 {
@@ -35,15 +37,13 @@ export function Chat()
 
 	return (
 		<div className="flex flex-col md:flex-row">
-			<div className="basis-0">
-				<ChatSidebar user={user} />
-			</div>
-			<div className="text-white basis-full justify-self-center mr-auto bg-gray-800">
+			<ChatSidebar user={user} />
+			<div className="text-white basis-full overflow-auto justify-self-center mr-auto bg-gray-800">
 				{
 					state.activeChannel ?
-					<h1 className="text-5xl text-center">{state.activeChannel?.channelName}<p className="text-xl">{state.activeChannel?.id}</p></h1>
-					:
-					<h1 className="text-5xl text-center">Friends</h1>
+						<ChatDisplay currentUser={user} />
+						:
+						<h1 className="text-5xl text-center">Friends</h1>
 				}
 			</div>
 		</div>

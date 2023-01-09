@@ -13,6 +13,6 @@ export class CreateMessageDto implements SharedCreateMessageDto
 
 	@IsString()
 	@MaxLength(2000)
-	@MinLength(10)
+	@MinLength(1)
 	content: string;
 }

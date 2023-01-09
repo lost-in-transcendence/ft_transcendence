@@ -1,3 +1,6 @@
+import { SharedGameStatusDto } from "../game";
+import { SharedUserStatus } from "../users";
+
 export interface SharedChannelDto
 {
 	id: string;
@@ -5,7 +8,7 @@ export interface SharedChannelDto
 	mode: string;
 	hash?: string;
 	createdAt: Date;
-	members?: ChannelMembersDto[];
+	members?: SharedChannelMembersDto[] | any[];
 }
 
 export interface SharedFindUniqueChannelDto
@@ -14,14 +17,26 @@ export interface SharedFindUniqueChannelDto
 	channelName: string;
 }
 
-interface ChannelMembersDto
+export interface SharedChannelMembersDto
 {
 	user:
 	{
 		id: string;
 		userName: string;
-		status: string;
-	}
+		status: SharedUserStatus;
+		gameStatus: SharedGameStatusDto;
+	};
+	role: RoleType;
+	avatarPath?: string;
+	timeJoined?: Date;
+}
+
+enum RoleType {
+    OWNER = "OWNER",
+    ADMIN = "ADMIN",
+    MEMBER = "MEMBER",
+    MUTED = "MUTED",
+    BANNED = "BANNED"
 }
 
 export interface SharedPartialChannelDto
@@ -31,5 +46,5 @@ export interface SharedPartialChannelDto
 	mode?: string;
 	hash?: string;
 	createdAt?: Date;
-	members?: ChannelMembersDto[];
+	members?: SharedChannelMembersDto[];
 }

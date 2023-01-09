@@ -5,6 +5,7 @@ import { backURL, getCookie } from "../../../requests";
 import { ChatContextProvider, ChatReducer, defaultChatContextState } from "./chatContext";
 import * as events from '../../../../shared/constants/chat'
 import { Channel, PartialChannel } from "../../../dto/channels.dto";
+import { Spinner } from "../../Spinner/Spinner";
 
 export function ChatContextComponent(props: any)
 {
@@ -54,6 +55,14 @@ export function ChatContextComponent(props: any)
 			console.info('new channel event received', payload);
 			ChatDispatch({type: 'new_channel', payload});
 		})
+
+		socket.on(events.ALERT, (payload: {event: string, args: any}) =>
+		{
+			if (payload.event === events.USERS && !payload.args)
+				socket.emit(payload.event, { channelId: ChatState.activeChannel?.id })
+			else
+				socket.emit(payload.event, payload.args);
+		})
 	}
 
 	function clearListeners()
@@ -65,7 +74,7 @@ export function ChatContextComponent(props: any)
 
 	if (loading)
 		return (
-			<p>Loading Chat...</p>
+			<Spinner />
 		);
 
 	return (

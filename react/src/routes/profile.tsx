@@ -1,33 +1,31 @@
 
 // import './styles/profile.css'
 
-import { NavLink, redirect, useLoaderData, useNavigate } from "react-router-dom";
-import { useContext, useEffect, useState } from "react";
+import {useLoaderData, useNavigate } from "react-router-dom";
+import { useContext } from "react";
 
 import { backURL } from "../requests/constants";
-import { getUserMeFull } from "../requests";
-import Modal from "../components/Modal/modal";
-import { TwoFa } from "../components/TwoFa/twofa";
+import { getMyMatchHistory, getUserMeFull } from "../requests";
 import { UserCard } from "../components/UserCard/UserCard";
 import SocketContext from "../components/Socket/socket-context";
+import { MatchHistoryCard } from "../components/MatchHistoryCard/MatchHistoryCard";
 
 export async function loader()
 {
 	const res = await getUserMeFull();
-	return (res);
+	const matchHistory = await getMyMatchHistory();
+	return ({user: await res.json(), matchHistory: await matchHistory.json()});
 }
 
 export function Profile()
 {
-	const user: any = useLoaderData();
-	console.log({ user });
+	const data: any = useLoaderData();
+	const {user, matchHistory} = data;
+	// console.log({ user });
+	// console.log({matchHistory});
 	const playerStats = user.playStats;
 	const navigate = useNavigate();
 	const { status } = useContext(SocketContext).SocketState.user;
-	user.friends.forEach((f: any) =>
-	{
-		console.log({ f });
-	})
 	return (
 		<div className="profilePage
 							flex flex-col items-center gap-6
@@ -45,6 +43,7 @@ export function Profile()
 					<h3 className="font-bold text-5xl">{user.userName}</h3>
 					<p className="text-center">{user.email}</p>
 					<p className="text-center">{status}</p>
+					<p className="text-center">{user.gameStatus}</p>
 				</div>
 			</div>
 			<div className="profilePong
@@ -87,42 +86,13 @@ export function Profile()
 							user.matchHistory !== 0 ?
 								(
 									<ul className="">
-										<li>There is a match history</li>
-										<li>There is a match history</li>
-										<li>There is a match history</li>
-										<li>There is a match history</li>
-										<li>There is a match history</li>
-										<li>There is a match history</li>
-										<li>There is a match history</li>
-										<li>There is a match history</li>
-										<li>There is a match history</li>
-										<li>There is a match history</li>
-										<li>There is a match history</li>
-										<li>There is a match history</li>
-										<li>There is a match history</li>
-										<li>There is a match history</li>
-										<li>There is a match history</li>
-										<li>There is a match history</li>
-										<li>There is a match history</li>
-										<li>There is a match history</li>
-										<li>There is a match history</li>
-										<li>There is a match history</li>
-										<li>There is a match history</li>
-										<li>There is a match history</li>
-										<li>There is a match history</li>
-										<li>There is a match history</li>
-										<li>There is a match history</li>
-										<li>There is a match history</li>
-										<li>There is a match history</li>
-										<li>There is a match history</li>
-										<li>There is a match history</li>
-										<li>There is a match history</li>
-										<li>There is a match history</li>
-										<li>There is a match history</li>
-										<li>There is a match history</li>
-										<li>There is a match history</li>
-										<li>There is a match history</li>
-										<li>END</li>
+										{ matchHistory.map((v: any) =>
+										{
+											return (
+											<li key={v.gameId}>
+												<MatchHistoryCard player1={v.player1} player2={v.player2} />
+											</li>)
+										})}
 									</ul>
 								)
 								:

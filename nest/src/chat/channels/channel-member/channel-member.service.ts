@@ -1,11 +1,13 @@
 import { ImATeapotException, Injectable, Logger, PreconditionFailedException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { joinChannelDto } from '../dto';
 import { ChannelMemberDto } from './dto';
 
 @Injectable()
-export class ChannelMemberService {
+export class ChannelMemberService 
+{
 	constructor(private readonly prisma: PrismaService) {}
 	private readonly logger = new Logger(ChannelMemberService.name);
 
@@ -62,7 +64,7 @@ export class ChannelMemberService {
 
 	async changeRole(dto: ChannelMemberDto)
 	{
-		this.prisma.channelMember.update({
+		const ret = await this.prisma.channelMember.update({
 			where: {
 				userId_channelId: {userId: dto.userId, channelId: dto.channelId}
 			},
@@ -70,6 +72,7 @@ export class ChannelMemberService {
 				role: dto.role
 			}
 		})
+		console.log({ret});
 	}
 
 	async getOne(dto: ChannelMemberDto)
@@ -81,7 +84,7 @@ export class ChannelMemberService {
 
 	async getMany(dto: ChannelMemberDto)
 	{
-		if (dto.channelId === null) 
+		if (dto.channelId === null)
 		{
 			return (await this.prisma.channelMember.findMany({
 				where: {userId: dto.userId}
@@ -90,5 +93,14 @@ export class ChannelMemberService {
 		return (await this.prisma.channelMember.findMany({
 			where: {channelId: dto.channelId}
 		}))
+	}
+
+	async usersFromChannel(params: Prisma.ChannelMemberFindManyArgs)
+	{
+		const {where, select} = params;
+		return this.prisma.channelMember.findMany({
+			where,
+			select
+		})
 	}
 }

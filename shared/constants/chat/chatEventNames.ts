@@ -13,6 +13,7 @@ export const USERS: string = 'users';
 /* CHAT */
 
 export const MESSAGE: string = 'message';
+export const GET_MESSAGES: string = 'getMessages'
 export const TO_CHANNEL: string = 'toChannel';
 export const NOTIFY: string = 'notify';
 export const ALERT: string = 'alert';

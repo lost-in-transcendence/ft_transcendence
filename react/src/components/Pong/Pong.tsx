@@ -1,6 +1,8 @@
-import { useContext, useEffect, useRef, useState } from "react";
+import { GameStatus } from "../../dto/game.dto";
+import { useContext, useEffect, useState } from "react";
 import { Canvas } from "../Canvas/canvas";
 import GameSocketContext from "../Game/Context/game-socket-context";
+import SocketContext from "../Socket/socket-context";
 
 const gameWidth = 800;
 const gameHeight = 600;
@@ -56,6 +58,7 @@ export function Pong(props: {goBack: any, asSpectator: boolean})
 {
     const {goBack, asSpectator} = props;
     const {socket} = useContext(GameSocketContext).GameSocketState;
+	const masterSocket = useContext(SocketContext).SocketState.socket;
     const [showEndScreen, setShowEndScreen] = useState(false);
     const [endScreen, setEndScreen] = useState({winner: '', loser: '', draw: false, reason: ''})
     const [status, setStatus] = useState('playing');
@@ -111,14 +114,16 @@ export function Pong(props: {goBack: any, asSpectator: boolean})
             const {winner, loser, draw, reason} = payload;
             setEndScreen({...endScreen, winner, loser, draw, reason})
             setShowEndScreen(true);
+			masterSocket?.emit('changeGameStatus', {gameStatus: GameStatus.NONE})
         })
 
         return () =>
         {
             socket?.off('disconnected');
             socket?.off('renderFrame');
+			socket?.off('endGame');
         }
-    })
+    }, [])
 
     function drawGame(ctx: any)
 	{
