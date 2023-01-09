@@ -69,12 +69,16 @@ export function ChatReducer(state: IChatContextState, action: IChatContextAction
 {
 	console.info('CHAT REDUCER');
 	console.info(`Message received - Action: ${action.type} - Payload: ${action.payload}`);
+	console.info(action.payload)
 
 	switch(action.type)
 	{
 		case 'update_channels':
-			console.info('Updating channels', action.payload);
-			return {...state, visibleChannels: action.payload as Channel[]};
+		{
+			const payload = action.payload as Channel[];
+			const updatedChannel = payload.find((c) => c.id === state.activeChannel?.id);
+			return {...state, visibleChannels: action.payload as Channel[], activeChannel: updatedChannel};
+		}
 		case 'update_socket':
 			console.info('Updating socket', action.payload);
 			return {...state, socket: action.payload as Socket};

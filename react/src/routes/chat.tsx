@@ -30,7 +30,7 @@ export function Chat()
 			<div className="text-white basis-full overflow-auto justify-self-center mr-auto bg-gray-800">
 				{
 					state.activeChannel ?
-						<ChatDisplay currentUser={user} />
+						<ChatDisplay currentUser={user} channel={state.activeChannel} />
 						:
 						<>
 							<h1 className="text-5xl text-center">Friends</h1>

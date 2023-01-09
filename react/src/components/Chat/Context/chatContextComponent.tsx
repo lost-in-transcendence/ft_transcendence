@@ -40,19 +40,20 @@ export function ChatContextComponent(props: any)
 	{
 		socket.on('handshake', (payload: PartialChannel[]) =>
 		{
-			console.info('Handshake received from server');
 			ChatDispatch({type: 'update_channels', payload});
 			setLoading(false);
 		});
 
 		socket.on(events.CHANNELS, (payload: PartialChannel[]) =>
 		{
-			ChatDispatch({type: 'update_channels', payload});
+			if (payload)
+			{
+				ChatDispatch({type: 'update_channels', payload});
+			}
 		});
 
 		socket.on(events.NEW_CHANNEL, (payload: Channel) =>
 		{
-			console.info('new channel event received', payload);
 			ChatDispatch({type: 'new_channel', payload});
 		})
 

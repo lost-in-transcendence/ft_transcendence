@@ -10,7 +10,7 @@ import { GetUserWs } from "src/users/decorator/get-user-ws";
 import { CustomWsFilter } from "src/websocket-server/filters";
 import { WsValidationPipe } from "src/websocket-server/pipes";
 import { ChannelsService } from "./channels.service";
-import { ChannelDto, CreateChannelDto, PartialChannelDto } from "./dto";
+import { ChannelDto, CreateChannelDto, PartialChannelDto, UpdateChannelDto } from "./dto";
 import { joinChannelDto, joinChannelMessageDto } from "./dto/join-channel.dto";
 import { UserInterceptor } from "src/websocket-server/interceptor";
 import { UsersService } from "src/users/users.service";
@@ -209,19 +209,11 @@ export class ChannelsGateway implements OnGatewayConnection
 		this.notify(channelId, `${user.userName} has left the channel`);
 		this.alert({event: events.CHANNELS});
 		this.alert({event: events.USERS, args: {channelId: channelId}});
-
-		// const newChanList = await this.getVisibleChannels(user.id);
-		// this.server.to(client.id).emit('channels', newChanList);
-		// TODO Handle leave message
 	}
 
 	@SubscribeMessage('banUser')
-	async banUser(
-		@ConnectedSocket() client: Socket,
-		@MessageBody() body: any
-		)
+	async banUser(@ConnectedSocket() client: Socket, @MessageBody() body: any)
 	{
-		this.logger.debug("BAN COUCOU")
 		const array: Socket[] = UserSocketStore.getUserSockets(body.userId);
 		for (let n of array)
 			n.leave(body.channelId)
@@ -266,12 +258,19 @@ export class ChannelsGateway implements OnGatewayConnection
 		this.server.to(client.id).emit(events.USERS, users);
 	}
 
-	// @SubscribeMessage('handshake')
-	// async handshake(@ConnectedSocket() client: Socket, @GetUserWs('id', ParseUUIDPipe) userId: string)
-	// {
-	// 	const channels: PartialChannelDto[] = await this.getVisibleChannels(userId);
-	// 	this.server.to(client.id).emit('handshake', channels);
-	// }
+	@SubscribeMessage(events.UPDATE_CHANNEL_INFO)
+	async updateChannel(@ConnectedSocket() client: Socket, @GetUserWs() user: User, @MessageBody() dto: UpdateChannelDto)
+	{
+		let data: Prisma.ChannelUpdateInput = { channelName: dto.channelName, mode: dto.mode };
+
+		if (dto.mode === 'PROTECTED')
+		{
+			const hash = await bcrypt.hash(dto.password || '', 10);
+			data.hash = hash;
+		}
+		const updatedChannel = await this.channelService.update({id: dto.channelId}, data);
+		this.alert({event: events.CHANNELS});
+	}
 
 	/*************************/
 	/*        UTILS          */

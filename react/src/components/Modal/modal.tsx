@@ -44,7 +44,7 @@ export default function Modal(props: { isOpen: boolean, onOpen?: any, onClose: a
 				</div>
 				<button
 					onClick={closeModal}
-					className="absolute right-2 top-1.5 text-red-700"
+					className="absolute right-1 top-1 text-red-700"
 				>
 					<CloseButton size={'12'} />
 				</button>
