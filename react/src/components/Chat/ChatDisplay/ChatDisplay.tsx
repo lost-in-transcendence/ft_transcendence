@@ -29,12 +29,15 @@ export function ChatDisplay({ currentUser }: { currentUser: User }) {
 
   function updateUserInfo(id: string, data: any) {
     console.log("updating", id, "with", data);
-    setUsers((prev) => {
-      const index = prev.findIndex((v) => {
+    setUsers((prev) => 
+    {
+      const index = prev.findIndex((v) => 
+      {
         return v.user.id === id;
       });
       if (index === -1) return prev;
-      const updated = prev.map((v, i) => {
+      const updated = prev.map((v, i) => 
+      {
         if (i !== index) return v;
         const updatedUser = { ...v.user };
         Object.assign(updatedUser, data);

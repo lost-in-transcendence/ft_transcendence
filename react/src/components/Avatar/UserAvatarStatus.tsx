@@ -8,7 +8,9 @@ export function UserAvatarStatus({userName, status, size = '12', border = 'borde
 	return (
 		<>
 			<div className={"m-auto inline-block relative " + className}>
-				<img className={`w-${size} rounded-full border-4 ` + border} src={`${backURL}/users/avatars/${userName}?time=${Date.now()}`} />
+				<img className={`w-${size} rounded-full border-4 ` + border} 
+                // style={{width: `${size}px`}}
+                src={`${backURL}/users/avatars/${userName}?time=${Date.now()}`} />
 				<CurrentStatus className={"w-[40%] absolute bottom-0 right-0 rounded-full border-[4px] " + border} status={status}/>
 			</div>
         </>

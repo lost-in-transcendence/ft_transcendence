@@ -4,8 +4,6 @@ import { Socket } from "socket.io-client";
 import { SharedUserStatus } from "../../../shared/dtos";
 import { PartialUser, User } from "../../dto/users.dto";
 
-
-
 export interface ISocketContextState
 {
 	socket: Socket | undefined;

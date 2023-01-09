@@ -1,27 +1,31 @@
 // import './styles/profile.css'
 
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { useLoaderData } from "react-router-dom";
 
 import { backURL } from "../requests/constants";
 import { getUserMeModal, getUserModal } from "../requests";
 import { getCookie } from "../requests";
 import { addFriend, removeFriend } from "../requests/http/friends.requests";
+import SocketContext from "../components/Socket/socket-context";
 
 export async function loader({params} : any) {
-	let res = await getUserMeModal(new URLSearchParams({'friends': 'true'}));
-	const user = await res.json()
-	res = await getUserModal(params.userName, new URLSearchParams({'playStats': 'true', 'matchHistory': 'true'}));
+	// let res = await getUserMeModal(new URLSearchParams({'friends': 'true'}));
+	// const user = await res.json()
+	const res = await getUserModal(params.userName, new URLSearchParams({'playStats': 'true', 'matchHistory': 'true'}));
 	const profile = await res.json();
-	return ({user, profile});
+	return ({profile});
 }
 
 export function ProfileView() {
 	const data: any = useLoaderData();
-	const {user, profile} = data;
+	const {profile} = data;
 	const playerStats = profile.playStats;
-	const [isFriends, setIsFriends] = useState(user.friends.find((e: any) => e.id === profile.id) ? true : false)
-	console.log(user.friends);
+	const masterSocket = useContext(SocketContext).SocketState.socket;
+	const user = useContext(SocketContext).SocketState.user;
+	// const [isFriends, setIsFriends] = useState(user?.friends?.find((e: any) => e.id === profile.id) ? true : false)
+	// console.log(user.friends);
+	const isFriends = user?.friends?.find((e: any) => e.id === profile.id) ? true : false;
 
 	async function handleFriend()
 	{
@@ -33,7 +37,8 @@ export function ProfileView() {
 		{
 			const res = await addFriend(profile.id);
 		}
-		setIsFriends(!isFriends);
+		masterSocket?.emit('changeFriends')
+		// setIsFriends(user?.friends?.find((e: any) => e.id === profile.id) ? true : false);
 	}
 
 	return (
@@ -70,7 +75,7 @@ export function ProfileView() {
 					<div className="profileHistoryContainer">
 						<h2>Match History</h2>
 						{
-							user.matchHistory > 0 ?
+							profile.matchHistory > 0 ?
 								(
 									<ul>
 										<li>There is a match history</li>

@@ -1,3 +1,5 @@
+import { SharedGameStatusDto } from "../game";
+
 export class SharedUpdateUserDto
 {
     readonly userName?: string
@@ -37,6 +39,7 @@ export interface SharedOtherUserDto
 	email: string;
 	avatarPath?: string;
 	status: SharedUserStatus;
+	gameStatus: SharedGameStatusDto;
 	playStats: SharedPlayStatsDto;
 }
 
