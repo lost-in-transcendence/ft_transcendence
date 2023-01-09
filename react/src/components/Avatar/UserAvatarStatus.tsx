@@ -4,10 +4,35 @@ import { SharedUserStatus } from "../../../shared/dtos";
 import { backURL } from "../../requests";
 
 export function UserAvatarStatus({userName, status, size = '12', border = 'border-gray-900', className = ''} : {userName: string, status: SharedUserStatus, size: string, border: string, className: string})
-{
-	const [statusImg, setStatusImg] = useState('');
+{	
+	return (
+		<>
+			<div className={"m-auto inline-block relative " + className}>
+				<img className={`w-${size} rounded-full border-4 ` + border} src={`${backURL}/users/avatars/${userName}?time=${Date.now()}`} />
+				<CurrentStatus className={"w-[40%] absolute bottom-0 right-0 rounded-full border-[4px] " + border} status={status}/>
+			</div>
+        </>
+	)
+}
 
-	useEffect(() =>
+export function UserAvatarStatusProfile({userName, status, border = 'border-gray-900'} : {userName: string, status: SharedUserStatus, border: string})
+{
+	return (
+	    <>
+			<div className={"m-auto inline-block relative"}>
+				<img className={`w-[80px] rounded-full border-[6px] ` + border} src={`${backURL}/users/avatars/${userName}?time=${Date.now()}`} />
+				<CurrentStatus className={"z-[100] w-[35%] absolute bottom-0 right-0 rounded-full border-[6px] " + border} status={status} />
+			</div>
+        </>
+	)
+}
+
+export function CurrentStatus(props: {className: string, status: SharedUserStatus})
+{
+    const {className, status} = props;
+    const [statusImg, setStatusImg] = useState('');
+
+    useEffect(() =>
     {
         const baseUrl = '/assets/';
         if (status == 'ONLINE')
@@ -19,16 +44,10 @@ export function UserAvatarStatus({userName, status, size = '12', border = 'borde
         else if (status == 'AWAY')
             setStatusImg(baseUrl + 'away.png');
     }, [status])
-	
-	return (
-		
-		// <div className={dropdown ? 'hover' : ''}>
+
+    return (
         <>
-			<div className={"m-auto inline-block relative " + className}>
-				<img className={`w-${size} rounded-full border-4 ` + border} src={`${backURL}/users/avatars/${userName}?time=${Date.now()}`} />
-				<img className={"w-[45%] absolute bottom-0 right-0 rounded-full border-[4px] " + border} alt=" " aria-hidden="true" src={statusImg}></img>
-			</div>
-			<span className="arrow" />
+            <img className={className} src={statusImg} />
         </>
-	)
+    )
 }
