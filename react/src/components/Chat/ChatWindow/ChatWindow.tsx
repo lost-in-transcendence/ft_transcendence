@@ -189,9 +189,9 @@ export function ChatWindow({
 								className={`overflow-x-hidden break-words ${m.userId === channel?.id && "text-yellow-500 font-bold"
 									}`}
 							>
-								{displayName ?
+								{displayName &&
 									<div
-										className="hover:bg-slate-600 cursor-pointer rounded px-1 flex"
+										className="hover:bg-slate-600 cursor-pointer rounded px-1 flex items-center"
 										onContextMenu={(e) =>
 										{
 											e.preventDefault();
@@ -203,11 +203,11 @@ export function ChatWindow({
 											});
 										}}
 									>
-										<div>
+										<div className="min-w-[48px] basis-12 my-2">
 
 										<span>
 											<img
-												className="rounded-full h-10 w-10 inline mt-3 mb-1 mr-2"
+												className="rounded-full h-10 w-10 inline my-auto"
 												src={`${backURL}/users/avatars/${m.sender.userName
 												}?time=${Date.now()}`}
 												/>
@@ -220,17 +220,18 @@ export function ChatWindow({
 											>
 											{m.sender.userName}
 										</span>
-										<br />
-										<span className={`${m.userId !== channel?.id && "px-1 mb-2"}`}>
+										{/* <br /> */}
+										{/* <span className={`${m.userId !== channel?.id && "mb-2"}`}>
 										{m.content}
-										</span>
+										</span> */}
 										</div>
 									</div>
-									:
+									
+								}
 									<>
 										<div className="flex">
 
-											<div>
+											<div className="min-w-[48px] basis-12">
 
 											</div>
 											<div>
@@ -240,7 +241,6 @@ export function ChatWindow({
 											</div>
 										</div>
 									</>
-								}
 							</li>
 						);
 					})}
