@@ -78,6 +78,7 @@ export class ChannelsGateway implements OnGatewayConnection
 			this.server.emit(events.NEW_CHANNEL, retChannel);
 		else
 			this.server.to(client.id).emit(events.NEW_CHANNEL, retChannel);
+		this.server.to(client.id).emit(events.UPDATE_ACTIVE_CHAN, newChannel);
 	}
 
 	@SubscribeMessage(events.NEW_PRIVMSG)
@@ -100,6 +101,7 @@ export class ChannelsGateway implements OnGatewayConnection
 			u.join(newChannel.id);
 			this.server.to(u.id).emit(events.ALERT, {event: events.CHANNELS});
 		})
+		this.server.to(client.id).emit(events.UPDATE_ACTIVE_CHAN, newChannel);
 	}
 
 	@SubscribeMessage(events.JOIN_CHANNEL)
@@ -199,7 +201,6 @@ export class ChannelsGateway implements OnGatewayConnection
 				client.leave(channelId);
 				this.DstroyChannel(channelId)
 				const newChanList = await this.getVisibleChannels(user.id);
-				// return;
 			}
 		}
 		if (channelMember.role !== 'BANNED')

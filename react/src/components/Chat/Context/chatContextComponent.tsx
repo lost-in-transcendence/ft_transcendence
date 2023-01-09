@@ -56,6 +56,11 @@ export function ChatContextComponent(props: any)
 			ChatDispatch({type: 'new_channel', payload});
 		})
 
+		socket.on(events.UPDATE_ACTIVE_CHAN, (payload: Channel) =>
+		{
+			ChatDispatch({type: 'update_active', payload});
+		})
+
 		socket.on(events.ALERT, (payload: {event: string, args: any}) =>
 		{
 			if (payload.event === events.USERS && !payload.args)
@@ -70,6 +75,8 @@ export function ChatContextComponent(props: any)
 		socket.off('handshake');
 		socket.off(events.CHANNELS);
 		socket.off(events.NEW_CHANNEL);
+		socket.off(events.UPDATE_ACTIVE_CHAN);
+		socket.off(events.ALERT);
 	}
 
 	if (loading)

@@ -8,6 +8,7 @@ export const CHANNELS: string = 'channels';
 export const JOINED_CHANNELS: string = 'joinedChannels';
 export const JOINABLE_CHANNELS: string = 'joinableChannels';
 export const NEW_PRIVMSG: string = 'newPrivmsg';
+export const UPDATE_ACTIVE_CHAN: string = 'updateActiveChannel';
 
 export const USERS: string = 'users';
 

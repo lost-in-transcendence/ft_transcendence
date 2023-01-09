@@ -154,12 +154,15 @@ export function ChatWindow({
 				<span className="overflow-hidden basis-full">
 					{channel?.channelName}
 				</span>
-				<button
-					className="basis-0 text-gray-800 px-1 bg-red-800 rounded text-sm"
-					onClick={leaveChannel}
-				>
-					Leave
-				</button>
+				{
+					channel?.mode !== 'PRIVMSG' &&
+					<button
+						className="basis-0 text-gray-800 px-1 bg-red-800 rounded text-sm"
+						onClick={leaveChannel}
+					>
+						Leave
+					</button>
+				}
 			</div>
 			{display && (
 				<ContextMenu x={display.x} y={display.y} userName={display.userName} targetId={display.targetId} />
