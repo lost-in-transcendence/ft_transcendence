@@ -80,33 +80,44 @@ export class ChannelsGateway implements OnGatewayConnection
 			this.server.to(client.id).emit(events.NEW_CHANNEL, retChannel);
 	}
 
+	@SubscribeMessage(events.NEW_PRIVMSG)
+	async newPrivmsg(@ConnectedSocket() client: Socket, @GetUserWs() user: User, @MessageBody('userId', ParseUUIDPipe) userId: string)
+	{
+		const currentUserSocketIds = UserSocketStore.getUserSockets(user.id);
+		const targetUserSocketIds = UserSocketStore.getUserSockets(userId);
+		const channelName: string = userId > user.id ? userId + '_' + user.id : user.id + '_' + userId;
+		const dto: CreateChannelDto = { channelName, mode: 'PRIVMSG' };
+		const newChannel: PartialChannelDto = await this.channelService.create(dto, user.id);
+		await this.channelService.joinChannel({userId, channelId: newChannel.id, role: 'MEMBER'});
+
+		currentUserSocketIds.forEach((u) =>
+		{
+			u.join(newChannel.id);
+			this.server.to(u.id).emit(events.ALERT, {event: events.CHANNELS});
+		});
+		targetUserSocketIds.forEach( (u) =>
+		{
+			u.join(newChannel.id);
+			this.server.to(u.id).emit(events.ALERT, {event: events.CHANNELS});
+		})
+	}
+
 	@SubscribeMessage(events.JOIN_CHANNEL)
 	async join(
 		@MessageBody() body: joinChannelMessageDto,
 		@ConnectedSocket() client: Socket,
 		@GetUserWs() user: User)
 	{
-		const channelMemberDto: ChannelMemberDto = {
-			userId: user.id,
-			channelId: body.channelId,
-			role: "MEMBER"
-		}
-		const channelMember = await this.channelMemberService.getOne(channelMemberDto)
-		if (channelMember && channelMember.role === 'BANNED')
-		{
-			this.logger.debug("JE SUIS BANNI")
-			return ;
-		}
-		console.log("COUCOU")
 		const dto: joinChannelDto = {
-			channelId: body.channelId,
 			userId: user.id,
+			channelId: body.channelId,
 			role: 'MEMBER'
 		}
-		console.log("COUCOU")
+		const channelMember = await this.channelMemberService.getOne(dto)
+		if (channelMember && channelMember.role === 'BANNED')
+			return ;
 		const channel: Channel = await this.channelService.findOne({ id: dto.channelId });
 
-		console.log("COUCOU")
 		if (channel.mode === 'PRIVATE' && !channel.whitelist.includes(user.id))
 			throw new WsException({ status: 'Unauthorized', message: 'Channel is Private ! Get out of here !' });
 		if (channel.mode === 'PROTECTED')

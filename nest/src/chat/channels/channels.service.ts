@@ -18,13 +18,16 @@ export class ChannelsService
 {
 	private readonly logger = new Logger(ChannelsService.name);
 
-	constructor(private readonly prisma: PrismaService, 
+	constructor(private readonly prisma: PrismaService,
 				private readonly channelMember: ChannelMemberService) { }
 
 	async create(dto: CreateChannelDto, id: string): Promise<PartialChannelDto>
 	{
 		let data: Prisma.ChannelCreateInput = { channelName: dto.channelName, mode: dto.mode };
+		let role: RoleType = RoleType.OWNER;
 
+		if (dto.mode === 'PRIVMSG')
+			role = RoleType.MEMBER;
 		if (dto.mode === 'PROTECTED')
 		{
 			const hash = await bcrypt.hash(dto.password || '', 10);
@@ -40,7 +43,7 @@ export class ChannelsService
 					{
 						create:
 						{
-							role: RoleType.OWNER,
+							role,
 							user:
 							{
 								connect:

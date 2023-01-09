@@ -4,14 +4,19 @@ import { useNavigate } from "react-router-dom";
 import SocketContext from "../../Socket/socket-context";
 import { ContextMenuData } from "../dto";
 import * as events from '../../../../shared/constants'
+import ChatContext from "../Context/chatContext";
+import { Channel } from "../../../dto/channels.dto";
 
 export function ContextMenu({ x, y, userName, targetId }: ContextMenuData)
 {
 	const mainCtx = useContext(SocketContext);
+	const chatCtx = useContext(ChatContext);
 
 	const currentUser = mainCtx.SocketState.user;
 	const mainSocket = mainCtx.SocketState.socket;
 	const blacklist = mainCtx.SocketState.user.blacklist;
+
+	const channels = chatCtx.ChatState.visibleChannels;
 
 	const isInBlacklist: boolean = blacklist?.find((u) => u.id === targetId) ? true : false;
 
@@ -30,6 +35,19 @@ export function ContextMenu({ x, y, userName, targetId }: ContextMenuData)
 	function unblockUser()
 	{
 		mainSocket?.emit(events.UNBLOCK_USER, { userId: targetId });
+	}
+
+	function sendPrivmsg()
+	{
+		const channelName = targetId > currentUser.id ? targetId + '_' + currentUser.id : currentUser.id + '_' + targetId;
+		const channelExists: Channel | undefined = channels.find((c) => c.channelName === channelName);
+
+		if (channelExists)
+			chatCtx.ChatDispatch({type: 'update_active', payload: channelExists});
+		else
+		{
+			chatCtx.ChatState.socket?.emit(events.NEW_PRIVMSG, {userId: targetId});
+		}
 	}
 
 	const liClassName: string =
@@ -55,6 +73,12 @@ export function ContextMenu({ x, y, userName, targetId }: ContextMenuData)
 					<li className={liClassName}>Invite to play</li>
 					<li className={liClassName}>[conditional friend]</li>
 					<li className={liClassName}>Invite to channel</li>
+					<li
+						className={liClassName}
+						onClick={sendPrivmsg}
+					>
+						Direct Message
+					</li>
 					{
 						isInBlacklist ?
 							<li

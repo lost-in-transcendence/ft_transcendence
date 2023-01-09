@@ -15,5 +15,5 @@ export class CreateChannelDto implements SharedCreateChannelDto
 
 	@IsOptional()
 	@IsString()
-	password: string;
+	password?: string;
 }
