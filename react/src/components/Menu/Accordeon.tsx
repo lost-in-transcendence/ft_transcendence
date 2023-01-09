@@ -1,6 +1,6 @@
 import { useRef, useState } from "react"
 
-export function Accordeon({ title, children }: any)
+export function Accordeon({ title, children, bgColor = 'bg-gray-600' }: any)
 {
 	const [isOpen, setIsOpen] = useState<boolean>(false);
 	const selfRef = useRef<HTMLDivElement>(null)
@@ -20,7 +20,7 @@ export function Accordeon({ title, children }: any)
 					{isOpen ? '-' : '+'}
 				</span>
 			</button>
-			<div ref={selfRef} className={`bg-gray-600 ${(isOpen) ? `scale-y-100 h-full` : "scale-y-0 h-0"} shadow origin-top duration-300 transition-scale-y ease-in-out`}>
+			<div ref={selfRef} className={`${bgColor} ${(isOpen) ? `scale-y-100 h-full` : "scale-y-0 h-0"} shadow origin-top duration-300 transition-scale-y ease-in-out`}>
 				{
 					children
 				}
