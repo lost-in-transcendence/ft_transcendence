@@ -1,11 +1,12 @@
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import SocketContext from "../../Socket/socket-context";
-import { ContextMenuData } from "../dto";
+import { ContextMenuData, Member } from "../dto";
 import * as events from '../../../../shared/constants'
 import ChatContext from "../Context/chatContext";
 import { Channel } from "../../../dto/channels.dto";
+import Modal from "../../Modal/modal";
 
 export function ContextMenu({ x, y, userName, targetId, channel }: ContextMenuData)
 {
@@ -24,7 +25,7 @@ export function ContextMenu({ x, y, userName, targetId, channel }: ContextMenuDa
 	 //targetIsBan = chan;
 	}
 	// NEED TO FIND A WAY TO GET THIS INFO
-
+	const [banBoxIsOpen, setBanBoxIsOpen] = useState(false)
 
 
 	const channels = chatCtx.ChatState.visibleChannels;
@@ -38,10 +39,6 @@ export function ContextMenu({ x, y, userName, targetId, channel }: ContextMenuDa
 		navigate(`/profile/view/${userName}`);
 	}
 
-	function banUser()
-	{
-		mainSocket?.emit(events.BAN_USER, {userId: targetId, channelId: channel.id})
-	}
 	
 	function unbanUser()
 	{
@@ -98,10 +95,17 @@ export function ContextMenu({ x, y, userName, targetId, channel }: ContextMenuDa
 						Direct Message
 					</li>
 					{ isAdmin &&
-						<li
-							className={liClassName}
-							onClick={banUser}
-						>
+						<li className={liClassName}
+								onClick={() => setBanBoxIsOpen(true)}
+							>
+							<Modal isOpen={banBoxIsOpen} onClose={() => setBanBoxIsOpen(false)}>
+								<BanBox
+									onClose={() => setBanBoxIsOpen(false)}
+									channel={channel}
+									userToBan={targetId}
+
+								/>
+							</Modal>
 							ban
 						</li>
 					}
@@ -125,4 +129,50 @@ export function ContextMenu({ x, y, userName, targetId, channel }: ContextMenuDa
 			}
 		</ul>
 	);
+}
+
+function BanBox({onClose, channel, userToBan}: {onClose: any, channel: Channel, userToBan: string})
+{
+	const mainCtx = useContext(SocketContext);
+	const mainSocket = mainCtx.SocketState.socket;
+
+	const [data, setData] = useState<{time: number, timeUnit: string}>({time: 0, timeUnit: "sec"})
+	console.log("HEHEHEHE")
+
+	function banUser()
+	{
+		mainSocket?.emit(events.BAN_USER, {userId: userToBan, channelId: channel.id, time: 2})
+	}
+	return (
+		<>
+			<h1 className="text-center mb-3" >Ban user</h1>
+			<form className="flex flex-col" /*onSubmit={updateChannel}*/>
+				<label className="flex flex-row justify-between p-2">
+					<p>Set how long you want to ban the user</p>
+					<input
+					type={"text"}
+					onChange={(e) => setData({ ...data, time: parseInt(e.target.value, 10)})}
+					>
+					</input>
+					<select
+						className="basis-1/2 rounded shadow"
+						name="time"
+						onChange={(e) =>
+							setData({ ...data, timeUnit: e.target.value })
+						}
+					>
+						<option value={"sec"}>sec</option>
+						<option value={"min"}>min</option>
+						<option value={"hour"}>hour</option>
+						<option value={"day"}>day</option>
+					</select>
+				</label>
+				<input
+					type={"submit"}
+					name="Submit"
+					className="bg-indigo-300 shadow border w-1/4 rounded self-center"
+				/>
+			</form>
+		</>
+	)
 }
