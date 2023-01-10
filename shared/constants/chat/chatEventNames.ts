@@ -10,6 +10,8 @@ export const JOINABLE_CHANNELS: string = 'joinableChannels';
 export const NEW_PRIVMSG: string = 'newPrivmsg';
 export const UPDATE_ACTIVE_CHAN: string = 'updateActiveChannel';
 export const UPDATE_CHANNEL_INFO: string = 'updateChannelInfo';
+export const PROMOTE_USER: string = 'promoteUser';
+export const DEMOTE_USER: string = 'demoteUser';
 
 export const USERS: string = 'users';
 

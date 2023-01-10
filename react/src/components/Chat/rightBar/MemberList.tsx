@@ -28,7 +28,7 @@ export function MemberList({ members, status, channel}: { members: Member[], sta
 		<>
 			{
 				display &&
-				<ContextMenu x={display.x} y={display.y} userName={display.userName} targetId={display.targetId} channel={channel}/>
+				<ContextMenu x={display.x} y={display.y} channel={channel} target={display.target}/>
 			}
 			<h3 className={"ml-2 mt-2 text-zinc-400"}>{status}</h3>
 			<ul>
@@ -46,9 +46,8 @@ export function MemberList({ members, status, channel}: { members: Member[], sta
 									setDisplay({
 										x: e.pageX,
 										y: e.pageY,
-										userName: user.userName,
-										targetId: user.id,
-										channel: channel
+										channel: channel,
+										target: u
 									});
 								}}
 								className="flex items-center gap-3 py-1 my-1 rounded hover:bg-zinc-500 cursor-pointer group"

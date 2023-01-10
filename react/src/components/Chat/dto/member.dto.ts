@@ -7,7 +7,6 @@ export interface BanMemberDto extends SharedBanUserDto { }
 export interface ContextMenuData {
 	x: number;
 	y: number;
-	userName: string;
-	targetId: string;
-	channel: Channel
+	channel: Channel;
+	target: Member;
 }

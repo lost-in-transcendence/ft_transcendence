@@ -6,8 +6,9 @@ import { joinChannelDto } from '../dto';
 import { BanMemberDto, ChannelMemberDto } from './dto';
 
 @Injectable()
-export class ChannelMemberService {
-	constructor(private readonly prisma: PrismaService) { }
+export class ChannelMemberService
+{
+	constructor(private readonly prisma: PrismaService) {}
 	private readonly logger = new Logger(ChannelMemberService.name);
 
 	async create(dto: joinChannelDto) {
@@ -77,7 +78,6 @@ export class ChannelMemberService {
 				role: dto.role
 			}
 		})
-		console.log({ ret });
 	}
 
 	async getOne(dto: ChannelMemberDto) {

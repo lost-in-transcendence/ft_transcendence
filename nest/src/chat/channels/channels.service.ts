@@ -14,23 +14,27 @@ import { ChannelMemberService } from './channel-member/channel-member.service';
 import { Server } from 'http';
 
 @Injectable()
-export class ChannelsService {
+export class ChannelsService
+{
 	private readonly logger = new Logger(ChannelsService.name);
 
 	constructor(private readonly prisma: PrismaService,
 		private readonly channelMember: ChannelMemberService) { }
 
-	async create(dto: CreateChannelDto, id: string): Promise<PartialChannelDto> {
+	async create(dto: CreateChannelDto, id: string): Promise<PartialChannelDto>
+	{
 		let data: Prisma.ChannelCreateInput = { channelName: dto.channelName, mode: dto.mode };
 		let role: RoleType = RoleType.OWNER;
 
 		if (dto.mode === 'PRIVMSG')
 			role = RoleType.MEMBER;
-		if (dto.mode === 'PROTECTED') {
+		if (dto.mode === 'PROTECTED')
+		{
 			const hash = await bcrypt.hash(dto.password || '', 10);
 			data.hash = hash;
 		}
-		try {
+		try
+		{
 			const newChannel: PartialChannelDto = await this.prisma.channel.create({
 				data:
 				{
@@ -56,14 +60,34 @@ export class ChannelsService {
 					channelName: true,
 					mode: true,
 					createdAt: true,
-					members: true,
-					messages: true,
+					members:
+					{
+						select:
+						{
+							role: true,
+							timeJoined: true,
+							user:
+							{
+								select:
+								{
+									id: true,
+									userName: true,
+									status: true,
+									gameStatus: true,
+									// avatarPath: true
+								}
+							}
+						}
+					},
+					// messages: true,
 				}
 			})
 			return (newChannel);
 		}
-		catch (error) {
-			if (error instanceof PrismaClientKnownRequestError) {
+		catch (error)
+		{
+			if (error instanceof PrismaClientKnownRequestError)
+			{
 				if (error.code === 'P2002')
 					throw new ForbiddenException(`Channel ${dto.channelName} already exists`);
 			}
@@ -72,50 +96,64 @@ export class ChannelsService {
 		}
 	}
 
-	async joinChannel(dto: joinChannelDto) {
+	async joinChannel(dto: joinChannelDto)
+	{
 		return (await this.channelMember.create(dto))
 	}
 
-	async leaveChannel(where: Prisma.ChannelMemberWhereUniqueInput) {
+	async leaveChannel(where: Prisma.ChannelMemberWhereUniqueInput)
+	{
 		return this.prisma.channelMember.delete({ where });
 	}
 
-	async banUser(userId: string, channelId: string) {
+	async banUser(userId: string, channelId: string)
+	{
 		const dto: ChannelMemberDto = { userId, channelId, role: 'BANNED' };
 		console.log("BANUSER UPDATE ROLE", dto)
 		await this.channelMember.changeRole(dto);
 	}
-	async unbanUser(userId: string, channelId: string) {
+	async unbanUser(userId: string, channelId: string)
+	{
 		const dto: ChannelMemberDto = { userId, channelId, role: 'MEMBER' };
 		await this.channelMember.changeRole(dto)
 	}
 
-	async findAll(): Promise<Channel[]> {
+	async findAll(): Promise<Channel[]>
+	{
 		const allChannels = await this.prisma.channel.findMany({});
 		return (allChannels);
 	}
 
-	async channels(params: Prisma.ChannelFindManyArgs)/*: Promise<Channel[]>*/: Promise<PartialChannelDto[]> {
-		const { skip, take, cursor, where, orderBy, select, include, distinct } = params;
-		return this.prisma.channel.findMany(
-			{
-				select,
-				// include,
-				skip,
-				take,
-				cursor,
-				where,
-				orderBy,
-				distinct,
-			});
+	async channels(params: Prisma.ChannelFindManyArgs)
+	{
+		// 	const { skip, take, cursor, where, orderBy, select, include, distinct } = params;
+		return this.prisma.channel.findMany(params);
 	}
 
-	async channelSelect(params: Prisma.ChannelFindUniqueArgsBase) {
+	// async channels(params: Prisma.ChannelFindManyArgs)/*: Promise<Channel[]>*/: Promise<PartialChannelDto[]>
+	// {
+	// 	const { skip, take, cursor, where, orderBy, select, include, distinct } = params;
+	// 	return this.prisma.channel.findMany(
+	// 		{
+	// 			select,
+	// 			// include,
+	// 			skip,
+	// 			take,
+	// 			cursor,
+	// 			where,
+	// 			orderBy,
+	// 			distinct,
+	// 		});
+	// }
+
+	async channelSelect(params: Prisma.ChannelFindUniqueArgsBase)
+	{
 		const { where, select } = params;
 		return this.prisma.channel.findUnique({ where, select });
 	}
 
-	async channel(params: Prisma.ChannelFindUniqueArgsBase) {
+	async channel(params: Prisma.ChannelFindUniqueArgsBase)
+	{
 		const { where, include } = params;
 		return this.prisma.channel.findUnique({
 			where,
@@ -123,16 +161,19 @@ export class ChannelsService {
 		})
 	}
 
-	async findOne(where: Prisma.ChannelWhereUniqueInput): Promise<Channel> {
+	async findOne(where: Prisma.ChannelWhereUniqueInput): Promise<Channel>
+	{
 		return (this.prisma.channel.findUnique({ where }));
 	}
 
-	async update(where: Prisma.ChannelWhereUniqueInput, data: Prisma.ChannelUpdateInput): Promise<Channel> {
+	async update(where: Prisma.ChannelWhereUniqueInput, data: Prisma.ChannelUpdateInput): Promise<Channel>
+	{
 		const updatedChannel = await this.prisma.channel.update({ data, where })
 		return (updatedChannel);
 	}
 
-	async remove(id: string) {
+	async remove(id: string)
+	{
 		return this.prisma.channel.delete({ where: { id: id } });
 	}
 }

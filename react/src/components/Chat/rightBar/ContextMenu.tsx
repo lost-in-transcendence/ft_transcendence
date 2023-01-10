@@ -8,21 +8,30 @@ import ChatContext from "../Context/chatContext";
 import { Channel } from "../../../dto/channels.dto";
 import Modal from "../../Modal/modal";
 
-export function ContextMenu({ x, y, userName, targetId, channel }: ContextMenuData)
+export function ContextMenu({ x, y, channel, target }: ContextMenuData)
 {
 	const mainCtx = useContext(SocketContext);
 	const chatCtx = useContext(ChatContext);
 
 	const mainSocket = mainCtx.SocketState.socket;
+	const chatSocket = chatCtx.ChatState.socket;
+
 	const blacklist = mainCtx.SocketState.user.blacklist;
 	const currentUser = mainCtx.SocketState.user;
+
 	let isAdmin: boolean = false;
+	let isOwner: boolean = false;
+
+	const targetId = target.user.id;
+	const userName = target.user.userName;
+
 	if (channel.mode !== 'PRIVMSG')
 	{
 		const me = channel.members?.find((m) => m.user?.id === currentUser.id);
 		if(me.role === "OWNER" || me.role === "ADMIN")
 			isAdmin = true
-	 //targetIsBan = chan;
+		if (me.role === "OWNER")
+			isOwner = true;
 	}
 	// NEED TO FIND A WAY TO GET THIS INFO
 	const [banBoxIsOpen, setBanBoxIsOpen] = useState(false)
@@ -39,7 +48,11 @@ export function ContextMenu({ x, y, userName, targetId, channel }: ContextMenuDa
 		navigate(`/profile/view/${userName}`);
 	}
 
-	
+	function banUser()
+	{
+		mainSocket?.emit(events.BAN_USER, {userId: targetId, channelId: channel.id})
+	}
+
 	function unbanUser()
 	{
 		mainSocket?.emit(events.UNBAN_USER, {userId: targetId, channelId: channel.id})
@@ -53,6 +66,16 @@ export function ContextMenu({ x, y, userName, targetId, channel }: ContextMenuDa
 	function unblockUser()
 	{
 		mainSocket?.emit(events.UNBLOCK_USER, { userId: targetId });
+	}
+
+	function promoteUser()
+	{
+		chatSocket?.emit(events.PROMOTE_USER, { channelId: channel.id, userId: targetId });
+	}
+
+	function demoteUser()
+	{
+		chatSocket?.emit(events.DEMOTE_USER, { channelId: channel.id, userId: targetId });
 	}
 
 	function sendPrivmsg()
@@ -94,6 +117,26 @@ export function ContextMenu({ x, y, userName, targetId, channel }: ContextMenuDa
 					>
 						Direct Message
 					</li>
+					<hr className="border-gray-700"/>
+					{
+						isOwner &&
+						(
+							target.role === 'ADMIN' ?
+							<li
+								className={liClassName}
+								onClick={demoteUser}
+							>
+								Demote
+							</li>
+							:
+							<li
+								className={liClassName}
+								onClick={promoteUser}
+							>
+								Promote
+							</li>
+						)
+					}
 					{ isAdmin &&
 						<li className={liClassName}
 								onClick={() => setBanBoxIsOpen(true)}

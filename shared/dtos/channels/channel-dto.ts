@@ -23,10 +23,10 @@ export interface SharedChannelMembersDto
 	{
 		id: string;
 		userName: string;
-		status: SharedUserStatus;
-		gameStatus: SharedGameStatusDto;
+		status: SharedUserStatus | any;
+		gameStatus: SharedGameStatusDto | any;
 	};
-	role: RoleType;
+	role: RoleType | any;
 	avatarPath?: string;
 	timeJoined?: Date;
 }
