@@ -2,7 +2,7 @@ import { Action } from "@remix-run/router";
 import React, { createContext } from "react";
 import { Socket } from "socket.io-client";
 import { SharedUserStatus } from "../../../shared/dtos";
-import { PartialUser, User } from "../../dto/users.dto";
+import { OtherUser, PartialUser, User } from "../../dto/users.dto";
 
 export interface ISocketContextState
 {
@@ -32,9 +32,9 @@ export const defaultSocketContextState: ISocketContextState =
 	user: defaultUser
 }
 
-export type TSocketContextActions = 'update_socket' | 'update_user'
+export type TSocketContextActions = 'update_socket' | 'update_user' | 'update_friend'
 
-export type TSocketContextPayload =  Socket | PartialUser;
+export type TSocketContextPayload =  Socket | PartialUser | PartialOtherUser;
 
 export interface ISocketContextActions
 {

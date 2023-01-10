@@ -43,6 +43,18 @@ export interface SharedOtherUserDto
 	playStats: SharedPlayStatsDto;
 }
 
+export interface SharedPartialOtherUserDto
+{
+	id?: string;
+	id42?: number;
+	userName?: string;
+	email?: string;
+	avatarPath?: string;
+	status?: SharedUserStatus;
+	gameStatus?: SharedGameStatusDto;
+	playStats?: SharedPlayStatsDto;
+}
+
 export enum SharedChannelMode
 {
 	PUBLIC = 'PUBLIC',

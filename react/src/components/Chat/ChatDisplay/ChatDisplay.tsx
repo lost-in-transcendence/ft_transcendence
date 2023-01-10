@@ -5,14 +5,14 @@ import { ChatComposer } from "../ChatComposer/ChatComposer";
 import { ChatWindow } from "../ChatWindow/ChatWindow";
 import ChatContext from "../Context/chatContext";
 import * as events from "../../../../shared/constants";
-import { Member } from "../dto";
+import { ContextMenuData, Member } from "../dto";
 import { backURL } from "../../../requests";
 import { ChatRightBar } from "../rightBar/ChatRightBar";
 import { ContextMenu } from "../rightBar/ContextMenu";
 
 import SocketContext from "../../Socket/socket-context";
 
-export function ChatDisplay({ currentUser }: { currentUser: User }) {
+export function ChatDisplay({ currentUser, contextMenu }: { currentUser: User, contextMenu: {displayContext: ContextMenuData | undefined, setDisplayContext: any} }) {
   const ctx = useContext(ChatContext);
   const mainCtx = useContext(SocketContext);
 
@@ -94,10 +94,11 @@ export function ChatDisplay({ currentUser }: { currentUser: User }) {
         <ChatWindow
           users={users}
           className="bg-slate-400 basis-full overflow-y-auto px-1 py-2"
+          contextMenu={contextMenu}
         />
         <ChatComposer className="justify-self-end" user={currentUser} />
       </div>
-      <ChatRightBar users={users} />
+      <ChatRightBar users={users} contextMenu={contextMenu}/>
     </div>
   );
 }

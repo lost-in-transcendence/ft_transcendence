@@ -7,8 +7,12 @@ import { ChatDisplay } from "../components/Chat/ChatDisplay/ChatDisplay";
 import SocketContext from "../components/Socket/socket-context";
 import { UserAvatarStatus } from "../components/Avatar/UserAvatarStatus";
 import { BsFillChatFill } from "react-icons/bs";
-import { SlOptionsVertical } from "react-icons/sl";
 import { SharedOtherUserDto } from "../../shared/dtos";
+import { ContextMenuData } from "../components/Chat/dto";
+import { ContextMenu } from "../components/Chat/rightBar/ContextMenu";
+import * as events from '../../../shared/constants'
+import { Channel } from "../dto/channels.dto";
+
 
 export async function loader()
 {
@@ -27,6 +31,7 @@ export function Chat()
 	const state = ctx.ChatState;
 	const data: any = useLoaderData();
 	const { user } = data;
+	const [displayContext, setDisplayContext] = useState<ContextMenuData | undefined>(undefined);
 
 	return (
 		<div className="flex flex-col md:flex-row">
@@ -34,30 +39,53 @@ export function Chat()
 			<div className="text-white basis-full overflow-auto justify-self-center mr-auto bg-gray-800">
 				{
 					state.activeChannel ?
-						<ChatDisplay currentUser={user} />
+						<ChatDisplay currentUser={user} contextMenu={{displayContext, setDisplayContext}}/>
 						:
 						<>
 							<h1 className="text-5xl text-center">Friends</h1>
-							<ChatFriendList />
+							<ChatFriendList contextMenu={{displayContext, setDisplayContext}}/>
 						</>
 				}
 			</div>
+			{displayContext && (
+        	<ContextMenu
+          		x={displayContext.x}
+          		y={displayContext.y}
+         		userName={displayContext.userName}
+          		targetId={displayContext.targetId}
+        	/>
+      		)}
 		</div>
 	)
 }
 
-export function ChatFriendList()
+export function ChatFriendList({contextMenu} : {contextMenu: {displayContext: ContextMenuData | undefined, setDisplayContext: any}})
 {
 	const mainCtx = useContext(SocketContext);
-	// const {user} = mainCtx.SocketState;
-	const [friends, setFriends] = useState<SharedOtherUserDto[] | undefined>([]);
+	const {user} = mainCtx.SocketState;
+	// const [friends, setFriends] = useState<SharedOtherUserDto[] | undefined>([]);
+	const {friends} = user;
 	const onlineFriends = friends?.filter((v) => {return v.status !== "OFFLINE"});
 	const offlineFriends = friends?.filter((v) => {return v.status === "OFFLINE"});
 	const masterSocket = mainCtx.SocketState.socket;
+	const {displayContext, setDisplayContext} = contextMenu
+	const chatCtx = useContext(ChatContext);
+	const channels = chatCtx.ChatState.visibleChannels;
+
+	useEffect(() =>
+	{
+		const handleClick = () => setDisplayContext(undefined);
+		window.addEventListener("click", handleClick);
+		return () =>
+		{
+			window.removeEventListener("click", handleClick);
+		};
+	}, []);
 
 	function updateFriendInfo(id: string, data: any)
 	{
 		console.log("updating", id, "with", data);
+		mainCtx.SocketDispatch({type: 'update_friend', payload: {id, data}});
     	setFriends((prev) => 
    		{
       		const index = prev?.findIndex((v) => 
@@ -76,15 +104,26 @@ export function ChatFriendList()
     });
 	}
 
-	useEffect(() =>
+	function sendPrivmsg(targetId: string, )
 	{
-		 // add a call to set friendlist properly
+		const channelName = targetId > user.id ? targetId + '_' + user.id : user.id + '_' + targetId;
+		const channelExists: Channel | undefined = channels.find((c: any) => c.channelName === channelName);
+
+		if (!channelExists)
+			chatCtx.ChatState.socket?.emit(events.NEW_PRIVMSG, {userId: targetId});
+		else
+			chatCtx.ChatDispatch({type: 'update_active', payload: channelExists});
+	}
+
+	useEffect(() =>
+	{	
 		async function setFriendsOnLoad()
 		{
 			const res = await getUserMeModal(new URLSearchParams({friends: 'true'}))
 			const json = await res.json();
 			const friends = json.friends;
-			setFriends(friends);
+			mainCtx.SocketDispatch({type: 'update_user', payload: friends});
+			// setFriends(friends);
 		}
 		setFriendsOnLoad();
 		masterSocket?.on("updateFriend", (payload: any) =>
@@ -107,10 +146,25 @@ export function ChatFriendList()
 						status = status.charAt(0).toLocaleUpperCase() + status.slice(1);
 						return (
 							<>
-							<li key={v.id}>
+							<li key={v.id}
+							onContextMenu={(e) =>
+								{
+									e.preventDefault();
+									setDisplayContext({
+										x: e.pageX,
+										y: e.pageY,
+										userName: v.userName,
+										targetId: v.id
+									});
+								}}
+							onClick={(e) =>
+							{
+								e.preventDefault();
+								sendPrivmsg(v.id);
+							}}>
 								<div className="group h-[50px] flex gap-4 items-center hover:bg-gray-700 pl-2 cursor-pointer"
 								onClick={() => console.log("this should open privmsg chat with", v.userName)}>
-									<UserAvatarStatus userName={v.userName} status={v.status} border={"border-gray-800"} size={"10"} className={"m-0"} />
+									<UserAvatarStatus userName={v.userName} status={v.status} border={"border-gray-800"} size={"10"} className={"mx-0 my-0"} />
 									<div className="w-[80px]">
 										<p>{v.userName}</p>
 										<p>{status}</p>
@@ -125,11 +179,8 @@ export function ChatFriendList()
 										<></>
 
 									}
-									<div className="ml-auto w-[30px] h-[30px] bg-gray-700 group/button group-hover:bg-gray-900 rounded-full flex items-center">
+									<div className="ml-auto mr-5 w-[30px] h-[30px] bg-gray-700 group/button group-hover:bg-gray-900 rounded-full flex items-center">
 										<BsFillChatFill size={17} className="mx-auto my-auto text-gray-400 group-hover/button:text-gray-300" />
-									</div>
-									<div className="w-[30px] h-[30px] bg-gray-700 group/button group-hover:bg-gray-900 rounded-full flex items-center">
-										<SlOptionsVertical size={17} className="mx-auto my-auto text-gray-400 group-hover/button:text-gray-300" />
 									</div>
 								</div>
 							</li>
@@ -159,20 +210,35 @@ export function ChatFriendList()
 						status = status.charAt(0).toLocaleUpperCase() + status.slice(1);
 						return (
 							<>
-							<li key={v.id}>
+							<li key={v.id}
+							onContextMenu={(e) =>
+								{
+									e.preventDefault();
+									setDisplayContext({
+										x: e.pageX,
+										y: e.pageY,
+										userName: v.userName,
+										targetId: v.id
+									});
+								}}
+								onClick={(e) =>
+								{
+									e.preventDefault();
+									sendPrivmsg(v.id);
+								}}>
 								<div className="group h-[50px] flex gap-4 items-center hover:bg-gray-700 pl-2 cursor-pointer"
 								onClick={() => console.log("this should open privmsg chat with", v.userName)}>
-									<UserAvatarStatus userName={v.userName} status={v.status} border={"border-gray-800"} size={"10"} className={"m-0"} />
+									<UserAvatarStatus userName={v.userName} status={v.status} border={"border-gray-800"} size={"10"} className={"mx-0 my-0"} />
 									<div className="w-[80px]">
 										<p>{v.userName}</p>
 										<p>{status}</p>
 									</div>
-									<div className="ml-auto w-[30px] h-[30px] bg-gray-700 group/button group-hover:bg-gray-900 rounded-full flex items-center">
+									<div className="ml-auto mr-5 w-[30px] h-[30px] bg-gray-700 group/button group-hover:bg-gray-900 rounded-full flex items-center">
 										<BsFillChatFill size={17} className="mx-auto my-auto text-gray-400 group-hover/button:text-gray-300" />
 									</div>
-									<div className="w-[30px] h-[30px] bg-gray-700 group/button group-hover:bg-gray-900 rounded-full flex items-center">
+									{/* <div className="w-[30px] h-[30px] bg-gray-700 group/button group-hover:bg-gray-900 rounded-full flex items-center">
 										<SlOptionsVertical size={17} className="mx-auto my-auto text-gray-400 group-hover/button:text-gray-300" />
-									</div>
+									</div> */}
 								</div>
 							</li>
 							<hr className="bg-gray-700 border-0 h-[1px]" />
