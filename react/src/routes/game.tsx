@@ -174,7 +174,7 @@ export function Game()
 			<>
 				<Pong goBack={leaveGame} asSpectator={asSpectator}/>
 			</>
-			: <GameSideBar socket={socket} status={status} setQuickPlay={() => {setStatus('quickplayMenu'); setError(null);}} setCustomGame={() => {setStatus('customGame'); setError(null);}}/>
+			: <GameSideBar socket={socket} status={status} setQuickPlay={(e : any) => {setStatus('quickplayMenu'); setError(null);}} setCustomGame={(e: any) => {setStatus('customGame'); setError(null);}}/>
 		}
 		{
 			error ?
@@ -312,52 +312,74 @@ export function CustomGameScreen(props: {goBack: any})
 		socket?.emit('createCustomGame', {...payload});
 	}
 	return (
-		<div>
+		<div className="flex flex-row gap-4 mx-auto w-full">
 			<form onSubmit={customGameSubmit}>
-				<select value={customGameInfo.objective === Objective.SCORE ? 'score' : 'time'} onChange={(e) => 
-				{
-					let val = Objective.SCORE;
-					if (e.target.value === 'score')
-						val = Objective.SCORE;
-					else if (e.target.value === 'time')
-						val = Objective.TIME;
-					setCustomGameInfo({...customGameInfo, objective: val})
-					}}>
-					<option value='score'>Score</option>
-					<option value='time'>Time</option>
-				</select>
+				<div className="flex flex-row gap-4 items-center mx-auto w-full">
+					<p className="flex flex-col text-gray-100 text-xl bg-gray-800">Objective Type</p>
+					<select className="flex flex-col text-gray-100 bg-gray-700 text-xl"
+					value={customGameInfo.objective === Objective.SCORE ? 'score' : 'time'} onChange={(e) => 
+						{
+							let val = Objective.SCORE;
+							if (e.target.value === 'score')
+								val = Objective.SCORE;
+							else if (e.target.value === 'time')
+								val = Objective.TIME;
+							setCustomGameInfo({...customGameInfo, objective: val})
+						}}>
+						<option value='score'>Score</option>
+						<option value='time'>Time</option>
+					</select>
+				</div>
 
-				<select value={customGameInfo.goal} onChange={(e) => 
-				{
-					setCustomGameInfo({...customGameInfo, goal: Number(e.target.value)})
-				}}>
-					<option value='3'>3</option>
-					<option value='5'>5</option>
-					<option value='10'>10</option>
-				</select>
-				<select value={gameVisibility} onChange={(e) => {setGameVisibility(e.target.value)}}>
-					<option value="public">Public</option>
-					<option value="invite">Invite-only</option>
-				</select>
+				<div className="flex flex-row gap-4 items-center mx-auto w-full">
+					<p className="flex flex-col text-gray-100 text-xl bg-gray-800">Objective ({customGameInfo.objective === Objective.SCORE ? 'points' : 'minutes'})</p>
+					<select className="flex flex-col text-gray-100 bg-gray-700 text-xl"
+					value={customGameInfo.goal} onChange={(e) => 
+					{
+						setCustomGameInfo({...customGameInfo, goal: Number(e.target.value)})
+					}}>
+						<option value='3'>3</option>
+						<option value='5'>5</option>
+						<option value='10'>10</option>
+					</select>
+				</div>
+
+				<div className="flex flex-row gap-4 items-center mx-auto w-full">
+					<p className="flex flex-col text-gray-100 text-xl bg-gray-800">Game Visibility</p>
+					<select className="flex flex-col text-gray-100 bg-gray-700 text-xl"
+					value={gameVisibility} onChange={(e) => {setGameVisibility(e.target.value)}}>
+						<option value="public">Public</option>
+						<option value="invite">Invite-only</option>
+					</select>
+				</div>
+
 				{
 					gameVisibility === 'invite' ?
 					<>
-						<div>
+						<div className="flex flex-row gap-4 items-center mx-auto w-full">
 							{
 								userToInvite?.userName ?
-								<p>{`${userToInvite.userName} is set to be invited`}</p>
+								<p className="flex flex-col text-gray-100 text-xl bg-gray-800">{`${userToInvite.userName} is set to be invited`}</p>
 								: <></>
 							}
-							<button onClick={(e) => {setShowList(true); e.preventDefault(); e.stopPropagation();}}>Choose a player to invite</button>
+							<button className="flex flex-row gap-4 items-center mt-10 mx-auto h-12 w-auto justify-items-center
+						text-xl text-gray-400 cursor-pointer rounded bg-gray-600
+						hover:bg-gray-500 hover:text-white hover:shadow-gray-900 hover:shadow-sm
+						focus:bg-gray-500 focus:text-white focus:shadow-gray-900 focus:shadow-sm"
+							onClick={(e) => {setShowList(true); e.preventDefault(); e.stopPropagation();}}>Choose a player to invite</button>
 							{
 								showList?
 								<>
-									<input className="text-black" type="text" placeholder="Search..." value={userSearchFilter} onChange={(e) => setUserSearchFilter(e.target.value)} />
+									<input className="flex flex-col text-gray-100 text-xl bg-gray-800" type="text" placeholder="Search..." value={userSearchFilter} onChange={(e) => setUserSearchFilter(e.target.value)} />
 									<ul>
 										{filteredList.map((user: any) =>
 											{
 												return (
-													<li key={user.id} onClick={() => {setUserToInvite({userName: user.userName, id: user.id}); setShowList(false)}}>{user.userName}</li>
+													<li className="flex flex-row gap-4 items-center mt-10 mx-auto h-12 w-auto justify-items-center
+													text-xl text-gray-400 cursor-pointer rounded bg-gray-600
+													hover:bg-gray-500 hover:text-white hover:shadow-gray-900 hover:shadow-sm
+													focus:bg-gray-500 focus:text-white focus:shadow-gray-900 focus:shadow-sm" 
+													key={user.id} onClick={() => {setUserToInvite({userName: user.userName, id: user.id}); setShowList(false)}}>{user.userName}</li>
 												)
 											})}
 									</ul>
