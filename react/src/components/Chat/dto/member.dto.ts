@@ -6,7 +6,6 @@ export interface Member extends SharedChannelMembersDto { }
 export interface ContextMenuData {
 	x: number;
 	y: number;
-	userName: string;
-	targetId: string;
-	channel: Channel
+	channel: Channel;
+	target: Member;
 }

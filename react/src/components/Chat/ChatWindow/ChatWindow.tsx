@@ -205,9 +205,8 @@ export function ChatWindow({ className, users, channel }: { users: Member[], cla
 				<ContextMenu
 					x={display.x}
 					y={display.y}
-					userName={display.userName}
-					targetId={display.targetId}
-					channel={channel}
+					target={display.target}
+					channel={display.channel}
 				/>
 			)}
 			<div className={className}>
@@ -217,6 +216,10 @@ export function ChatWindow({ className, users, channel }: { users: Member[], cla
 						let displayName = false;
 						let prevUser;
 						const prev = all[i - 1];
+						const user = users.find((u) => u.user.id === m.userId);
+
+						if(!user)
+							return ;
 
 						if (blackList)
 						{
@@ -244,8 +247,7 @@ export function ChatWindow({ className, users, channel }: { users: Member[], cla
 											setDisplay({
 												x: e.pageX,
 												y: e.pageY,
-												userName: m.sender.userName,
-												targetId: m.userId,
+												target: user,
 												channel: channel
 											});
 										}}
@@ -353,7 +355,7 @@ function OwnerBox({ onClose, channel, bannedUsers }: { onClose: any, channel: Ch
 						Unban
 					</p>
 					  <select className ="basis-1/2 rounded shadow">{
-    					bannedUsers.map((x,y) => 
+    					bannedUsers.map((x,y) =>
       					<option key={y}>{x.user.userName}</option> )
   						}</select>;
 				</label>
