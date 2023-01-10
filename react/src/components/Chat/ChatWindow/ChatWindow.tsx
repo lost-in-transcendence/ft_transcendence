@@ -19,6 +19,7 @@ import { backURL } from "../../../requests";
 import { ContextMenu } from "../rightBar/ContextMenu";
 import SocketContext from "../../Socket/socket-context";
 import Modal from "../../Modal/modal";
+import { User } from "../../../dto/users.dto";
 
 export function ChatWindow({ className, users, channel }: { users: Member[], className?: string, channel: Channel })
 {
@@ -39,6 +40,10 @@ export function ChatWindow({ className, users, channel }: { users: Member[], cla
 	const selfRef = useRef<HTMLLIElement>(null);
 
 	let isOwner: boolean = false;
+	/* UPDATE BANNED USER AFTER TEST !!!!*/
+	/* UPDATE BANNED USER AFTER TEST !!!!*/
+	/* UPDATE BANNED USER AFTER TEST !!!!*/
+	let bannedUsers = users
 	if (channel && channel?.mode !== 'PRIVMSG')
 	{
 		const me = users?.find((m) => m.user?.id === currentUser.id);
@@ -180,6 +185,8 @@ export function ChatWindow({ className, users, channel }: { users: Member[], cla
 								<OwnerBox
 									onClose={() => setOwnerBoxIsOpen(false)}
 									channel={channel}
+									bannedUsers={bannedUsers}
+
 								/>
 							</Modal>
 						</>
@@ -200,6 +207,7 @@ export function ChatWindow({ className, users, channel }: { users: Member[], cla
 					y={display.y}
 					userName={display.userName}
 					targetId={display.targetId}
+					channel={channel}
 				/>
 			)}
 			<div className={className}>
@@ -238,6 +246,7 @@ export function ChatWindow({ className, users, channel }: { users: Member[], cla
 												y: e.pageY,
 												userName: m.sender.userName,
 												targetId: m.userId,
+												channel: channel
 											});
 										}}
 									>
@@ -282,7 +291,7 @@ export function ChatWindow({ className, users, channel }: { users: Member[], cla
 	);
 }
 
-function OwnerBox({ onClose, channel }: { onClose: any, channel: Channel })
+function OwnerBox({ onClose, channel, bannedUsers }: { onClose: any, channel: Channel, bannedUsers: Member[]})
 {
 	const [data, setData] = useState<{ channelId: string, channelName?: string; mode?: string; password?: string; }>({ channelId: channel.id });
 	const ctx = useContext(ChatContext);
@@ -339,6 +348,15 @@ function OwnerBox({ onClose, channel }: { onClose: any, channel: Channel })
 						/>
 					</label>
 				)}
+				<label className="=flex flex-row justify-between p-2">
+					<p>
+						Unban
+					</p>
+					  <select className ="basis-1/2 rounded shadow">{
+    					bannedUsers.map((x,y) => 
+      					<option key={y}>{x.user.userName}</option> )
+  						}</select>;
+				</label>
 				<input
 					type={"submit"}
 					name="Submit"

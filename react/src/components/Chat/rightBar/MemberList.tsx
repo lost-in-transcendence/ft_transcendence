@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { FaCrown, FaAngleDoubleUp } from 'react-icons/fa'
+import { Channel } from "../../../dto/channels.dto";
 
 import { backURL } from "../../../requests";
 import { UserAvatarStatus } from "../../Avatar/UserAvatarStatus";
 import { ContextMenuData, Member } from "../dto";
 import { ContextMenu } from "./ContextMenu";
 
-export function MemberList({ members, status }: { members: Member[], status: 'ONLINE' | 'OFFLINE' })
+export function MemberList({ members, status, channel}: { members: Member[], status: 'ONLINE' | 'OFFLINE', channel: Channel})
 {
 	const [display, setDisplay] = useState<ContextMenuData | undefined>(undefined);
 
@@ -27,7 +28,7 @@ export function MemberList({ members, status }: { members: Member[], status: 'ON
 		<>
 			{
 				display &&
-				<ContextMenu x={display.x} y={display.y} userName={display.userName} targetId={display.targetId} />
+				<ContextMenu x={display.x} y={display.y} userName={display.userName} targetId={display.targetId} channel={channel}/>
 			}
 			<h3 className={"ml-2 mt-2 text-zinc-400"}>{status}</h3>
 			<ul>
@@ -46,7 +47,8 @@ export function MemberList({ members, status }: { members: Member[], status: 'ON
 										x: e.pageX,
 										y: e.pageY,
 										userName: user.userName,
-										targetId: user.id
+										targetId: user.id,
+										channel: channel
 									});
 								}}
 								className="flex items-center gap-3 py-1 my-1 rounded hover:bg-zinc-500 cursor-pointer group"

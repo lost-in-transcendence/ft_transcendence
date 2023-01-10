@@ -87,7 +87,7 @@ export function ChatDisplay({ currentUser, channel }: { currentUser: User, chann
 				/>
 				<ChatComposer className="justify-self-end" user={currentUser} />
 			</div>
-			<ChatRightBar users={users} />
+			<ChatRightBar users={users} channel={channel}/>
 		</div>
 	);
 }

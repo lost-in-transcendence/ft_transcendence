@@ -7,14 +7,26 @@ import * as events from '../../../../shared/constants'
 import ChatContext from "../Context/chatContext";
 import { Channel } from "../../../dto/channels.dto";
 
-export function ContextMenu({ x, y, userName, targetId }: ContextMenuData)
+export function ContextMenu({ x, y, userName, targetId, channel }: ContextMenuData)
 {
 	const mainCtx = useContext(SocketContext);
 	const chatCtx = useContext(ChatContext);
 
-	const currentUser = mainCtx.SocketState.user;
 	const mainSocket = mainCtx.SocketState.socket;
 	const blacklist = mainCtx.SocketState.user.blacklist;
+	const currentUser = mainCtx.SocketState.user;
+	let isAdmin: boolean = false;
+	if (channel?.mode !== 'PRIVMSG')
+	{
+		const me = channel.members?.find((m) => m.user?.id === currentUser.id);
+		if(me.role === 'OWNER')
+			isAdmin = true
+		else if (me.role === 'ADMIN')
+			isAdmin = true
+	}
+	let targetIsBan = false;
+
+
 
 	const channels = chatCtx.ChatState.visibleChannels;
 
@@ -25,6 +37,16 @@ export function ContextMenu({ x, y, userName, targetId }: ContextMenuData)
 	function goToProfile(userName: string)
 	{
 		navigate(`/profile/view/${userName}`);
+	}
+
+	function banUser()
+	{
+		mainSocket?.emit(events.BAN_USER, {userId: targetId, channelId: channel.id})
+	}
+	
+	function unbanUser()
+	{
+		mainSocket?.emit(events.UNBAN_USER, {userId: targetId, channelId: channel.id})
 	}
 
 	function blockUser()
@@ -52,7 +74,7 @@ export function ContextMenu({ x, y, userName, targetId }: ContextMenuData)
 
 	return (
 		<ul
-			className={`list-none w-48 rounded p-2 bg-zinc-800 fixed z-[250]`}
+			className={`list-none w-48 rounded p-2 bg-zinc-800 fixed overflow-hidden z-[250]`}
 			style={{ top: `${y}px`, left: `${x}px` }}
 		>
 			<li
@@ -76,6 +98,24 @@ export function ContextMenu({ x, y, userName, targetId }: ContextMenuData)
 					>
 						Direct Message
 					</li>
+					{ isAdmin ?
+						targetIsBan ?
+						<li
+							className={liClassName}
+							onClick={unbanUser}
+						>
+							unban
+						</li>
+						:
+						<li
+							className={liClassName}
+							onClick={banUser}
+						>
+							ban
+						</li>
+						:
+						<li></li>
+					}
 					{
 						isInBlacklist ?
 							<li
