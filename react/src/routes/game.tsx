@@ -6,6 +6,7 @@ import { Pong } from "../components/Pong/Pong";
 import SocketContext from "../components/Socket/socket-context";
 import { GameStatus } from "../dto/game.dto";
 import { Accordeon } from "../components/Menu/Accordeon"
+import { GameSideBar } from "../components/Game/Context/GameSideBar";
 
 export async function loader()
 {
@@ -31,6 +32,7 @@ export function Game()
 	const loaderData: any = useLoaderData();
 	const {socket} = useContext(GameSocketContext).GameSocketState;
 	const masterSocket = useContext(SocketContext).SocketState.socket;
+	const gameStatus = useContext(SocketContext).SocketState.user.gameStatus;
 	const [status, setStatus] = useState('waiting')
 	const [error, setError] = useState<string | null>(null);
 	const [asSpectator, setAsSpectator] = useState(false);
@@ -128,7 +130,7 @@ export function Game()
 
 		return () =>
 		{
-			if (status !== 'waiting' && status !== 'gamesList' && status !== 'customGame')
+			if (gameStatus !== GameStatus.NONE)
 				masterSocket?.emit('changeGameStatus', {gameStatus: GameStatus.NONE})
 		}
 	}, [])
@@ -143,6 +145,7 @@ export function Game()
 	function goBack()
 	{
 		setStatus('waiting');
+		masterSocket?.emit('changeGameStatus', {gameStatus: GameStatus.NONE})
 		setError('');
 	}
 
@@ -164,42 +167,50 @@ export function Game()
 
 	return (
 		<div className="flex flex-col md:flex-row">
-			<GameSideBar socket={socket} status={status} setCustomGame={() => setStatus('customGame')}/>
-			{
-				
-				status === 'matchAccepted' ?
-				<>
-					<p>Waiting for the other player...</p>
-				</>
+		{
+			status === 'ongoingGame' ?
+			<>
+				<Pong goBack={leaveGame} asSpectator={asSpectator}/>
+			</>
+			: <GameSideBar socket={socket} status={status} setQuickPlay={() => setStatus('quickplayMenu')} setCustomGame={() => setStatus('customGame')}/>
+		}
+		{
+			status === 'quickplayMenu' ?
+			<>
+				<button 
+						onClick={() => {socket?.emit('quickplay')}}
+						disabled={gameStatus !== 'NONE' ? true : false}
+				>
+					Quickplay
+				</button>
+			</>
 
-				: status === 'matchFound' ?
-				<>
-					<p>Match Found!!!!!!!!!!</p>
-					<button onClick={() => socket?.emit('acceptMatch', {room: roomState})}>Accept</button>
-					<button onClick={() => socket?.emit('declineMatch')}>Decline</button>
-				</>
+			: status === 'matchAccepted' ?
+			<>
+				<p>Waiting for the other player...</p>
+			</>
 
-				: status === 'queueing' ?
-				<>
-					<p>In Queue...</p>
-					<button onClick={() => {setStatus('waiting');socket?.emit("leaveQueue");}}>Stop Queue</button>
-				</>
+			: status === 'matchFound' ?
+			<>
+				<p>Match Found!!!!!!!!!!</p>
+				<button onClick={() => socket?.emit('acceptMatch', {room: roomState})}>Accept</button>
+				<button onClick={() => socket?.emit('declineMatch')}>Decline</button>
+			</>
 
-				: status === 'ongoingGame' ?
-				<>
-					<Pong goBack={leaveGame} asSpectator={asSpectator}/>
-				</>
+			: status === 'queueing' ?
+			<>
+				<p>In Queue...</p>
+				<button onClick={() => {setStatus('waiting');socket?.emit("leaveQueue");}}>Stop Queue</button>
+			</>
 
-				: status === 'customGame' ?
-					<CustomGameScreen goBack={goBack} />
+			: status === 'customGame' ?
+			<CustomGameScreen goBack={goBack} />
 
-				// : status === 'gamesList' ?
-				// 	<GameList goBack={goBack} />
+			:
+			<></>
 
-				:
-				<></>
+		}
 
-			}
 			<p>{error}</p>
 		</div>
 	)
@@ -326,118 +337,5 @@ export function CustomGameScreen(props: {goBack: any})
 			</form>
 			<button onClick={goBack}>Go Back!</button>
 			</div>
-	)
-}
-
-export function GameSideBar(props : {socket: any, status: any, setCustomGame: any})
-{
-	const me = useContext(SocketContext).SocketState.user;
-	const {socket} = useContext(GameSocketContext).GameSocketState;
-	// const {goBack} = props;
-	const [waitingRooms, setWaitingRooms] = useState([]);
-	const [ongoingGames, setOngoingGames] = useState([]);
-
-	useEffect(() =>
-	{
-		socket?.on('games', (payload: any) =>
-		{
-			setOngoingGames(payload.ongoingGames);
-			setWaitingRooms(payload.waitingRooms);
-		});
-		socket?.on('waitingRooms', (payload: any) =>
-		{
-			setWaitingRooms(payload.waitingRooms);
-		});
-		socket?.on('ongoingGames', (payload: any) =>
-		{
-			console.log({payload});
-			setOngoingGames(payload.ongoingGames);
-		});
-		socket?.emit('games');
-		return (() =>
-		{
-			socket?.off('games');
-			socket?.off('waitingRooms');
-			socket?.off('ongoingGames');
-		})
-	}, [])
-
-	return (
-		<div className="bg-gray-700 w-full h-screen rounded drop-shadow-lg
-			md:w-52
-			text-gray-300 overflow-auto">
-			<button className="flex flex-row gap-4 m-2 items-center h-12 w-11/12
-						text-xl cursor-pointer rounded
-						hover:bg-gray-500 hover:text-white hover:shadow-gray-900 hover:shadow-sm
-						focus:bg-gray-500 focus:text-white focus:shadow-gray-900 focus:shadow-sm"
-						onClick={() => {
-							if (props.status !== 'queueing')
-								socket?.emit('quickplay');
-							}}>
-				Quickplay
-			</button>
-			<hr className="border-gray-600 mb-2 w-11/12 m-auto" />
-			<button className="flex flex-row gap-4 m-2 items-center h-12 w-11/12
-						text-xl cursor-pointer rounded
-						hover:bg-gray-500 hover:text-white hover:shadow-gray-900 hover:shadow-sm
-						focus:bg-gray-500 focus:text-white focus:shadow-gray-900 focus:shadow-sm"
-						onClick={() => {
-						 	if (props.status === 'queueing')
-						 	{
-						 		socket?.emit("leaveQueue");
-							}
-							props.setCustomGame();
-						 }}>
-						{/* onClick={props.setCustomGame}> */}
-				Custom Game
-			</button>
-			<hr className="border-gray-600 mb-2 w-11/12 m-auto" />
-			<div className="flex flex-row gap-4 m-2 items-center h-12 w-11/12
-						text-xl cursor-pointer rounded">
-				Games List
-			</div>
-			<Accordeon title={'Waiting rooms'} bgColor={'bg-gray-700'}>
-
-				{
-					waitingRooms.map( (room:any) =>
-					{
-						console.log(room);
-						if (room.invitation === false && room.user1 !== me.userName)
-							return (
-								<div className="flex flex-col bg-gray-600 mb-2 w-11/12 m-auto
-										cursor-pointer rounded
-										">
-									<p><span className="text-gray-400 text-sm">user: </span><span className="text-gray-300 text-base">{room.user1}</span></p>
-									<hr className="border-gray-500" />
-									<p><span className="text-gray-400 text-sm">objective: </span><span className="text-gray-300 text-base">{room.goal} {room.objective === Objective.SCORE ? "points" : "minutes"}</span></p>
-									<button className="hover:bg-gray-400 hover:text-white hover:shadow-gray-900 hover:shadow-sm border-2 border-gray-500"
-										onClick={() => socket?.emit('joinCustomGame', {room: room.id})}>Join Game!!!!!</button>
-								</div>
-							)
-					})
-				}
-			</Accordeon>
-			<Accordeon title={'Ongoing games'}>
-			{
-				ongoingGames.map((game: any) =>
-				{
-					return (
-						<div className="flex flex-col bg-gray-600 mb-2 w-11/12 m-auto
-						cursor-pointer rounded
-						">
-							<p><span className="text-gray-300 text-base">{game.user1}</span><span className="text-gray-400 text-sm"> vs </span><span className="text-gray-300 text-base">{game.user2}</span></p>
-							<hr className="border-gray-500" />
-							<p><span className="text-gray-400 text-sm">objective: </span><span className="text-gray-300 text-base">{game.goal} {game.objective === Objective.SCORE ? "points" : "minutes"}</span></p>
-							<hr className="border-gray-500" />
-							<p>time elapsed: coming soon</p>
-							<button className="hover:bg-gray-400 hover:text-white hover:shadow-gray-900 hover:shadow-sm border-2 border-gray-500"
-								onClick={() => {socket?.emit('joinAsSpectator', {room: game.id});}}>Join as Spectator</button>
-						</div>
-					)
-				})
-			}
-			</Accordeon>
-			{/* <button onClick={goBack}>Go Back!</button> */}
-	</div>
 	)
 }
