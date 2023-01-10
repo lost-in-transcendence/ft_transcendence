@@ -7,6 +7,8 @@ import SocketContext from "../components/Socket/socket-context";
 import { GameStatus } from "../dto/game.dto";
 import { Accordeon } from "../components/Menu/Accordeon"
 import { GameSideBar } from "../components/Game/Context/GameSideBar";
+import { SharedGameStatusDto } from "../../shared/dtos";
+import { Spinner } from "../components/Spinner/Spinner";
 
 export async function loader()
 {
@@ -130,7 +132,7 @@ export function Game()
 
 		return () =>
 		{
-			if (gameStatus !== GameStatus.NONE)
+			if (gameStatus !== SharedGameStatusDto.NONE)
 				masterSocket?.emit('changeGameStatus', {gameStatus: GameStatus.NONE})
 		}
 	}, [])
@@ -146,7 +148,7 @@ export function Game()
 	{
 		setStatus('waiting');
 		masterSocket?.emit('changeGameStatus', {gameStatus: GameStatus.NONE})
-		setError('');
+		setError(null);
 	}
 
 	function leaveGame()
@@ -172,36 +174,73 @@ export function Game()
 			<>
 				<Pong goBack={leaveGame} asSpectator={asSpectator}/>
 			</>
-			: <GameSideBar socket={socket} status={status} setQuickPlay={() => setStatus('quickplayMenu')} setCustomGame={() => setStatus('customGame')}/>
+			: <GameSideBar socket={socket} status={status} setQuickPlay={() => {setStatus('quickplayMenu'); setError(null);}} setCustomGame={() => {setStatus('customGame'); setError(null);}}/>
 		}
 		{
-			status === 'quickplayMenu' ?
-			<>
-				<button 
+			error ?
+			<div className="flex flex-col gap-4 w-full">
+				<div className="flex flex-col items-center m-auto
+				text-xl text-gray-400 bg-gray-700">
+					<p>{error}</p>
+				</div>
+			</div>
+			: status === 'quickplayMenu' ?
+			<div className="flex flex-col gap-4 w-full">
+				<Accordeon title={'Rules And Instructions'} bgColor={'bg-gray-600'} width='bg-gray-600 w-auto mx-auto text-xl text-gray-400'>
+					<p className="flex flex-row" >blabladfsdfsdfsdfsdfsdddddddddddddddddddddddddsfsdfsdfsd sdfsdfsdf sdf sdf sdfsd  fsd fsdfsdfsdf sdf sd fsd fsd fsdf sdsdf sdfhsdh srth srtt hsrth aer yhrthad gojahdkg hakjdg jg hakjhgjha guhk ghakdg kajd g kg</p>
+				</Accordeon>
+				<button className="flex flex-row gap-4 items-center mt-10 mx-auto h-12 w-auto justify-items-center
+						text-xl text-gray-400 cursor-pointer rounded bg-gray-600
+						hover:bg-gray-500 hover:text-white hover:shadow-gray-900 hover:shadow-sm
+						focus:bg-gray-500 focus:text-white focus:shadow-gray-900 focus:shadow-sm"
 						onClick={() => {socket?.emit('quickplay')}}
 						disabled={gameStatus !== 'NONE' ? true : false}
 				>
 					Quickplay
 				</button>
-			</>
+			</div>
 
 			: status === 'matchAccepted' ?
-			<>
-				<p>Waiting for the other player...</p>
-			</>
+			<div className="flex flex-col gap-4 w-full">
+				<div className="flex flex-col items-center m-auto
+				text-xl text-gray-400 bg-gray-700">
+					<p>Waiting for the other player</p>
+					<Spinner/>
+				</div>
+			</div>
 
 			: status === 'matchFound' ?
-			<>
-				<p>Match Found!!!!!!!!!!</p>
-				<button onClick={() => socket?.emit('acceptMatch', {room: roomState})}>Accept</button>
-				<button onClick={() => socket?.emit('declineMatch')}>Decline</button>
-			</>
+			<div className="flex flex-col gap-4 w-full">
+				<div className="flex flex-col items-center m-auto
+				text-xl text-gray-400 bg-gray-700">
+					<p>Match Found!!!!!!!!!!</p>
+					<div className="flex flex-row items-center m-auto gap-1
+					text-xl text-gray-100 bg-black">
+						<button className="border-2 border-green-600" 
+						onClick={() => socket?.emit('acceptMatch', {room: roomState})}>
+							Accept
+						</button>
+						<button className="border-2 border-red-600"
+						onClick={() => socket?.emit('declineMatch')}>
+							Decline
+						</button>
+					</div>
+				</div>
+				
+			</div>
 
 			: status === 'queueing' ?
-			<>
-				<p>In Queue...</p>
-				<button onClick={() => {setStatus('waiting');socket?.emit("leaveQueue");}}>Stop Queue</button>
-			</>
+			<div className="flex flex-col gap-4 w-full">
+				<div className="flex flex-col items-center m-auto gap-2
+				text-xl text-gray-400 bg-gray-700">
+					<p>In Queue</p>
+					<Spinner/>
+					<div className="flex flex-row items-center mx-auto mt-2 gap-1
+					text-xl text-gray-100 bg-black">
+						<button onClick={() => {setStatus('waiting');socket?.emit("leaveQueue");}}>Stop Queue</button>
+					</div>
+				</div>
+			</div>
 
 			: status === 'customGame' ?
 			<CustomGameScreen goBack={goBack} />
@@ -210,8 +249,6 @@ export function Game()
 			<></>
 
 		}
-
-			<p>{error}</p>
 		</div>
 	)
 }

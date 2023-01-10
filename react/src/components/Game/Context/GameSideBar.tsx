@@ -40,14 +40,14 @@ export function GameSideBar(props : {socket: any, status: any, setCustomGame: an
 
 	return (
 		<div className="bg-gray-700 w-full h-screen rounded drop-shadow-lg
-			md:w-52
+			md:w-52 md:min-w-[13rem]
 			text-gray-300 overflow-auto">
 			<button className="flex flex-row gap-4 m-2 items-center h-12 w-11/12
 						text-xl cursor-pointer rounded
 						hover:bg-gray-500 hover:text-white hover:shadow-gray-900 hover:shadow-sm
 						focus:bg-gray-500 focus:text-white focus:shadow-gray-900 focus:shadow-sm"
 						onClick={props.setQuickPlay}
-						disabled={me.gameStatus !== 'NONE' ? true : false}
+						disabled={me.gameStatus !== 'NONE' && props.status !== 'waiting' ? true : false}
 						>
 				Quickplay
 			</button>
@@ -63,7 +63,7 @@ export function GameSideBar(props : {socket: any, status: any, setCustomGame: an
 							}
 							props.setCustomGame();
 						 }}
-						disabled={me.gameStatus !== 'NONE' ? true : false}
+						disabled={me.gameStatus !== 'NONE' && props.status !== 'waiting' ? true : false}
 			>
 						{/* onClick={props.setCustomGame}> */}
 				Custom Game
@@ -89,7 +89,7 @@ export function GameSideBar(props : {socket: any, status: any, setCustomGame: an
 									<p><span className="text-gray-400 text-sm">objective: </span><span className="text-gray-300 text-base">{room.goal} {room.objective === Objective.SCORE ? "points" : "minutes"}</span></p>
 									<button className="hover:bg-gray-400 hover:text-white hover:shadow-gray-900 hover:shadow-sm border-2 border-gray-500"
 										onClick={() => socket?.emit('joinCustomGame', {room: room.id})}
-										disabled={me.gameStatus !== 'NONE' ? true : false}
+										disabled={me.gameStatus !== 'NONE' && props.status !== 'waiting' ? true : false}
 									>Join Game!!!!!</button>
 								</div>
 							)
@@ -111,7 +111,7 @@ export function GameSideBar(props : {socket: any, status: any, setCustomGame: an
 							<p>time elapsed: coming soon</p>
 							<button className="hover:bg-gray-400 hover:text-white hover:shadow-gray-900 hover:shadow-sm border-2 border-gray-500"
 								onClick={() => {socket?.emit('joinAsSpectator', {room: game.id});}}
-								disabled={me.gameStatus !== 'NONE' ? true : false}
+								disabled={me.gameStatus !== 'NONE' && props.status !== 'waiting' ? true : false}
 							>Join as Spectator</button>
 						</div>
 					)

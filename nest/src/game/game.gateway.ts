@@ -154,7 +154,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     @SubscribeMessage('quickplay')
     async quickplay(@ConnectedSocket() client: Socket, @GetUserWs() user: User)
     {
-        const availableRoom = this.waitingRooms.find((v) => {return (v.user1SocketId !== client.id && v.user1.id !== user.id && !v.user2 && v.invitation === false)});
+        const availableRoom = this.waitingRooms.find((v) => {return (v.user1SocketId !== client.id && v.user1.id !== user.id && !v.user2 && v.invitation === false && v.type === GameType.QUICKPLAY)});
         if (availableRoom)
         {
             availableRoom.user2 = user;

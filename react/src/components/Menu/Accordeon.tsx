@@ -1,6 +1,6 @@
 import { useRef, useState } from "react"
 
-export function Accordeon({ title, children, bgColor = 'bg-gray-600' }: any)
+export function Accordeon({ title, children, bgColor='bg-gray-600', width='w-full'}: any)
 {
 	const [isOpen, setIsOpen] = useState<boolean>(false);
 	const selfRef = useRef<HTMLDivElement>(null)
@@ -9,12 +9,13 @@ export function Accordeon({ title, children, bgColor = 'bg-gray-600' }: any)
 		<div className="accordeon">
 			<button
 				onClick={() => setIsOpen(!isOpen)}
-				className='flex flex-row justify-between
+				className={
+					`flex flex-row justify-between
 					text-right
-					w-full px-5
+					${width} px-5 gap-6
 					hover:bg-gray-500 hover:text-white
 					focus:bg-gray-500
-					rounded'>
+					rounded`}>
 				{title}
 				<span>
 					{isOpen ? '-' : '+'}
