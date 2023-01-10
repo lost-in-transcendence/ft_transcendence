@@ -16,15 +16,14 @@ export function ContextMenu({ x, y, userName, targetId, channel }: ContextMenuDa
 	const blacklist = mainCtx.SocketState.user.blacklist;
 	const currentUser = mainCtx.SocketState.user;
 	let isAdmin: boolean = false;
-	if (channel?.mode !== 'PRIVMSG')
+	if (channel.mode !== 'PRIVMSG')
 	{
 		const me = channel.members?.find((m) => m.user?.id === currentUser.id);
-		if(me.role === 'OWNER')
+		if(me.role === "OWNER" || me.role === "ADMIN")
 			isAdmin = true
-		else if (me.role === 'ADMIN')
-			isAdmin = true
+	 //targetIsBan = chan;
 	}
-	let targetIsBan = false;
+	// NEED TO FIND A WAY TO GET THIS INFO
 
 
 
@@ -98,23 +97,13 @@ export function ContextMenu({ x, y, userName, targetId, channel }: ContextMenuDa
 					>
 						Direct Message
 					</li>
-					{ isAdmin ?
-						targetIsBan ?
-						<li
-							className={liClassName}
-							onClick={unbanUser}
-						>
-							unban
-						</li>
-						:
+					{ isAdmin &&
 						<li
 							className={liClassName}
 							onClick={banUser}
 						>
 							ban
 						</li>
-						:
-						<li></li>
 					}
 					{
 						isInBlacklist ?
