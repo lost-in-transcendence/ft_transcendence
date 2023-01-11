@@ -152,4 +152,35 @@ export class ChannelMemberService
 		});
 		return (naughtyList);
 	}
+
+	async getBanList(channelId: Prisma.ChannelMemberWhereInput)
+	{
+		const banList = await this.prisma.channelMember.findMany({
+			where:
+			{
+				AND:
+					[
+						channelId,
+						{ role: 'BANNED' }
+					]
+			},
+			select:
+			{
+				role: true,
+				timeJoined: true,
+				user:
+				{
+					select:
+					{
+						id: true,
+						userName: true,
+						status: true,
+						gameStatus: true,
+						avatarPath: true
+					}
+				}
+			}
+		});
+		return (banList);
+	}
 }

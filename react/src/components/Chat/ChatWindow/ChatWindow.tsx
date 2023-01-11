@@ -43,7 +43,7 @@ export function ChatWindow({ className, users, channel }: { users: Member[], cla
 	/* UPDATE BANNED USER AFTER TEST !!!!*/
 	/* UPDATE BANNED USER AFTER TEST !!!!*/
 	/* UPDATE BANNED USER AFTER TEST !!!!*/
-	let bannedUsers = users
+
 	if (channel && channel?.mode !== 'PRIVMSG')
 	{
 		const me = users?.find((m) => m.user?.id === currentUser.id);
@@ -187,8 +187,6 @@ export function ChatWindow({ className, users, channel }: { users: Member[], cla
 								<OwnerBox
 									onClose={() => setOwnerBoxIsOpen(false)}
 									channel={channel}
-									bannedUsers={bannedUsers}
-
 								/>
 							</Modal>
 						</>
@@ -271,7 +269,7 @@ export function ChatWindow({ className, users, channel }: { users: Member[], cla
 												{/* <br /> */}
 												{/* <span className={`${m.userId !== channel?.id && "mb-2"}`}>
 										{m.content} */}
-										{/* </span> */}
+												{/* </span> */}
 											</div>
 										</div>
 									)
@@ -297,22 +295,44 @@ export function ChatWindow({ className, users, channel }: { users: Member[], cla
 	);
 }
 
-function OwnerBox({ onClose, channel, bannedUsers }: { onClose: any, channel: Channel, bannedUsers: Member[] })
+function OwnerBox({ onClose, channel }: { onClose: any, channel: Channel })
 {
 	const [data, setData] = useState<{ channelId: string, channelName?: string; mode?: string; password?: string; }>({ channelId: channel.id });
+	const [bannedUsers, setbannedUsers] = useState<Member[]>([]);
+	const socket = useContext(ChatContext).ChatState.socket;
+
 	const ctx = useContext(ChatContext);
 
 	function updateChannel(e: any)
 	{
 		e.preventDefault();
 		ctx.ChatState.socket?.emit(events.UPDATE_CHANNEL_INFO, data);
-		onClose();
+		// onClose();
 	}
+
+	useEffect(() =>
+	{
+		console.log({ bannedUsers });
+	})
+
+	useEffect(() =>
+	{
+		socket?.on(events.GET_BANNED_USERS, (payload: Member[]) =>
+		{
+			setbannedUsers(payload);
+		})
+
+		socket?.emit(events.GET_BANNED_USERS, { channelId: channel.id });
+		return (() =>
+		{
+			socket?.off(events.GET_BANNED_USERS);
+		})
+	}, [])
 
 	if (!channel)
 	{
 		onClose();
-		return <></>;
+		return <></>
 	}
 
 	return (
@@ -354,21 +374,40 @@ function OwnerBox({ onClose, channel, bannedUsers }: { onClose: any, channel: Ch
 						/>
 					</label>
 				)}
-				<label className="=flex flex-row justify-between p-2">
-					<p>
-						Unban
-					</p>
-					<select className="basis-1/2 rounded shadow">{
-						bannedUsers.map((x, y) =>
-							<option key={y}>{x.user.userName}</option>)
-					}</select>;
-				</label>
 				<input
 					type={"submit"}
-					name="Submit"
-					className="bg-indigo-300 shadow border w-1/4 rounded self-center"
+					value={'Update Channel Infos'}
+					className="bg-indigo-300 shadow border rounded self-center px-2"
 				/>
 			</form>
+			{
+				(bannedUsers && bannedUsers.length > 0) ?
+					<form className="flex flex-row gap-2 justify-between items-center p-2">
+						<label className="basis-full">
+								Banned
+								<select className="ml-2 rounded shadow">
+									{
+										bannedUsers.map((u: Member) =>
+										{
+											return (
+												<option key={u.user.id}>
+													{u.user.userName}
+												</option>
+											)
+
+										})
+									}
+								</select>
+						</label>
+						<input
+							type={'submit'}
+							value={'Unban'}
+							className='bg-indigo-300 rounded border px-2 h-6'
+						/>
+					</form>
+					:
+					null
+			}
 		</>
 	);
 }

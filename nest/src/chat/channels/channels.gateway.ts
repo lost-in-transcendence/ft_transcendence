@@ -211,6 +211,14 @@ export class ChannelsGateway implements OnGatewayConnection
 		this.alert({ event: events.USERS, args: { channelId: channelId } });
 	}
 
+	@SubscribeMessage(events.GET_BANNED_USERS)
+	async getBannedUsers(@MessageBody('channelId', ParseUUIDPipe) channelId: string, @ConnectedSocket() client: Socket)
+	{
+		const banList = await this.channelMemberService.getBanList({channelId});
+		this.logger.debug({banList});
+		this.server.to(client.id).emit(events.GET_BANNED_USERS, banList);
+	}
+
 	@SubscribeMessage(events.BAN_USER)
 	async banUser(@ConnectedSocket() client: Socket, @MessageBody() body: BanMemberDto, @GetUserWs() user: User)
 	{
