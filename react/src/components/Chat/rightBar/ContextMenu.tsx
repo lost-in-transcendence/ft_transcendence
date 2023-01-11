@@ -179,7 +179,7 @@ function BanBox({ onClose, channel, target, action }: { onClose: any, channel: C
 {
 	const socket = useContext(ChatContext).ChatState.socket;
 
-	const [data, setData] = useState<{ time: number, timeUnit: string }>({ time: 0, timeUnit: "sec" })
+	const [data, setData] = useState<{ time: number, timeUnit: string }>({ time: 1, timeUnit: "sec" })
 
 	function submitForm(e: FormEvent)
 	{

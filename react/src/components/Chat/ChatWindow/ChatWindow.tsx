@@ -64,6 +64,8 @@ export function ChatWindow({ className, users, channel }: { users: Member[], cla
 			events.NOTIFY,
 			(payload: { channelId: string; content: string }) =>
 			{
+				console.clear();
+				console.log({ payload });
 				if (channel && payload.channelId === channel.id)
 				{
 					flushSync(() =>
@@ -218,8 +220,8 @@ export function ChatWindow({ className, users, channel }: { users: Member[], cla
 						const prev = all[i - 1];
 						const user = users.find((u) => u.user.id === m.userId);
 
-						if(!user)
-							return ;
+						if (!user)
+							return;
 
 						if (blackList)
 						{
@@ -227,7 +229,7 @@ export function ChatWindow({ className, users, channel }: { users: Member[], cla
 						}
 
 						if (prev) prevUser = prev.userId;
-						if (prevUser !== m.userId && m.userId !== channel?.id)
+						if (prevUser !== m.userId && m.userId !== channel.id)
 						{
 							displayName = true;
 						}
@@ -235,43 +237,45 @@ export function ChatWindow({ className, users, channel }: { users: Member[], cla
 							<li
 								key={i}
 								ref={i === visibleMessages.length - 1 ? selfRef : null}
-								className={`overflow-x-hidden break-words ${m.userId === channel?.id && "text-yellow-500 font-bold"
+								className={`overflow-x-hidden break-words ${m.userId === channel.id && "text-yellow-500 font-bold"
 									}`}
 							>
-								{displayName && (
-									<div
-										className="hover:bg-slate-600 cursor-pointer rounded px-1 flex items-center"
-										onContextMenu={(e) =>
-										{
-											e.preventDefault();
-											setDisplay({
-												x: e.pageX,
-												y: e.pageY,
-												target: user,
-												channel: channel
-											});
-										}}
-									>
-										<div className="min-w-[48px] basis-12 my-2">
-											<span>
-												<img
-													className="rounded-full h-10 w-10 inline my-auto"
-													src={`${backURL}/users/avatars/${m.sender.userName
-														}?time=${Date.now()}`}
-												/>
-											</span>
+								{
+									displayName && (
+										<div
+											className="hover:bg-slate-600 cursor-pointer rounded px-1 flex items-center"
+											onContextMenu={(e) =>
+											{
+												e.preventDefault();
+												setDisplay({
+													x: e.pageX,
+													y: e.pageY,
+													target: user,
+													channel: channel
+												});
+											}}
+										>
+											<div className="min-w-[48px] basis-12 my-2">
+												<span>
+													<img
+														className="rounded-full h-10 w-10 inline my-auto"
+														src={`${backURL}/users/avatars/${m.sender.userName
+															}?time=${Date.now()}`}
+													/>
+												</span>
+											</div>
+											<div>
+												<span className="text-red-600 font-semibold">
+													{m.sender.userName}
+												</span>
+												{/* <br /> */}
+												{/* <span className={`${m.userId !== channel?.id && "mb-2"}`}>
+										{m.content} */}
+										{/* </span> */}
+											</div>
 										</div>
-										<div>
-											<span className="text-red-600 font-semibold">
-												{m.sender.userName}
-											</span>
-											{/* <br /> */}
-											{/* <span className={`${m.userId !== channel?.id && "mb-2"}`}>
-										{m.content}
-										</span> */}
-										</div>
-									</div>
-								)}
+									)
+								}
 								<>
 									<div className="flex">
 										<div className="min-w-[48px] basis-12"></div>
@@ -293,7 +297,7 @@ export function ChatWindow({ className, users, channel }: { users: Member[], cla
 	);
 }
 
-function OwnerBox({ onClose, channel, bannedUsers }: { onClose: any, channel: Channel, bannedUsers: Member[]})
+function OwnerBox({ onClose, channel, bannedUsers }: { onClose: any, channel: Channel, bannedUsers: Member[] })
 {
 	const [data, setData] = useState<{ channelId: string, channelName?: string; mode?: string; password?: string; }>({ channelId: channel.id });
 	const ctx = useContext(ChatContext);
@@ -354,10 +358,10 @@ function OwnerBox({ onClose, channel, bannedUsers }: { onClose: any, channel: Ch
 					<p>
 						Unban
 					</p>
-					  <select className ="basis-1/2 rounded shadow">{
-    					bannedUsers.map((x,y) =>
-      					<option key={y}>{x.user.userName}</option> )
-  						}</select>;
+					<select className="basis-1/2 rounded shadow">{
+						bannedUsers.map((x, y) =>
+							<option key={y}>{x.user.userName}</option>)
+					}</select>;
 				</label>
 				<input
 					type={"submit"}
