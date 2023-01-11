@@ -12,6 +12,7 @@ import { ContextMenuData } from "../components/Chat/dto";
 import { ContextMenu } from "../components/Chat/rightBar/ContextMenu";
 import * as events from '../../../shared/constants'
 import { Channel } from "../dto/channels.dto";
+import { PartialOtherUser } from "../dto/users.dto";
 
 
 export async function loader()
@@ -39,11 +40,11 @@ export function Chat()
 			<div className="text-white basis-full overflow-auto justify-self-center mr-auto bg-gray-800">
 				{
 					state.activeChannel ?
-						<ChatDisplay currentUser={user} contextMenu={{displayContext, setDisplayContext}}/>
+						<ChatDisplay currentUser={user} setDisplayContext={setDisplayContext}/>
 						:
 						<>
 							<h1 className="text-5xl text-center">Friends</h1>
-							<ChatFriendList contextMenu={{displayContext, setDisplayContext}}/>
+							<ChatFriendList setDisplayContext={setDisplayContext}/>
 						</>
 				}
 			</div>
@@ -59,16 +60,14 @@ export function Chat()
 	)
 }
 
-export function ChatFriendList({contextMenu} : {contextMenu: {displayContext: ContextMenuData | undefined, setDisplayContext: any}})
+export function ChatFriendList({setDisplayContext} : {setDisplayContext: React.Dispatch<React.SetStateAction<ContextMenuData | undefined>> })
 {
 	const mainCtx = useContext(SocketContext);
 	const {user} = mainCtx.SocketState;
-	// const [friends, setFriends] = useState<SharedOtherUserDto[] | undefined>([]);
 	const {friends} = user;
 	const onlineFriends = friends?.filter((v) => {return v.status !== "OFFLINE"});
 	const offlineFriends = friends?.filter((v) => {return v.status === "OFFLINE"});
-	const masterSocket = mainCtx.SocketState.socket;
-	const {displayContext, setDisplayContext} = contextMenu
+	// const {displayContext, setDisplayContext} = contextMenu
 	const chatCtx = useContext(ChatContext);
 	const channels = chatCtx.ChatState.visibleChannels;
 
@@ -81,28 +80,6 @@ export function ChatFriendList({contextMenu} : {contextMenu: {displayContext: Co
 			window.removeEventListener("click", handleClick);
 		};
 	}, []);
-
-	function updateFriendInfo(id: string, data: any)
-	{
-		console.log("updating", id, "with", data);
-		mainCtx.SocketDispatch({type: 'update_friend', payload: {id, data}});
-    	setFriends((prev) => 
-   		{
-      		const index = prev?.findIndex((v) => 
-      		{
-        		return v.id === id;
-      		});
-      		if (index === -1) return prev;
-      		const updated = prev?.map((v, i) => 
-      		{
-        		if (i !== index) return v;
-        		const updatedUser = { ...v };
-        		Object.assign(updatedUser, data);
-        		return updatedUser;
-      		});
-      		return updated;
-    });
-	}
 
 	function sendPrivmsg(targetId: string, )
 	{
@@ -123,14 +100,8 @@ export function ChatFriendList({contextMenu} : {contextMenu: {displayContext: Co
 			const json = await res.json();
 			const friends = json.friends;
 			mainCtx.SocketDispatch({type: 'update_user', payload: friends});
-			// setFriends(friends);
 		}
 		setFriendsOnLoad();
-		masterSocket?.on("updateFriend", (payload: any) =>
-		{
-			const {id, data} = payload;
-			updateFriendInfo(id, data);
-		})
 	}, [])
 
 	return (
