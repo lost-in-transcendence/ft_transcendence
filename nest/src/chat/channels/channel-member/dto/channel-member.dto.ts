@@ -1,9 +1,22 @@
 import { RoleType } from "@prisma/client";
-import { IsNotEmpty, IsOptional, IsString, IsUUID } from "class-validator";
+import { IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID } from "class-validator";
 
 import { SharedBanUserDto } from "shared/dtos";
 
-export interface BanMemberDto extends SharedBanUserDto { }
+export class BanMemberDto implements SharedBanUserDto
+{
+	@IsUUID()
+	@IsNotEmpty()
+	userId: string;
+
+	@IsUUID()
+	@IsNotEmpty()
+	channelId: string;
+
+	@IsNumber()
+	@IsNotEmpty()
+	banTime: number;
+}
 
 export class ChannelMemberDto //implements SharedChannelMemberDto
 {

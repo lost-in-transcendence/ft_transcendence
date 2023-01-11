@@ -1,8 +1,8 @@
-import { useContext, useState } from "react";
+import { FormEvent, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import SocketContext from "../../Socket/socket-context";
-import { ContextMenuData, Member } from "../dto";
+import { BanMemberDto, ContextMenuData, Member } from "../dto";
 import * as events from '../../../../shared/constants'
 import ChatContext from "../Context/chatContext";
 import { Channel } from "../../../dto/channels.dto";
@@ -28,7 +28,7 @@ export function ContextMenu({ x, y, channel, target }: ContextMenuData)
 	if (channel.mode !== 'PRIVMSG')
 	{
 		const me = channel.members?.find((m) => m.user?.id === currentUser.id);
-		if(me.role === "OWNER" || me.role === "ADMIN")
+		if (me.role === "OWNER" || me.role === "ADMIN")
 			isAdmin = true
 		if (me.role === "OWNER")
 			isOwner = true;
@@ -50,12 +50,12 @@ export function ContextMenu({ x, y, channel, target }: ContextMenuData)
 
 	function banUser()
 	{
-		mainSocket?.emit(events.BAN_USER, {userId: targetId, channelId: channel.id})
+		mainSocket?.emit(events.BAN_USER, { userId: targetId, channelId: channel.id })
 	}
 
 	function unbanUser()
 	{
-		mainSocket?.emit(events.UNBAN_USER, {userId: targetId, channelId: channel.id})
+		mainSocket?.emit(events.UNBAN_USER, { userId: targetId, channelId: channel.id })
 	}
 
 	function blockUser()
@@ -84,8 +84,8 @@ export function ContextMenu({ x, y, channel, target }: ContextMenuData)
 		const channelExists: Channel | undefined = channels.find((c) => c.channelName === channelName);
 
 		if (!channelExists)
-			chatCtx.ChatState.socket?.emit(events.NEW_PRIVMSG, {userId: targetId});
-		chatCtx.ChatDispatch({type: 'update_active', payload: channelExists});
+			chatCtx.ChatState.socket?.emit(events.NEW_PRIVMSG, { userId: targetId });
+		chatCtx.ChatDispatch({ type: 'update_active', payload: channelExists });
 	}
 
 	const liClassName: string =
@@ -117,39 +117,40 @@ export function ContextMenu({ x, y, channel, target }: ContextMenuData)
 					>
 						Direct Message
 					</li>
-					<hr className="border-gray-700"/>
+					<hr className="border-gray-700" />
 					{
 						isOwner &&
 						(
 							target.role === 'ADMIN' ?
-							<li
-								className={liClassName}
-								onClick={demoteUser}
-							>
-								Demote
-							</li>
-							:
-							<li
-								className={liClassName}
-								onClick={promoteUser}
-							>
-								Promote
-							</li>
+								<li
+									className={liClassName}
+									onClick={demoteUser}
+								>
+									Demote
+								</li>
+								:
+								<li
+									className={liClassName}
+									onClick={promoteUser}
+								>
+									Promote
+								</li>
 						)
 					}
-					{ isAdmin &&
+					{
+						isAdmin &&
 						<li className={liClassName}
-								onClick={() => setBanBoxIsOpen(true)}
-							>
+							onClick={(e) => { e.stopPropagation(); setBanBoxIsOpen(true) }}
+						>
 							<Modal isOpen={banBoxIsOpen} onClose={() => setBanBoxIsOpen(false)}>
 								<BanBox
 									onClose={() => setBanBoxIsOpen(false)}
 									channel={channel}
-									userToBan={targetId}
-
+									target={target}
+									action='BAN'
 								/>
 							</Modal>
-							ban
+							Ban
 						</li>
 					}
 					{
@@ -174,32 +175,60 @@ export function ContextMenu({ x, y, channel, target }: ContextMenuData)
 	);
 }
 
-function BanBox({onClose, channel, userToBan}: {onClose: any, channel: Channel, userToBan: string})
+function BanBox({ onClose, channel, target, action }: { onClose: any, channel: Channel, target: Member, action: 'BAN' | 'MUTE' })
 {
-	const mainCtx = useContext(SocketContext);
-	const mainSocket = mainCtx.SocketState.socket;
+	const socket = useContext(ChatContext).ChatState.socket;
 
-	const [data, setData] = useState<{time: number, timeUnit: string}>({time: 0, timeUnit: "sec"})
-	console.log("HEHEHEHE")
+	const [data, setData] = useState<{ time: number, timeUnit: string }>({ time: 0, timeUnit: "sec" })
 
-	function banUser()
+	function submitForm(e: FormEvent)
 	{
-		mainSocket?.emit(events.BAN_USER, {userId: userToBan, channelId: channel.id, time: 2})
+		console.log({ data });
+		e.preventDefault();
+		let finalTime = data.time;
+
+		switch (data.timeUnit)
+		{
+			case 'day':
+				finalTime *= 24;
+			case 'hour':
+				finalTime *= 60;
+			case 'min':
+				finalTime *= 60;
+			case 'sec':
+				finalTime *= 1000;
+				break;
+			default:
+				return;
+		}
+		const banParams: BanMemberDto = { userId: target.user.id, channelId: channel.id, banTime: finalTime };
+		if (action === 'BAN')
+			socket?.emit(events.BAN_USER, banParams);
+		onClose();
 	}
+
 	return (
 		<>
-			<h1 className="text-center mb-3" >Ban user</h1>
-			<form className="flex flex-col" /*onSubmit={updateChannel}*/>
-				<label className="flex flex-row justify-between p-2">
-					<p>Set how long you want to ban the user</p>
-					<input
-					type={"text"}
-					onChange={(e) => setData({ ...data, time: parseInt(e.target.value, 10)})}
-					>
-					</input>
+			<h1 className="text-center mb-3" >Ban {target.user.userName}</h1>
+			<form className="flex flex-col" onSubmit={submitForm}>
+				<label className="flex flex-row justify-around items-end p-2">
+					<p className="basis-0">Duration</p>
+					<div className='basis-full flex flex-col items-center justify-center'>
+						<p>{data.time}</p>
+						<input
+						className="w-11/12"
+							type={"range"}
+							min={1}
+							max={60}
+							value={data.time}
+							onChange={(e) => setData({ ...data, time: parseInt(e.target.value, 10) })}
+						/>
+
+					</div>
 					<select
-						className="basis-1/2 rounded shadow"
+						className="rounded shadow basis-0"
 						name="time"
+						value={data.timeUnit}
 						onChange={(e) =>
 							setData({ ...data, timeUnit: e.target.value })
 						}
@@ -216,6 +245,7 @@ function BanBox({onClose, channel, userToBan}: {onClose: any, channel: Channel, 
 					className="bg-indigo-300 shadow border w-1/4 rounded self-center"
 				/>
 			</form>
+
 		</>
 	)
 }

@@ -25,6 +25,7 @@ import { env } from 'process';
 import { UserSocketStore } from './global/user-socket.store';
 import { ChannelMemberService } from './channels/channel-member/channel-member.service';
 import { ChannelMemberDto } from './channels/channel-member/dto';
+import * as events from 'shared/constants'
 
 @UseInterceptors(UserInterceptor)
 @UseFilters(new CustomWsFilter())
@@ -68,14 +69,31 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 		try
 		{
 			UserSocketStore.setUserSockets(client.data.user.id, client)
-			const log: Socket[] = UserSocketStore.getUserSockets(client.data.user.id);
-			for (let index of log)
-				this.logger.debug("SocketIds:", index.id)
+			const naughtyList = await this.channelMemberService.amINaughty({userId: client.data.user.id});
 			const channels = client.data.user.channels;
+
+			for (let chan of naughtyList)
+			{
+				if (chan.role === 'BANNED' && chan.banExpires.getTime() <= Date.now())
+				{
+					this.channelMemberService.changeRole({
+						userId: client.data.user.id,
+						channelId: chan.channelId,
+						role: 'MEMBER'
+					});
+					this.server.to(chan.channelId).emit(events.ALERT, { event: events.USERS, args: { channelId: chan.channelId } });
+				}
+				else if (chan.role === 'MUTED' && chan.banExpires.getTime() <= Date.now())
+					this.channelMemberService.changeRole({
+						userId: client.data.user.id,
+						channelId: chan.channelId,
+						role: 'MEMBER'
+					})
+			}
 			for (let chan of channels)
 				client.join(chan.channel.id);
 			this.logger.log(`Client ${client.data.user.userName} connected to chat server`);
-			client.emit('channels');
+			// client.emit('channels');
 		}
 		catch (err)
 		{
@@ -95,17 +113,15 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
 
 	@SubscribeMessage('message')
-	async sendMessage(@MessageBody() dto: CreateMessageDto, @ConnectedSocket() client: Socket, @GetUserWs() user)
+	async sendMessage(@ConnectedSocket() client: Socket, @GetUserWs() user: User)
 	{
-		const newDto = { ...dto, userId: user.id }
-		// const newMessage: Message = await this.messageService.create(newDto);
-		this.server.emit('message', dto);
+		const banned = this.channelMemberService.getBannedFromChannels({userId: user.id});
+		this.logger.debug({banned});
 	}
 
 	@SubscribeMessage('toChannel')
 	async toRoom(@MessageBody() dto: CreateMessageDto, @ConnectedSocket() client: Socket, @GetUserWs() user: any)
 	{
-		this.logger.debug("in toChannel event")
 		const channelMember = await this.channelMemberService.getOne({channelId: dto.channelId, userId: user.id , role: null})
 
 		if (!channelMember || channelMember.role === "BANNED")

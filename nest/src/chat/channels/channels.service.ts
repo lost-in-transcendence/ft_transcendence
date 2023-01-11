@@ -9,7 +9,7 @@ import { UpdateChannelDto } from './dto';
 import { ChannelDto, PartialChannelDto } from './dto/channel-dto';
 import { CreateUserDto, UserIncludeQueryDto } from 'src/users/dto';
 import { joinChannelDto } from './dto/join-channel.dto';
-import { ChannelMemberDto } from './channel-member/dto';
+import { BanMemberDto, ChannelMemberDto } from './channel-member/dto';
 import { ChannelMemberService } from './channel-member/channel-member.service';
 import { Server } from 'http';
 
@@ -106,11 +106,11 @@ export class ChannelsService
 		return this.prisma.channelMember.delete({ where });
 	}
 
-	async banUser(userId: string, channelId: string)
+	async banUser(dto: BanMemberDto)
 	{
-		const dto: ChannelMemberDto = { userId, channelId, role: 'BANNED' };
-		console.log("BANUSER UPDATE ROLE", dto)
-		await this.channelMember.changeRole(dto);
+		const data: ChannelMemberDto = { userId: dto.userId, channelId: dto.channelId, role: 'BANNED' };
+		console.log("BANUSER UPDATE ROLE", data)
+		await this.channelMember.changeRole(data);
 	}
 	async unbanUser(userId: string, channelId: string)
 	{

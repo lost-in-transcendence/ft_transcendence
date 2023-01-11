@@ -17,9 +17,9 @@ import { UsersService } from "src/users/users.service";
 import * as events from 'shared/constants';
 import { MessagesService } from "../messages/messages.service";
 import { getManyMessageDto } from "../messages/dto";
-import { SharedChannelMembersDto, SharedPartialUserDto } from "shared/dtos";
+import { SharedBanUserDto, SharedChannelMembersDto, SharedPartialUserDto } from "shared/dtos";
 import { UserSocketStore } from "../global/user-socket.store";
-import { ChannelMemberDto, UpdateChannelMemberDto } from "./channel-member/dto";
+import { BanMemberDto, ChannelMemberDto, UpdateChannelMemberDto } from "./channel-member/dto";
 //import { env } from "process";
 import { ChannelMemberService } from "./channel-member/channel-member.service";
 
@@ -212,13 +212,19 @@ export class ChannelsGateway implements OnGatewayConnection
 	}
 
 	@SubscribeMessage(events.BAN_USER)
-	async banUser(/*@ConnectedSocket() client: Socket, */@MessageBody() body: any)
+	async banUser(@ConnectedSocket() client: Socket, @MessageBody() body: BanMemberDto, @GetUserWs() user: User)
 	{
+		this.logger.debug('In Ban User event');
 		const array: Socket[] = UserSocketStore.getUserSockets(body.userId);
 		for (let n of array)
+		{
 			n.leave(body.channelId)
-		return (this.channelService.banUser(body.userId, body.channelId))
+			this.server.to(n.id).emit(events.ALERT, { event: events.CHANNELS });
+		}
+		this.channelMemberService.banUser(body);
+		this.server.to(body.channelId).emit(events.ALERT, { event: events.USERS, args: {channelId: body.channelId} });
 	}
+
 	@SubscribeMessage(events.UNBAN_USER)
 	async unbanUser(@MessageBody() body: any)
 	{
@@ -257,7 +263,6 @@ export class ChannelsGateway implements OnGatewayConnection
 	async channelUsers(@ConnectedSocket() client: Socket, @MessageBody('channelId', ParseUUIDPipe) channelId: string, @GetUserWs('id', ParseUUIDPipe) userId: string)
 	{
 		const users: SharedChannelMembersDto[] | ChannelMember[] = await this.getUsersFromChannel({ channelId, userId });
-		this.logger.debug({ users });
 		if (!users)
 			throw new WsException({ status: '401', message: 'You are not part of this channel' });
 		this.server.to(client.id).emit(events.USERS, users);
@@ -307,7 +312,8 @@ export class ChannelsGateway implements OnGatewayConnection
 	{
 		const channels: PartialChannelDto[] = await this.getVisibleChannels(userId);
 		const users: SharedChannelMembersDto[] = channels.find((c) => c.id === channelId).members;
-		return (users);
+		const ret = users.filter((u) => u.role !== 'BANNED');
+		return (ret);
 	}
 
 	async getVisibleChannels(userId: string): Promise<PartialChannelDto[]>

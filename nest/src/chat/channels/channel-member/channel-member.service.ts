@@ -3,16 +3,19 @@ import { Prisma } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { joinChannelDto } from '../dto';
+
 import { BanMemberDto, ChannelMemberDto } from './dto';
 
 @Injectable()
 export class ChannelMemberService
 {
-	constructor(private readonly prisma: PrismaService) {}
+	constructor(private readonly prisma: PrismaService) { }
 	private readonly logger = new Logger(ChannelMemberService.name);
 
-	async create(dto: joinChannelDto) {
-		try {
+	async create(dto: joinChannelDto)
+	{
+		try
+		{
 			const newChannelMember = await this.prisma.channelMember.create({
 				data:
 				{
@@ -36,8 +39,10 @@ export class ChannelMemberService
 			});
 			return (newChannelMember);
 		}
-		catch (error) {
-			if (error instanceof PrismaClientKnownRequestError) {
+		catch (error)
+		{
+			if (error instanceof PrismaClientKnownRequestError)
+			{
 				if (error.code === 'P2025')
 					throw new PreconditionFailedException('Record not found');
 				if (error.code === 'P2002')
@@ -48,7 +53,8 @@ export class ChannelMemberService
 		}
 	}
 
-	async getChannelRole(dto: ChannelMemberDto) {
+	async getChannelRole(dto: ChannelMemberDto)
+	{
 		return (await this.prisma.channelMember.findMany({
 			where: {
 				channelId: dto.channelId,
@@ -57,19 +63,21 @@ export class ChannelMemberService
 		}))
 	}
 
-	async banUser(dto: BanMemberDto) {
+	async banUser(dto: BanMemberDto)
+	{
 		const ret = await this.prisma.channelMember.update({
 			where: {
 				userId_channelId: { userId: dto.userId, channelId: dto.channelId }
 			},
 			data: {
-				banExpires: new Date(Date.now() + dto.banTime)
+				banExpires: new Date(Date.now() + dto.banTime),
+				role: 'BANNED'
 			}
 		})
-		this.changeRole({ userId: dto.userId, channelId: dto.channelId })
 	}
 
-	async changeRole(dto: ChannelMemberDto) {
+	async changeRole(dto: ChannelMemberDto)
+	{
 		const ret = await this.prisma.channelMember.update({
 			where: {
 				userId_channelId: { userId: dto.userId, channelId: dto.channelId }
@@ -80,14 +88,17 @@ export class ChannelMemberService
 		})
 	}
 
-	async getOne(dto: ChannelMemberDto) {
+	async getOne(dto: ChannelMemberDto)
+	{
 		return (await this.prisma.channelMember.findUnique({
 			where: { userId_channelId: { userId: dto.userId, channelId: dto.channelId } }
 		}))
 	}
 
-	async getMany(dto: ChannelMemberDto) {
-		if (dto.channelId === null) {
+	async getMany(dto: ChannelMemberDto)
+	{
+		if (dto.channelId === null)
+		{
 			return (await this.prisma.channelMember.findMany({
 				where: { userId: dto.userId }
 			}))
@@ -97,11 +108,48 @@ export class ChannelMemberService
 		}))
 	}
 
-	async usersFromChannel(params: Prisma.ChannelMemberFindManyArgs) {
+	async usersFromChannel(params: Prisma.ChannelMemberFindManyArgs)
+	{
 		const { where, select } = params;
 		return this.prisma.channelMember.findMany({
 			where,
 			select
 		})
+	}
+
+	async getBannedFromChannels(userId: Prisma.ChannelMemberWhereInput)
+	{
+		const bannedFromList = await this.prisma.channelMember.findMany({
+			where:
+			{
+				AND:
+					[
+						userId,
+						{ role: 'BANNED' }
+					]
+			}
+		});
+		return (bannedFromList);
+	}
+
+	async amINaughty(userId: Prisma.ChannelMemberWhereInput)
+	{
+		const naughtyList = await this.prisma.channelMember.findMany({
+			where:
+			{
+				AND:
+					[
+						userId,
+						{
+							OR:
+								[
+									{ role: 'BANNED' },
+									{ role: 'MUTED' }
+								]
+						}
+					]
+			}
+		});
+		return (naughtyList);
 	}
 }
