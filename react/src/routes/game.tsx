@@ -313,7 +313,8 @@ export function CustomGameScreen(props: {goBack: any})
 	}
 	return (
 		<div className="flex flex-row gap-4 mx-auto w-full">
-			<form onSubmit={customGameSubmit}>
+			<form className="flex flex-col"
+			onSubmit={customGameSubmit}>
 				<div className="flex flex-row gap-4 items-center mx-auto w-full">
 					<p className="flex flex-col text-gray-100 text-xl bg-gray-800">Objective Type</p>
 					<select className="flex flex-col text-gray-100 bg-gray-700 text-xl"
@@ -347,7 +348,7 @@ export function CustomGameScreen(props: {goBack: any})
 				<div className="flex flex-row gap-4 items-center mx-auto w-full">
 					<p className="flex flex-col text-gray-100 text-xl bg-gray-800">Game Visibility</p>
 					<select className="flex flex-col text-gray-100 bg-gray-700 text-xl"
-					value={gameVisibility} onChange={(e) => {setGameVisibility(e.target.value)}}>
+					value={gameVisibility} onChange={(e) => {setGameVisibility(e.target.value); setUserToInvite(undefined); setShowList(false);}}>
 						<option value="public">Public</option>
 						<option value="invite">Invite-only</option>
 					</select>
@@ -355,46 +356,66 @@ export function CustomGameScreen(props: {goBack: any})
 
 				{
 					gameVisibility === 'invite' ?
-					<>
-						<div className="flex flex-row gap-4 items-center mx-auto w-full">
-							{
-								userToInvite?.userName ?
-								<p className="flex flex-col text-gray-100 text-xl bg-gray-800">{`${userToInvite.userName} is set to be invited`}</p>
-								: <></>
-							}
-							<button className="flex flex-row gap-4 items-center mt-10 mx-auto h-12 w-auto justify-items-center
+					<div className="flex flex-row gap-4 items-center mx-auto w-full">
+						{
+						userToInvite?.userName ?
+						<p className="flex flex-col text-gray-100 text-xl bg-gray-800">{`${userToInvite.userName} is set to be invited`}</p>
+						: 
+						<></>
+						}
+						<button className="flex flex-row gap-4 items-center mt-2 h-12 w-auto
 						text-xl text-gray-400 cursor-pointer rounded bg-gray-600
 						hover:bg-gray-500 hover:text-white hover:shadow-gray-900 hover:shadow-sm
 						focus:bg-gray-500 focus:text-white focus:shadow-gray-900 focus:shadow-sm"
-							onClick={(e) => {setShowList(true); e.preventDefault(); e.stopPropagation();}}>Choose a player to invite</button>
-							{
-								showList?
-								<>
-									<input className="flex flex-col text-gray-100 text-xl bg-gray-800" type="text" placeholder="Search..." value={userSearchFilter} onChange={(e) => setUserSearchFilter(e.target.value)} />
-									<ul>
-										{filteredList.map((user: any) =>
-											{
-												return (
-													<li className="flex flex-row gap-4 items-center mt-10 mx-auto h-12 w-auto justify-items-center
-													text-xl text-gray-400 cursor-pointer rounded bg-gray-600
-													hover:bg-gray-500 hover:text-white hover:shadow-gray-900 hover:shadow-sm
-													focus:bg-gray-500 focus:text-white focus:shadow-gray-900 focus:shadow-sm" 
-													key={user.id} onClick={() => {setUserToInvite({userName: user.userName, id: user.id}); setShowList(false)}}>{user.userName}</li>
-												)
-											})}
-									</ul>
-								</>
-								:
-								<></>
-							}
-						</div>
-					</>
-					:
-					<></>
+						onClick={(e) => {setShowList(true); e.preventDefault(); e.stopPropagation();}}
+						>
+							Choose a player to invite
+						</button>
+					</div>
+					: <></>
 				}
-				<input type="submit" value="Submit" disabled={gameVisibility === 'invite' && userToInvite?.userName === ''}/>	
+
+				{
+					gameVisibility === 'invite' ? 
+						showList ?
+							<div className="flex flex-row gap-10 items-center mx-auto w-full">
+								<input className="flex flex-row text-gray-100 text-xl my-12 bg-gray-800 border-2 border-white" type="text" placeholder="Search..." value={userSearchFilter} onChange={(e) => setUserSearchFilter(e.target.value)} />
+								<ul className="flex flex-row max-height-40 gap-2">
+								{
+									filteredList.map((user: any) =>
+									{
+										return (
+											<li className="flex flex-row gap-4 items-center mx-auto h-12 w-auto justify-items-center
+											text-xl text-gray-400 cursor-pointer rounded bg-gray-600
+											hover:bg-gray-500 hover:text-white hover:shadow-gray-900 hover:shadow-sm
+											focus:bg-gray-500 focus:text-white focus:shadow-gray-900 focus:shadow-sm" 
+											key={user.id} onClick={() => {setUserToInvite({userName: user.userName, id: user.id}); setShowList(false)}}>{user.userName}</li>
+										)
+									})
+								}
+								</ul>
+							</div>
+						: <></>
+					: <></>
+				}
+				<input className="flex flex-row gap-4 items-center mt-2 mx-auto h-12 w-auto
+				text-xl text-gray-400 cursor-pointer rounded bg-gray-600 border-2 border-green-600
+				hover:bg-gray-500 hover:text-white hover:shadow-gray-900 hover:shadow-sm
+				focus:bg-gray-500 focus:text-white focus:shadow-gray-900 focus:shadow-sm"
+				type="submit" value="Submit" disabled={gameVisibility !== 'invite'? 
+																false :
+																userToInvite === undefined ? 
+																	true :
+																	userToInvite.userName === '' ? 
+																		true : 
+																		false}
+				/>
+				<button className="flex flex-row gap-4 items-center mt-2 mx-auto h-12 w-auto
+						text-xl text-gray-400 cursor-pointer rounded bg-gray-600 border-2 border-red-600
+						hover:bg-gray-500 hover:text-white hover:shadow-gray-900 hover:shadow-sm
+						focus:bg-gray-500 focus:text-white focus:shadow-gray-900 focus:shadow-sm"
+			onClick={goBack}>Go Back!</button>
 			</form>
-			<button onClick={goBack}>Go Back!</button>
-			</div>
+		</div>
 	)
 }
