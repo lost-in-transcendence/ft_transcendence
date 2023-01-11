@@ -270,7 +270,7 @@ export class ChannelsGateway implements OnGatewayConnection
 	@SubscribeMessage(events.USERS)
 	async channelUsers(@ConnectedSocket() client: Socket, @MessageBody('channelId', ParseUUIDPipe) channelId: string, @GetUserWs('id', ParseUUIDPipe) userId: string)
 	{
-		const users: SharedChannelMembersDto[] | ChannelMember[] = await this.getUsersFromChannel({ channelId, userId });
+		const users: SharedChannelMembersDto[] = await this.getUsersFromChannel({ channelId, userId });
 		if (!users)
 			throw new WsException({ status: '401', message: 'You are not part of this channel' });
 		this.server.to(client.id).emit(events.USERS, users);

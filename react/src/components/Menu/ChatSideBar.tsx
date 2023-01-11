@@ -203,7 +203,7 @@ function CreateChannelForm({ onClose }: any)
 				)}
 				<input
 					type={"submit"}
-					name="Submit"
+					value={'Create'}
 					className="bg-indigo-300 shadow border w-1/4 rounded self-center"
 				/>
 			</form>
