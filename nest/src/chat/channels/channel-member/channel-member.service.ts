@@ -76,6 +76,19 @@ export class ChannelMemberService
 		})
 	}
 
+	async muteUser(dto: BanMemberDto)
+	{
+		const ret = await this.prisma.channelMember.update({
+			where: {
+				userId_channelId: { userId: dto.userId, channelId: dto.channelId }
+			},
+			data: {
+				muteExpires: new Date(Date.now() + dto.banTime),
+				role: 'MUTED'
+			}
+		})
+	}
+
 	async changeRole(dto: ChannelMemberDto)
 	{
 		const ret = await this.prisma.channelMember.update({

@@ -239,6 +239,14 @@ export class ChannelsGateway implements OnGatewayConnection
 		return (this.channelService.unbanUser(body.userId, body.channelId))
 	}
 
+	@SubscribeMessage(events.MUTE_USER)
+	async muteUser(@MessageBody() body: BanMemberDto)
+	{
+		this.logger.debug('Un Mute user event')
+		this.channelMemberService.muteUser(body)
+		this.server.to(body.channelId).emit(events.ALERT, { event: events.USERS, args: {channelId: body.channelId}})
+	}
+
 	@SubscribeMessage(events.CHANNELS)
 	async channels(@ConnectedSocket() client: Socket, @GetUserWs('id', ParseUUIDPipe) userId: string)
 	{

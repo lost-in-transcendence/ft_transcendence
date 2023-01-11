@@ -154,6 +154,22 @@ export function ContextMenu({ x, y, channel, target }: ContextMenuData)
 						</li>
 					}
 					{
+						isAdmin &&
+						<li className={liClassName}
+							onClick={(e) => { e.stopPropagation(); setBanBoxIsOpen(true) }}
+						>
+							<Modal isOpen={banBoxIsOpen} onClose={() => setBanBoxIsOpen(false)}>
+								<BanBox
+									onClose={() => setBanBoxIsOpen(false)}
+									channel={channel}
+									target={target}
+									action='MUTE'
+								/>
+							</Modal>
+							Mute
+						</li>
+					}
+					{
 						isInBlacklist ?
 							<li
 								className={liClassName}
@@ -204,12 +220,14 @@ function BanBox({ onClose, channel, target, action }: { onClose: any, channel: C
 		const banParams: BanMemberDto = { userId: target.user.id, channelId: channel.id, banTime: finalTime };
 		if (action === 'BAN')
 			socket?.emit(events.BAN_USER, banParams);
+		else
+			socket?.emit(events.MUTE_USER, banParams)
 		onClose();
 	}
 
 	return (
 		<>
-			<h1 className="text-center mb-3" >Ban {target.user.userName}</h1>
+			<h1 className="text-center mb-3" >{action === 'BAN' ? "Ban" : "Mute"} {target.user.userName}</h1>
 			<form className="flex flex-col" onSubmit={submitForm}>
 				<label className="flex flex-row justify-around items-end p-2">
 					<p className="basis-0">Duration</p>

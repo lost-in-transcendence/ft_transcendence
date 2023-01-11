@@ -124,8 +124,17 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 	{
 		const channelMember = await this.channelMemberService.getOne({channelId: dto.channelId, userId: user.id , role: null})
 
-		if (!channelMember || channelMember.role === "BANNED")
-			return ;
+		if (!channelMember || channelMember.role === "BANNED" || channelMember.role === "MUTED")
+		{
+			if (channelMember.role === "MUTED" && channelMember.muteExpires.getTime() <= Date.now())
+			{
+				this.channelMemberService.changeRole({channelId: dto.channelId, userId: user.id, role: "MEMBER"})
+				this.server.to(dto.channelId).emit(events.ALERT, {event: events.USERS, args: {channelId: dto.channelId}})
+			}
+			else
+				return ;
+		}
+
 		const newMessage = await this.messageService.create({
 			content: dto.content,
 			channel: { connect: { id: dto.channelId } },

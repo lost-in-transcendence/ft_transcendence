@@ -4,3 +4,5 @@ export const BLOCK_USER: string = 'block';
 export const UNBLOCK_USER: string = 'unblock';
 export const BAN_USER: string = "banUser"
 export const UNBAN_USER: string = "unbanUser"
+export const MUTE_USER: string = "muteUser"
+export const UNMUTE_USER: string = "unmuteUser"
