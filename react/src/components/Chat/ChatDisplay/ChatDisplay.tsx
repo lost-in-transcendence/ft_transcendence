@@ -5,14 +5,14 @@ import { ChatComposer } from "../ChatComposer/ChatComposer";
 import { ChatWindow } from "../ChatWindow/ChatWindow";
 import ChatContext from "../Context/chatContext";
 import * as events from "../../../../shared/constants";
-import { ContextMenuData, Member } from "../dto";
+import { Member } from "../dto";
 import { backURL } from "../../../requests";
 import { ChatRightBar } from "../rightBar/ChatRightBar";
 import { ContextMenu } from "../rightBar/ContextMenu";
 
 import SocketContext from "../../Socket/socket-context";
 
-export function ChatDisplay({ currentUser, contextMenu }: { currentUser: User, contextMenu: {displayContext: ContextMenuData | undefined, setDisplayContext: any} }) {
+export function ChatDisplay({ currentUser }: { currentUser: User }) {
   const ctx = useContext(ChatContext);
   const mainCtx = useContext(SocketContext);
 
@@ -29,15 +29,12 @@ export function ChatDisplay({ currentUser, contextMenu }: { currentUser: User, c
 
   function updateUserInfo(id: string, data: any) {
     console.log("updating", id, "with", data);
-    setUsers((prev) => 
-    {
-      const index = prev.findIndex((v) => 
-      {
+    setUsers((prev) => {
+      const index = prev.findIndex((v) => {
         return v.user.id === id;
       });
       if (index === -1) return prev;
-      const updated = prev.map((v, i) => 
-      {
+      const updated = prev.map((v, i) => {
         if (i !== index) return v;
         const updatedUser = { ...v.user };
         Object.assign(updatedUser, data);
@@ -94,11 +91,10 @@ export function ChatDisplay({ currentUser, contextMenu }: { currentUser: User, c
         <ChatWindow
           users={users}
           className="bg-slate-400 basis-full overflow-y-auto px-1 py-2"
-          contextMenu={contextMenu}
         />
         <ChatComposer className="justify-self-end" user={currentUser} />
       </div>
-      <ChatRightBar users={users} contextMenu={contextMenu}/>
+      <ChatRightBar users={users} />
     </div>
   );
 }

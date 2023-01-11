@@ -6,14 +6,13 @@ import { UserAvatarStatus } from "../../Avatar/UserAvatarStatus";
 import { ContextMenuData, Member } from "../dto";
 import { ContextMenu } from "./ContextMenu";
 
-export function MemberList({ members, status, contextMenu }: { members: Member[], status: 'ONLINE' | 'OFFLINE', contextMenu: {displayContext: ContextMenuData | undefined, setDisplayContext: any} })
+export function MemberList({ members, status }: { members: Member[], status: 'ONLINE' | 'OFFLINE' })
 {
-	// const [display, setDisplay] = useState<ContextMenuData | undefined>(undefined);
-	const {displayContext, setDisplayContext} = contextMenu;
+	const [display, setDisplay] = useState<ContextMenuData | undefined>(undefined);
 
 	useEffect(() =>
 	{
-		const handleClick = () => setDisplayContext(undefined);
+		const handleClick = () => setDisplay(undefined);
 		window.addEventListener("click", handleClick);
 		return () =>
 		{
@@ -26,6 +25,10 @@ export function MemberList({ members, status, contextMenu }: { members: Member[]
 
 	return (
 		<>
+			{
+				display &&
+				<ContextMenu x={display.x} y={display.y} userName={display.userName} targetId={display.targetId} />
+			}
 			<h3 className={"ml-2 mt-2 text-zinc-400"}>{status}</h3>
 			<ul>
 				{
@@ -39,7 +42,7 @@ export function MemberList({ members, status, contextMenu }: { members: Member[]
 								onContextMenu={(e) =>
 								{
 									e.preventDefault();
-									setDisplayContext({
+									setDisplay({
 										x: e.pageX,
 										y: e.pageY,
 										userName: user.userName,

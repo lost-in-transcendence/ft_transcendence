@@ -21,11 +21,9 @@ import SocketContext from "../../Socket/socket-context";
 export function ChatWindow({
   className,
   users,
-  contextMenu,
 }: {
   users: any[];
   className?: string;
-  contextMenu: {displayContext: ContextMenuData | undefined, setDisplayContext: any}
 }) {
   const ctx = useContext(ChatContext);
   const mainCtx = useContext(SocketContext);
@@ -38,10 +36,9 @@ export function ChatWindow({
   const channel = ctx.ChatState.activeChannel;
 
   const [visibleMessages, setVisibles] = useState<MessageDto[]>([]);
-  const {displayContext, setDisplayContext} = contextMenu;
-  // const [display, setDisplay] = useState<ContextMenuData | undefined>(
-    // undefined
-  // );
+  const [display, setDisplay] = useState<ContextMenuData | undefined>(
+    undefined
+  );
 
   const selfRef = useRef<HTMLLIElement>(null);
 
@@ -113,7 +110,7 @@ export function ChatWindow({
   });
 
   useEffect(() => {
-    const handleClick = () => setDisplayContext(undefined);
+    const handleClick = () => setDisplay(undefined);
     window.addEventListener("click", handleClick);
     return () => {
       window.removeEventListener("click", handleClick);
@@ -151,6 +148,14 @@ export function ChatWindow({
           </button>
         )}
       </div>
+      {display && (
+        <ContextMenu
+          x={display.x}
+          y={display.y}
+          userName={display.userName}
+          targetId={display.targetId}
+        />
+      )}
       <div className={className}>
         <ul>
           {visibleMessages.map((m, i, all) => {
@@ -179,7 +184,7 @@ export function ChatWindow({
                     className="hover:bg-slate-600 cursor-pointer rounded px-1 flex items-center"
                     onContextMenu={(e) => {
                       e.preventDefault();
-                      setDisplayContext({
+                      setDisplay({
                         x: e.pageX,
                         y: e.pageY,
                         userName: m.sender.userName,
