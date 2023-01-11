@@ -1,7 +1,8 @@
 import { Action } from "@remix-run/router";
 import React, { createContext } from "react";
 import { Socket } from "socket.io-client";
-import { SharedUserStatus } from "../../../shared/dtos";
+import { SharedGameStatusDto, SharedUserStatus } from "../../../shared/dtos";
+import { GameStatus } from "../../dto/game.dto";
 import { PartialUser, User } from "../../dto/users.dto";
 
 
@@ -23,6 +24,7 @@ export const defaultUser: User =
 	friends: [],
 	blacklist: [],
 	status: SharedUserStatus.OFFLINE,
+	gameStatus: SharedGameStatusDto.NONE,
 	playStats: undefined,
 	channels: [],
 

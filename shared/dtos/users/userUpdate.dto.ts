@@ -1,3 +1,5 @@
+import { SharedGameStatusDto } from "../game";
+
 export class SharedUpdateUserDto
 {
     readonly userName?: string
@@ -87,6 +89,7 @@ export interface SharedFullUserDto
 	blacklist?: SharedOtherUserDto[];
 
 	status: SharedUserStatus;
+	gameStatus: SharedGameStatusDto;
 	// matchHistory: ???;
 	playStats?: SharedPlayStatsDto;
 	channels: SharedJoinedChannelsDto[];
@@ -106,6 +109,7 @@ export interface SharedPartialUserDto
 	blacklist?: SharedOtherUserDto[];
 
 	status?: SharedUserStatus;
+	gameStatus?: SharedGameStatusDto;
 	// matchHistory: ???;
 	playStats?: SharedPlayStatsDto;
 	channels?: SharedJoinedChannelsDto[];
