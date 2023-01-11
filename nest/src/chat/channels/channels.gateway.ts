@@ -356,8 +356,11 @@ export class ChannelsGateway implements OnGatewayConnection
 
 	async getUsersFromChannel({ channelId, userId }: { channelId: string, userId: string }): Promise<SharedChannelMembersDto[]>
 	{
+		let users: SharedChannelMembersDto[] = []
 		const channels: PartialChannelDto[] = await this.getVisibleChannels(userId);
-		const users: SharedChannelMembersDto[] = channels.find((c) => c.id === channelId).members;
+		const currentChannel = channels.find((c) => c.id === channelId);
+		if (currentChannel)
+			users = currentChannel.members;
 		const ret = users.filter((u) => u.role !== 'BANNED');
 		return (ret);
 	}
