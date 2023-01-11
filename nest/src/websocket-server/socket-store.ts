@@ -4,7 +4,7 @@ import { Socket } from 'socket.io';
 export class SocketStore
 {
 	private readonly logger = new Logger(SocketStore.name);
-	userSockets = new Map()
+	userSockets = new Map<string, Socket[]>()
 
 	setUserSockets(id: string, socket: Socket)
 	{
@@ -13,7 +13,6 @@ export class SocketStore
 			this.userSockets.set(id, [socket])
 		else
 			this.userSockets.set(id, [...tmp, socket]);
-		//console.log(this.getUserSockets(id))
 	}
 
 	removeUserSocket(id: string, socket: Socket)
@@ -30,6 +29,10 @@ export class SocketStore
 
 	getUserSockets(id: string): Socket[]
 	{
-		return (this.userSockets.get(id));
+		const ret = this.userSockets.get(id);
+		if (!ret)
+			return [];
+		else
+			return ret;
 	}
 }

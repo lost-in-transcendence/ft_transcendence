@@ -1,10 +1,6 @@
 import { ForbiddenException, HttpException, Injectable, Logger, UseFilters, UseInterceptors, UsePipes } from '@nestjs/common';
 import { User } from '@prisma/client';
 import { Socket, Namespace } from 'socket.io';
-import { GlobalChatService } from 'src/global/global-chat-service';
-import { CustomWsFilter } from 'src/websocket-server/filters';
-import { UserInterceptor } from 'src/websocket-server/interceptor';
-import { WsValidationPipe } from 'src/websocket-server/pipes';
 import { GameWaitingRoom } from './game.gateway';
 import { GamesService } from './game.service';
 
@@ -135,19 +131,12 @@ class OngoingGame
         this.paddle2 = new Paddle(Math.round((height / 2) - 50), 100);
         this.ball = new Ball({x: width / 2, y:height / 2}, {x: 1, y:1}, 25);
         this.objective = objective;
-        // this.scoreObjective = scoreObjective;
-        // this.timer = timer;
         this.goal = goal;
         this.winner = 0;
         if (this.objective === Objective.TIME)
         {
             this.timer = this.goal * 1000 * 60;
         }
-
-        // TODO
-        // - do spectators and shit
-
-        // this.spectators = [];
     }
 }
 
@@ -303,7 +292,6 @@ export class GameComputer
             }
             game.status = GameStatusValue.FINISHED;
         }
-        // enregistrer les scores
         this.gamesService.update({where: {id: game.id}, data: 
             {
                 players:
@@ -323,7 +311,6 @@ export class GameComputer
             }});
         if (game.endGame === EndGameValue.TIME && game.score1 === game.score2)
         {
-            // do something
             this.server.to(game.id).emit('endGame',
             {
                 draw: true,
@@ -426,9 +413,6 @@ export class GameComputer
 
     async findGameBySpectatorSocketId(socketId: string)
     {
-        // const lol = this.ongoingGames.find((v) => {return v.user1});
-        // if (lol)
-        //     console.log(lol.spectators);
         return this.ongoingGames.find((v) =>
         {
             return v.spectators.find((val) =>

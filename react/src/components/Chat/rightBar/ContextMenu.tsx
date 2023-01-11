@@ -6,6 +6,7 @@ import { ContextMenuData } from "../dto";
 import * as events from '../../../../shared/constants'
 import ChatContext from "../Context/chatContext";
 import { Channel } from "../../../dto/channels.dto";
+import { addFriend, removeFriend } from "../../../requests";
 
 export function ContextMenu({ x, y, userName, targetId }: ContextMenuData)
 {
@@ -15,10 +16,12 @@ export function ContextMenu({ x, y, userName, targetId }: ContextMenuData)
 	const currentUser = mainCtx.SocketState.user;
 	const mainSocket = mainCtx.SocketState.socket;
 	const blacklist = mainCtx.SocketState.user.blacklist;
+	const friendlist = mainCtx.SocketState.user.friends;
 
 	const channels = chatCtx.ChatState.visibleChannels;
 
 	const isInBlacklist: boolean = blacklist?.find((u) => u.id === targetId) ? true : false;
+	const isInFriendList: boolean = friendlist?.find((u) => u.id === targetId) ? true : false;
 
 	const navigate = useNavigate();
 
@@ -37,6 +40,15 @@ export function ContextMenu({ x, y, userName, targetId }: ContextMenuData)
 		mainSocket?.emit(events.UNBLOCK_USER, { userId: targetId });
 	}
 
+	async function toggleFriend(id: string, isInFriendList: boolean)
+	{
+		let toggleFunc: Function = isInFriendList ? removeFriend : addFriend;
+		if (await toggleFunc(id) === true)
+			mainSocket?.emit("changeFriends");
+	}
+
+	
+
 	function sendPrivmsg()
 	{
 		const channelName = targetId > currentUser.id ? targetId + '_' + currentUser.id : currentUser.id + '_' + targetId;
@@ -44,7 +56,8 @@ export function ContextMenu({ x, y, userName, targetId }: ContextMenuData)
 
 		if (!channelExists)
 			chatCtx.ChatState.socket?.emit(events.NEW_PRIVMSG, {userId: targetId});
-		chatCtx.ChatDispatch({type: 'update_active', payload: channelExists});
+		else
+			chatCtx.ChatDispatch({type: 'update_active', payload: channelExists});
 	}
 
 	const liClassName: string =
@@ -68,7 +81,12 @@ export function ContextMenu({ x, y, userName, targetId }: ContextMenuData)
 				currentUser.id !== targetId &&
 				<>
 					<li className={liClassName}>Invite to play</li>
-					<li className={liClassName}>[conditional friend]</li>
+					<li
+					className={liClassName}
+					onClick={() => toggleFriend(targetId, isInFriendList)}
+					>
+						{isInFriendList ? 'Remove' : 'Add'} Friend
+					</li>
 					<li className={liClassName}>Invite to channel</li>
 					<li
 						className={liClassName}

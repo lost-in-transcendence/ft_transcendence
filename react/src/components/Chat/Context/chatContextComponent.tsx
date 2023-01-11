@@ -58,7 +58,9 @@ export function ChatContextComponent(props: any)
 
 		socket.on(events.UPDATE_ACTIVE_CHAN, (payload: Channel) =>
 		{
+			console.log("in update active chan, pre", {activeChannel: ChatState.activeChannel})
 			ChatDispatch({type: 'update_active', payload});
+			console.log("in update active chan, post", {activeChannel: ChatState.activeChannel})
 		})
 
 		socket.on(events.ALERT, (payload: {event: string, args: any}) =>

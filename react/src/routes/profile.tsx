@@ -88,6 +88,8 @@ export function Profile()
 									<ul className="">
 										{ matchHistory.map((v: any) =>
 										{
+											if (!v || !v.player1 || !v.player2)
+												return;
 											return (
 											<li key={v.gameId}>
 												<MatchHistoryCard player1={v.player1} player2={v.player2} />
