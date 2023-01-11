@@ -31,7 +31,7 @@ export function ChannelCard({
 
 	function joinChannel()
 	{
-		if (channel.mode === "PUBLIC")
+		if (channel.mode === "PUBLIC" || channel.mode === "PRIVATE")
 		{
 			const payload = { channelId: channel.id };
 			socket?.emit(events.JOIN_CHANNEL, payload);

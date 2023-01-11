@@ -22,6 +22,7 @@ import { UserSocketStore } from "../global/user-socket.store";
 import { BanMemberDto, ChannelMemberDto, UpdateChannelMemberDto } from "./channel-member/dto";
 //import { env } from "process";
 import { ChannelMemberService } from "./channel-member/channel-member.service";
+import e from "express";
 
 @UseInterceptors(UserInterceptor)
 @UseFilters(new CustomWsFilter())
@@ -110,17 +111,29 @@ export class ChannelsGateway implements OnGatewayConnection
 		@ConnectedSocket() client: Socket,
 		@GetUserWs() user: User)
 	{
-		const dto: joinChannelDto = {
+
+		const channelMember = await this.channelMemberService.getOne({userId: user.id, channelId: body.channelId})
+		let dto: joinChannelDto;
+		if (channelMember)
+		{
+			dto = {
+				userId: user.id,
+				channelId: body.channelId,
+				role: channelMember.role
+			}
+		}
+		else
+		dto = {
 			userId: user.id,
 			channelId: body.channelId,
-			role: 'MEMBER'
+			role: "MEMBER"
 		}
-		const channelMember = await this.channelMemberService.getOne(dto)
+
 		if (channelMember && channelMember.role === 'BANNED')
-			return;
+		return;
 		const channel: Channel = await this.channelService.findOne({ id: dto.channelId });
 
-		if (channel.mode === 'PRIVATE' && !channel.whitelist.includes(user.id))
+		if (channel.mode === 'PRIVATE' && channelMember.role !== "INVITED")
 			throw new WsException({ status: 'Unauthorized', message: 'Channel is Private ! Get out of here !' });
 		if (channel.mode === 'PROTECTED')
 		{
@@ -150,12 +163,14 @@ export class ChannelsGateway implements OnGatewayConnection
 		@ConnectedSocket() client: Socket,
 		@GetUserWs() user: any)
 	{
+		let deleteChan: boolean = false;
 		const channelMemberDto: ChannelMemberDto = {
 			userId: client.data.user.id,
 			channelId,
 			role: null
 		}
 		const channelMember = await this.channelMemberService.getOne(channelMemberDto);
+
 		if (!channelMember)
 			throw new WsException({ status: 'Error', message: 'Cannot leave channel you are not a part of !' });
 		if (channelMember.role === 'OWNER')
@@ -200,15 +215,16 @@ export class ChannelsGateway implements OnGatewayConnection
 			{
 				client.leave(channelId);
 				this.DstroyChannel(channelId)
-				const newChanList = await this.getVisibleChannels(user.id);
+				deleteChan = true;
 			}
 		}
 		if (channelMember.role !== 'BANNED')
-			await this.channelService.leaveChannel({ userId_channelId: { userId: user.id, channelId } });
+		await this.channelService.leaveChannel({ userId_channelId: { userId: user.id, channelId } });
 		client.leave(channelId);
 		this.notify(channelId, `${user.userName} has left the channel`);
+		if (!deleteChan)
+			this.alert({ event: events.USERS, args: { channelId: channelId } });
 		this.alert({ event: events.CHANNELS });
-		this.alert({ event: events.USERS, args: { channelId: channelId } });
 	}
 
 	@SubscribeMessage(events.GET_BANNED_USERS)
@@ -318,6 +334,20 @@ export class ChannelsGateway implements OnGatewayConnection
 		await this.channelMemberService.changeRole({userId: dto.userId, channelId: dto.channelId, role: 'MEMBER'});
 		const newMemberList = await this.getUsersFromChannel({channelId: dto.channelId, userId: user.id});
 		this.server.to(dto.channelId).emit(events.USERS, newMemberList);
+	}
+
+	@SubscribeMessage(events.INVITE_TO_PRIVATE_CHANNEL)
+	async inviteToPrivateChannel(@MessageBody() body: { usersToInvite: string[], channelId: string }, @ConnectedSocket() client: Socket, @GetUserWs() user: User)
+	{
+		for (let invitedUser of body.usersToInvite)
+		{
+			await this.channelMemberService.create({userId: invitedUser, channelId: body.channelId, role: 'INVITED'});
+			const socketIds = UserSocketStore.getUserSockets(invitedUser);
+			socketIds.forEach((s) =>
+			{
+				this.server.to(s.id).emit(events.ALERT, { event: events.CHANNELS });
+			})
+		}
 	}
 
 	/*************************/

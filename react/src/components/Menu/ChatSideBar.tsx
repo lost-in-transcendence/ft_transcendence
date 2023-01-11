@@ -26,12 +26,11 @@ export function ChatSidebar({ user }: any)
 			(c) => c.mode === "PRIVMSG"
 		);
 		joinedChans = ctx.ChatState.visibleChannels.filter(
-			(c) =>
-				c.members?.find((m) => m.user.id === user.id) && c.mode !== "PRIVMSG"
+			(c) => c.members?.find((m) => m.user.id === user.id && m.role !== 'INVITED') && c.mode !== "PRIVMSG"
 		);
 		visibleChans = ctx.ChatState.visibleChannels.filter(
 			(c) =>
-				!c.members?.find((m) => m.user.id === user.id) && c.mode !== "PRIVMSG"
+				!c.members?.find((m) => m.user.id === user.id && m.role !== 'INVITED') && c.mode !== "PRIVMSG"
 		);
 	}
 

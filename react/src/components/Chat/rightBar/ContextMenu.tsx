@@ -35,6 +35,7 @@ export function ContextMenu({ x, y, channel, target }: ContextMenuData)
 	}
 	// NEED TO FIND A WAY TO GET THIS INFO
 	const [banBoxIsOpen, setBanBoxIsOpen] = useState(false)
+	const [mutBoxIsOpen, setMuteBoxIsOpen] = useState(false)
 
 
 	const channels = chatCtx.ChatState.visibleChannels;
@@ -156,11 +157,11 @@ export function ContextMenu({ x, y, channel, target }: ContextMenuData)
 					{
 						isAdmin &&
 						<li className={liClassName}
-							onClick={(e) => { e.stopPropagation(); setBanBoxIsOpen(true) }}
+							onClick={(e) => { e.stopPropagation(); setMuteBoxIsOpen(true) }}
 						>
-							<Modal isOpen={banBoxIsOpen} onClose={() => setBanBoxIsOpen(false)}>
+							<Modal isOpen={mutBoxIsOpen} onClose={() => setMuteBoxIsOpen(false)}>
 								<BanBox
-									onClose={() => setBanBoxIsOpen(false)}
+									onClose={() => setMuteBoxIsOpen(false)}
 									channel={channel}
 									target={target}
 									action='MUTE'
@@ -224,6 +225,11 @@ function BanBox({ onClose, channel, target, action }: { onClose: any, channel: C
 			socket?.emit(events.MUTE_USER, banParams)
 		onClose();
 	}
+
+	useEffect(() =>
+	{
+		console.log('in BanBox Action: ' + action);
+	})
 
 	return (
 		<>

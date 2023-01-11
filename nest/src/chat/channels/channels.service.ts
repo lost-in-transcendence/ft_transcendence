@@ -98,7 +98,10 @@ export class ChannelsService
 
 	async joinChannel(dto: joinChannelDto)
 	{
-		return (await this.channelMember.create(dto))
+		if (dto.role === "INVITED")
+			return (await this.channelMember.changeRole({channelId: dto.channelId, userId: dto.userId, role: "MEMBER"}))
+		else
+			return (await this.channelMember.create(dto))
 	}
 
 	async leaveChannel(where: Prisma.ChannelMemberWhereUniqueInput)

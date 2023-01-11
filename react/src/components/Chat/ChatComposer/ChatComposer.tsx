@@ -15,7 +15,7 @@ export function ChatComposer({ user, className }: { user: User, className?: stri
 	function sendText(e: any)
 	{
 		e.preventDefault()
-		console.log("input sent")
+		if (message.length < 1) return ;
 		socket?.emit(events.TO_CHANNEL, { channelId: channel?.id, content: message })
 		setMessage("")
 	}

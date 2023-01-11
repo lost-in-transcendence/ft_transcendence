@@ -120,6 +120,7 @@ enum RoleType {
     OWNER
     ADMIN
     MEMBER
+	INVITED
     MUTED
     BANNED
 }

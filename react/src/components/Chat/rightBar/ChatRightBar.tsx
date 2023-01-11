@@ -8,8 +8,8 @@ import { MemberList } from "./MemberList";
 
 export function ChatRightBar({ users, channel}: { users: Member[], channel: Channel })
 {
-	const onlineMembers: Member[] = users.filter((u) => u.user.status !== 'OFFLINE');
-	const offlineMembers: Member[] = users.filter((u) => u.user.status === 'OFFLINE');
+	const onlineMembers: Member[] = users.filter((u) => u.user.status !== 'OFFLINE' && u.role !== "INVITED");
+	const offlineMembers: Member[] = users.filter((u) => u.user.status === 'OFFLINE' && u.role !== "INVITED");
 
 	return (
 		<div className="bg-zinc-700 w-60 overflow-hidden break-words">

@@ -97,8 +97,22 @@ export class ChannelMemberService
 			},
 			data: {
 				role: dto.role
+			},
+			include:
+			{
+				channel:
+				{
+					select:
+					{
+						id: true,
+						channelName: true,
+						mode: true,
+						members: true
+					}
+				}
 			}
 		})
+		return (ret)
 	}
 
 	async getOne(dto: ChannelMemberDto)

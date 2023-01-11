@@ -1,5 +1,8 @@
 import
-{
+React, {
+	ChangeEvent,
+	ChangeEventHandler,
+	FormEvent,
 	useContext,
 	useEffect,
 	useLayoutEffect,
@@ -7,7 +10,8 @@ import
 	useState,
 } from "react";
 import { GiConsoleController } from "react-icons/gi";
-import { FaCog } from "react-icons/fa";
+import { FaCog } from "react-icons/fa"
+import { AiOutlineUserAdd } from "react-icons/ai"
 
 import { Channel } from "../../../dto/channels.dto";
 import ChatContext from "../Context/chatContext";
@@ -33,6 +37,7 @@ export function ChatWindow({ className, users, channel }: { users: Member[], cla
 	const socket = ctx.ChatState.socket;
 
 	const [ownerBoxIsOpen, setOwnerBoxIsOpen] = useState(false)
+	const [inviteBoxIsOpen, setInviteBoxIsOpen] = useState(false)
 	const [visibleMessages, setVisibles] = useState<MessageDto[]>([]);
 	const [display, setDisplay] = useState<ContextMenuData | undefined>(undefined);
 	const [formatedName, setFormatedName] = useState('');
@@ -44,7 +49,9 @@ export function ChatWindow({ className, users, channel }: { users: Member[], cla
 	/* UPDATE BANNED USER AFTER TEST !!!!*/
 	/* UPDATE BANNED USER AFTER TEST !!!!*/
 
-	if (channel && channel?.mode !== 'PRIVMSG')
+	const isPrivate = channel.mode === "PRIVATE"
+
+	if (channel.mode !== 'PRIVMSG')
 	{
 		const me = users?.find((m) => m.user?.id === currentUser.id);
 		isOwner = me?.role === 'OWNER';
@@ -174,23 +181,39 @@ export function ChatWindow({ className, users, channel }: { users: Member[], cla
 								shadow-lg
 								flex flex-row items-center justify-center"
 			>
-				<div className="inline-flex items-center justify-center basis-full">
-					<span className="overflow-hidden">{formatedName}</span>
+				<div className="flex items-center justify-between basis-full">
 					{
-						isOwner && channel &&
+						isPrivate &&
 						<>
-							<FaCog
-								className={"text-green-500 ml-2 cursor-pointer"} size={20}
-								onClick={() => setOwnerBoxIsOpen(true)}
-							/>
-							<Modal isOpen={ownerBoxIsOpen} onClose={() => setOwnerBoxIsOpen(false)}>
-								<OwnerBox
-									onClose={() => setOwnerBoxIsOpen(false)}
+							<AiOutlineUserAdd
+								className="justify-self-start cursor-pointer"
+								onClick={() => setInviteBoxIsOpen(true)} />
+							<Modal isOpen={inviteBoxIsOpen} onClose={() => setInviteBoxIsOpen(false)}>
+								<InviteBox
+									onClose={() => setInviteBoxIsOpen(false)}
 									channel={channel}
-								/>
+									user={currentUser} />
 							</Modal>
 						</>
+
 					}
+					<span className="flex flex-row justify-center basis-full items-center overflow-hidden">{formatedName}
+						{
+							isOwner && channel &&
+							<>
+								<FaCog
+									className={"text-green-500 ml-2 cursor-pointer"} size={20}
+									onClick={() => setOwnerBoxIsOpen(true)}
+								/>
+								<Modal isOpen={ownerBoxIsOpen} onClose={() => setOwnerBoxIsOpen(false)}>
+									<OwnerBox
+										onClose={() => setOwnerBoxIsOpen(false)}
+										channel={channel}
+									/>
+								</Modal>
+							</>
+						}
+					</span>
 				</div>
 				{channel?.mode !== "PRIVMSG" && (
 					<button
@@ -295,6 +318,59 @@ export function ChatWindow({ className, users, channel }: { users: Member[], cla
 	);
 }
 
+function InviteBox({ channel, user, onClose }: { channel: Channel, user: User, onClose: Function })
+{
+	const mainSocket = useContext(SocketContext).SocketState.socket
+	const chatSocket = useContext(ChatContext).ChatState.socket;
+
+	const [usersToInvite, setUsersToInvite] = useState<string[]>([])
+	const [friends, setFriends] = useState<{ id: string, userName: string }[]>([])
+
+	useEffect(() =>
+	{
+		mainSocket?.on(events.GET_FRIENDLIST, (payload: { id: string, userName: string }[]) =>
+		{
+			setFriends(payload);
+		})
+		mainSocket?.emit(events.GET_FRIENDLIST, { userId: user.id })
+		return (() =>
+		{
+			mainSocket?.off(events.GET_FRIENDLIST);
+		})
+	}, [])
+
+	function onCheck(e: ChangeEvent<HTMLInputElement>, userId: string)
+	{
+		e.target.checked ?
+			setUsersToInvite((prev) => [...prev, userId])
+			:
+			setUsersToInvite((prev) => prev.filter((p) => p !== userId))
+	}
+
+	function onSubmit(e: any)
+	{
+		e.preventDefault();
+		chatSocket?.emit(events.INVITE_TO_PRIVATE_CHANNEL, {usersToInvite, channelId: channel.id});
+	}
+
+	return (
+		<form onSubmit={onSubmit}>
+			{
+				friends.map((f) =>
+				{
+					return (
+						<div key={f.id} className='shadow-inner'>
+							<input className="mx-2" type={'checkbox'} onChange={(e) => { onCheck(e, f.id) }} />
+							<label >{f.userName}</label>
+						</div>
+					)
+				})
+			}
+			<input type={'submit'} value={`Invite to ${channel.channelName}`} />
+		</form>
+	)
+}
+
 function OwnerBox({ onClose, channel }: { onClose: any, channel: Channel })
 {
 	const [data, setData] = useState<{ channelId: string, channelName?: string; mode?: string; password?: string; }>({ channelId: channel.id });
@@ -384,20 +460,20 @@ function OwnerBox({ onClose, channel }: { onClose: any, channel: Channel })
 				(bannedUsers && bannedUsers.length > 0) ?
 					<form className="flex flex-row gap-2 justify-between items-center p-2">
 						<label className="basis-full">
-								Banned
-								<select className="ml-2 rounded shadow">
+							Banned
+							<select className="ml-2 rounded shadow">
+								{
+									bannedUsers.map((u: Member) =>
 									{
-										bannedUsers.map((u: Member) =>
-										{
-											return (
-												<option key={u.user.id}>
-													{u.user.userName}
-												</option>
-											)
+										return (
+											<option key={u.user.id}>
+												{u.user.userName}
+											</option>
+										)
 
-										})
-									}
-								</select>
+									})
+								}
+							</select>
 						</label>
 						<input
 							type={'submit'}

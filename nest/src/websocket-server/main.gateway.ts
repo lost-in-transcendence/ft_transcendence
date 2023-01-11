@@ -106,7 +106,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 				where:
 				{
 					AND: {members: {some: {userId: user.id}}},
-					NOT: {members: {some: {userId: user.id, role: RoleType.BANNED}}},	
+					NOT: {members: {some: {userId: user.id, role: RoleType.BANNED}}},
 				},
 				select: {id: true}
 			}
@@ -117,7 +117,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			{id: user.id},
 			{friendTo: {select: {id: true}}}
 		)
-		const friendSockets = friendList.friendTo.map((v) => 
+		const friendSockets = friendList.friendTo.map((v) =>
 		{
 			const sockets = this.socketStore.getUserSockets(v.id);
 			if (!sockets)
@@ -130,6 +130,16 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			this.server.of('/chat').to(chanIds).emit("updateUser", {id: user.id, data: payload})
 		if (flatSockets)
 			this.server.to(flatSockets).emit("updateFriend", {id: user.id, data:payload});
+	}
+
+	@SubscribeMessage(events.GET_FRIENDLIST)
+	async getFriendList(@MessageBody("userId", ParseUUIDPipe) userId: string, @ConnectedSocket() client: Socket)
+	{
+		const friendList = await this.userService.userSelect(
+			{id: userId},
+			{friends: {select: {id:true, userName:true}}}
+		).then( (c) => c.friends);
+		this.server.to(client.id).emit(events.GET_FRIENDLIST, friendList);
 	}
 
 	@SubscribeMessage('test')
