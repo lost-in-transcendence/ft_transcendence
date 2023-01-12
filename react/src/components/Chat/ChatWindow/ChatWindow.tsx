@@ -46,15 +46,6 @@ export function ChatWindow({ className, }: { className?: string,})
 	const selfRef = useRef<HTMLLIElement>(null);
 
 	let isOwner: boolean = false;
-	/* UPDATE BANNED USER AFTER TEST !!!!*/
-	/* UPDATE BANNED USER AFTER TEST !!!!*/
-	/* UPDATE BANNED USER AFTER TEST !!!!*/
-
-	useEffect(() =>
-	{
-		console.log("ChatWindow render");
-		console.log("Messages:", {visibleMessages});
-	})
 
 	const setContextMenu = useContext(ContextMenuContext).ContextMenuSetter;
 
@@ -300,7 +291,7 @@ export function ChatWindow({ className, }: { className?: string,})
 												</span>
 											</div>
 											<div>
-												<span className="text-red-600 font-semibold">
+												<span className="text-red-900 font-semibold">
 													{m.sender.userName}
 												</span>
 												{/* <br /> */}
@@ -340,6 +331,8 @@ function InviteBox({ channel, user, onClose }: { channel: Channel, user: User, o
 	const [usersToInvite, setUsersToInvite] = useState<string[]>([])
 	const [friends, setFriends] = useState<{ id: string, userName: string }[]>([])
 
+	const testArray = new Array<{id: string, userName: string}>(50).fill({id: 'fake', userName: 'Placeholder'});
+
 	useEffect(() =>
 	{
 		mainSocket?.on(events.GET_FRIENDLIST, (payload: { id: string, userName: string }[]) =>
@@ -368,21 +361,39 @@ function InviteBox({ channel, user, onClose }: { channel: Channel, user: User, o
 	}
 
 	return (
-		<form onSubmit={onSubmit}>
-			{
-				friends.map((f) =>
+		<div>
+			<div>
 				{
-					return (
-						<div key={f.id} className='shadow-inner'>
-							<input className="mx-2" type={'checkbox'} onChange={(e) => { onCheck(e, f.id) }} />
-							<label >{f.userName}</label>
-						</div>
-					)
-				})
-			}
-			<input type={'submit'} value={`Invite to ${channel.channelName}`} />
-		</form>
+					testArray.map((t, i) =>
+					{
+						return (
+							<div>
+								<span>checkbox </span>
+								<span>{t.userName}</span>
+							</div>
+						)
+					})
+				}
+			</div>
+		</div>
 	)
+
+	// return (
+	// 	<form onSubmit={onSubmit}>
+	// 		{
+	// 			friends.map((f) =>
+	// 			{
+	// 				return (
+	// 					<div key={f.id} className='shadow-inner'>
+	// 						<input className="mx-2" type={'checkbox'} onChange={(e) => { onCheck(e, f.id) }} />
+	// 						<label >{f.userName}</label>
+	// 					</div>
+	// 				)
+	// 			})
+	// 		}
+	// 		<input type={'submit'} value={`Invite to ${channel.channelName}`} />
+	// 	</form>
+	// )
 }
 
 function OwnerBox({ onClose, channel }: { onClose: any, channel: Channel })

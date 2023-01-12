@@ -73,7 +73,7 @@ export function ChatDisplay({ currentUser }: { currentUser: User,})
 		<div className="flex flex-row bg-slate-500 h-screen">
 			<div className="flex flex-col basis-full overflow-x-hidden">
 				<ChatWindow
-					className="bg-slate-400 basis-full overflow-y-auto px-1 py-2"
+					className="bg-gray-500 text-gray-50 basis-full overflow-y-auto px-1 py-2"
 				/>
 				<ChatComposer className="justify-self-end" user={currentUser} />
 			</div>

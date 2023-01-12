@@ -83,7 +83,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 					});
 					this.server.to(chan.channelId).emit(events.ALERT, { event: events.USERS, args: { channelId: chan.channelId } });
 				}
-				else if (chan.role === 'MUTED' && chan.banExpires.getTime() <= Date.now())
+				else if (chan.role === 'MUTED' && chan.muteExpires.getTime() <= Date.now())
 					await this.channelMemberService.changeRole({
 						userId: client.data.user.id,
 						channelId: chan.channelId,
@@ -93,7 +93,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 			for (let chan of channels)
 				client.join(chan.channel.id);
 			this.logger.log(`Client ${client.data.user.userName} connected to chat server`);
-			// client.emit('channels');
 		}
 		catch (err)
 		{
@@ -122,10 +121,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 	@SubscribeMessage('toChannel')
 	async toRoom(@MessageBody() dto: CreateMessageDto, @ConnectedSocket() client: Socket, @GetUserWs() user: any)
 	{
-		const channelMember = await this.channelMemberService.getOne({channelId: dto.channelId, userId: user.id , role: null})
-
-		if (!channelMember || channelMember.role === "BANNED" || channelMember.role === "MUTED")
+		const channelMember = await this.channelMemberService.getOne({channelId: dto.channelId, userId: user.id})
+		if (!channelMember)
+			return;
+		if (channelMember.role === "BANNED" || channelMember.role === "MUTED")
 		{
+			if (channelMember.role === 'MUTED')
+				this.server.to(client.id).emit(events.NOTIFY, { channelId: dto.channelId, content: 'Your are muted !' });
 			if (channelMember.role === "MUTED" && channelMember.muteExpires.getTime() <= Date.now())
 			{
 				await this.channelMemberService.changeRole({channelId: dto.channelId, userId: user.id, role: "MEMBER"})
