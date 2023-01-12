@@ -23,6 +23,7 @@ import { BanMemberDto, ChannelMemberDto, UpdateChannelMemberDto } from "./channe
 //import { env } from "process";
 import { ChannelMemberService } from "./channel-member/channel-member.service";
 import e from "express";
+import { TimeoutStore } from "../global/timeout-store";
 
 @UseInterceptors(UserInterceptor)
 @UseFilters(new CustomWsFilter())
@@ -250,13 +251,42 @@ export class ChannelsGateway implements OnGatewayConnection
 		}
 		this.server.to(body.channelId).emit(events.NOTIFY, { channelId: body.channelId, content: `${body.userName} has been banned by ${user.userName}` })
 		this.server.to(body.channelId).emit(events.ALERT, { event: events.USERS, args: { channelId: body.channelId } });
+
+		TimeoutStore.setTimeoutId(
+			{userId: body.userId, channelId: body.channelId},
+			setTimeout(() => this.unbanUser(body.userId, body.channelId), body.banTime));
 	}
 
-	@SubscribeMessage(events.UNBAN_USER)
-	async unbanUser(@MessageBody() body: any)
+	async unbanUser(userId: string, channelId: string)
 	{
-		return (this.channelService.unbanUser(body.userId, body.channelId))
+		await this.channelMemberService.changeRole({
+			userId: userId,
+			channelId: channelId,
+			role: 'MEMBER'
+		});
+		this.server.to(channelId).emit(events.ALERT, { event: events.USERS, args: { channelId: channelId } });
+		const userSockets = UserSocketStore.getUserSockets(userId);
+		userSockets.forEach((v) =>
+		{
+			this.server.to(v.id).emit(events.ALERT, {event: events.CHANNELS});
+		})
 	}
+
+	async unmuteUser(userId: string, channelId: string)
+	{
+		await this.channelMemberService.changeRole({
+			userId: userId,
+			channelId: channelId,
+			role: 'MEMBER'
+		})
+		this.server.to(channelId).emit(events.ALERT, {event: events.USERS, args: {channelId: channelId}})
+	}
+
+	// @SubscribeMessage(events.UNBAN_USER)
+	// async unbanUser(@MessageBody() body: any)
+	// {
+	// 	return (this.channelService.unbanUser(body.userId, body.channelId))
+	// }
 
 	@SubscribeMessage(events.MUTE_USER)
 	async muteUser(@MessageBody() body: BanMemberDto, @GetUserWs() user: User)
@@ -264,6 +294,10 @@ export class ChannelsGateway implements OnGatewayConnection
 		await this.channelMemberService.muteUser(body)
 		this.server.to(body.channelId).emit(events.NOTIFY, { channelId: body.channelId, content: `${body.userName} has been muted by ${user.userName}` })
 		this.server.to(body.channelId).emit(events.ALERT, { event: events.USERS, args: { channelId: body.channelId } })
+		TimeoutStore.setTimeoutId(
+			{userId: body.userId, channelId: body.channelId},
+			setTimeout(() => this.unmuteUser(body.userId, body.channelId), body.banTime)
+			)
 	}
 
 	@SubscribeMessage(events.CHANNELS)
@@ -470,6 +504,16 @@ export class ChannelsGateway implements OnGatewayConnection
 	{
 		// TODO Handle destroy message
 
+		const banList = await this.channelMemberService.getBanList({channelId});
+		const muteList = await this.channelMemberService.getMuteList({channelId});
+		banList.forEach((v) =>
+		{
+			TimeoutStore.clearTimeoutId({userId: v.user.id, channelId})
+		});
+		muteList.forEach((v) =>
+		{
+			TimeoutStore.clearTimeoutId({userId: v.user.id, channelId})
+		});
 		await this.channelService.remove(channelId);
 		this.server.socketsLeave(channelId);
 	}

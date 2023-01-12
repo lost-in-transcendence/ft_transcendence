@@ -98,28 +98,39 @@ export class ChannelMemberService
 
 	async changeRole(dto: ChannelMemberDto)
 	{
-		const ret = await this.prisma.channelMember.update({
-			where: {
+		try{
+			const ret = await this.prisma.channelMember.update({
+				where: {
 				userId_channelId: { userId: dto.userId, channelId: dto.channelId }
-			},
-			data: {
-				role: dto.role
-			},
-			include:
-			{
-				channel:
+				},
+				data: {
+					role: dto.role
+				},
+				include:
 				{
-					select:
+					channel:
 					{
-						id: true,
-						channelName: true,
-						mode: true,
-						members: true
+						select:
+						{
+							id: true,
+							channelName: true,
+							mode: true,
+							members: true
+						}
 					}
 				}
+			})
+			return (ret)
+		}
+		catch(error)
+		{
+			if (error instanceof PrismaClientKnownRequestError)
+			{
+				if (error.code === 'P2025')
+					throw new PreconditionFailedException('Record to update not found');
 			}
-		})
-		return (ret)
+			this.logger.error({error});
+		}
 	}
 
 	async getOne(dto: ChannelMemberDto)
@@ -140,6 +151,11 @@ export class ChannelMemberService
 		return (await this.prisma.channelMember.findMany({
 			where: { channelId: dto.channelId }
 		}))
+	}
+
+	async findMany(params: Prisma.ChannelMemberFindManyArgs)
+	{
+		return await this.prisma.channelMember.findMany(params);
 	}
 
 	async usersFromChannel(params: Prisma.ChannelMemberFindManyArgs)
@@ -216,5 +232,36 @@ export class ChannelMemberService
 			}
 		});
 		return (banList);
+	}
+	
+	async getMuteList(channelId: Prisma.ChannelMemberWhereInput)
+	{
+		const muteList = await this.prisma.channelMember.findMany({
+			where:
+			{
+				AND:
+					[
+						channelId,
+						{ role: 'MUTED' }
+					]
+			},
+			select:
+			{
+				role: true,
+				timeJoined: true,
+				user:
+				{
+					select:
+					{
+						id: true,
+						userName: true,
+						status: true,
+						gameStatus: true,
+						avatarPath: true
+					}
+				}
+			}
+		});
+		return (muteList);
 	}
 }

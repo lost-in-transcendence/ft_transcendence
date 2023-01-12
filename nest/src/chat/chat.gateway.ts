@@ -26,6 +26,7 @@ import { UserSocketStore } from './global/user-socket.store';
 import { ChannelMemberService } from './channels/channel-member/channel-member.service';
 import { ChannelMemberDto } from './channels/channel-member/dto';
 import * as events from 'shared/constants'
+import { TimeoutStore } from './global/timeout-store';
 
 @UseInterceptors(UserInterceptor)
 @UseFilters(new CustomWsFilter())
@@ -59,9 +60,58 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 	/*      Init Stuff       */
 	/*************************/
 
-	afterInit()
+	async afterInit()
 	{
 		this.logger.log('Chat Gateway initialized');
+		//recuperer tous les user ban / mute
+		// calculer le temps qu'il reste
+		// faire des timeout pour chaque
+		// store les timeout id pour chacun dans un truc statique ou je sais pas
+		const naughtyUsers = await this.channelMemberService.findMany(
+			{
+				where:
+				{
+					OR:
+					[
+						{role: 'BANNED'},
+						{role: 'MUTED'}
+					]
+				}
+			}
+		);
+		naughtyUsers.forEach(async (v) =>
+		{
+			const {userId, channelId} = v;
+			if (v.role === 'BANNED')
+			{
+				const {banExpires} = v;
+				if (banExpires.getTime() <= Date.now())
+				{
+					this.unbanUser(userId, channelId);
+				}
+				else
+				{
+					const timeLeft = banExpires.getTime() - Date.now();
+					TimeoutStore.setTimeoutId({userId, channelId},
+						setTimeout(() => this.unbanUser(userId, channelId), timeLeft));
+				}
+			}
+			else if (v.role === 'MUTED')
+			{
+				const {muteExpires} = v;
+				if (muteExpires.getTime() <= Date.now())
+				{
+					this.unmuteUser(userId, channelId);
+				}
+				else
+				{
+					const timeLeft = muteExpires.getTime() - Date.now();
+					TimeoutStore.setTimeoutId({userId, channelId},
+						setTimeout(() => this.unmuteUser(userId, channelId), timeLeft));
+				}
+			}
+		})
+
 	}
 
 	async handleConnection(client: Socket)
@@ -69,27 +119,27 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 		try
 		{
 			UserSocketStore.setUserSockets(client.data.user.id, client)
-			const naughtyList = await this.channelMemberService.amINaughty({userId: client.data.user.id});
+			// const naughtyList = await this.channelMemberService.amINaughty({userId: client.data.user.id});
 			const channels = client.data.user.channels;
 
-			for (let chan of naughtyList)
-			{
-				if (chan.role === 'BANNED' && chan.banExpires.getTime() <= Date.now())
-				{
-					await this.channelMemberService.changeRole({
-						userId: client.data.user.id,
-						channelId: chan.channelId,
-						role: 'MEMBER'
-					});
-					this.server.to(chan.channelId).emit(events.ALERT, { event: events.USERS, args: { channelId: chan.channelId } });
-				}
-				else if (chan.role === 'MUTED' && chan.muteExpires.getTime() <= Date.now())
-					await this.channelMemberService.changeRole({
-						userId: client.data.user.id,
-						channelId: chan.channelId,
-						role: 'MEMBER'
-					})
-			}
+			// for (let chan of naughtyList)
+			// {
+			// 	if (chan.role === 'BANNED' && chan.banExpires.getTime() <= Date.now())
+			// 	{
+			// 		await this.channelMemberService.changeRole({
+			// 			userId: client.data.user.id,
+			// 			channelId: chan.channelId,
+			// 			role: 'MEMBER'
+			// 		});
+			// 		this.server.to(chan.channelId).emit(events.ALERT, { event: events.USERS, args: { channelId: chan.channelId } });
+			// 	}
+			// 	else if (chan.role === 'MUTED' && chan.muteExpires.getTime() <= Date.now())
+			// 		await this.channelMemberService.changeRole({
+			// 			userId: client.data.user.id,
+			// 			channelId: chan.channelId,
+			// 			role: 'MEMBER'
+			// 		})
+			// }
 			for (let chan of channels)
 				client.join(chan.channel.id);
 			this.logger.log(`Client ${client.data.user.userName} connected to chat server`);
@@ -143,6 +193,31 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 			sender: { connect: { id: user.id } }
 		});
 		this.server.to(dto.channelId).emit('toChannel', newMessage);
+	}
+
+	async unbanUser(userId: string, channelId: string)
+	{
+		await this.channelMemberService.changeRole({
+			userId: userId,
+			channelId: channelId,
+			role: 'MEMBER'
+		});
+		this.server.to(channelId).emit(events.ALERT, { event: events.USERS, args: { channelId: channelId } });
+		const userSockets = UserSocketStore.getUserSockets(userId);
+		userSockets.forEach((v) =>
+		{
+			this.server.to(v.id).emit(events.ALERT, {event: events.CHANNELS});
+		})
+	}
+
+	async unmuteUser(userId: string, channelId: string)
+	{
+		await this.channelMemberService.changeRole({
+			userId: userId,
+			channelId: channelId,
+			role: 'MEMBER'
+		})
+		this.server.to(channelId).emit(events.ALERT, {event: events.USERS, args: {channelId: channelId}})
 	}
 
 	/*************************/
