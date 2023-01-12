@@ -6,7 +6,6 @@ import { useContext } from "react";
 
 import { backURL } from "../requests/constants";
 import { getMyMatchHistory, getUserMeFull } from "../requests";
-import { UserCard } from "../components/UserCard/UserCard";
 import SocketContext from "../components/Socket/socket-context";
 import { MatchHistoryCard } from "../components/MatchHistoryCard/MatchHistoryCard";
 
