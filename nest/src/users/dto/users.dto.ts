@@ -10,7 +10,7 @@ export class CreateUserDto
 
     @IsNumber()
     @IsNotEmpty()
-    readonly id42: number
+    readonly id42: string
 
     @IsString()
     @IsNotEmpty()

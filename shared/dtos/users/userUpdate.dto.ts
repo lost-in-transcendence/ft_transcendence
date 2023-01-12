@@ -34,10 +34,11 @@ export interface SharedPlayStatsDto
 export interface SharedOtherUserDto
 {
 	id: string;
-	id42: number;
+	id42: string;
 	userName: string;
 	email: string;
 	avatarPath?: string;
+	isGuest: boolean;
 	status: SharedUserStatus;
 	gameStatus: SharedGameStatusDto;
 	playStats: SharedPlayStatsDto;
@@ -46,10 +47,11 @@ export interface SharedOtherUserDto
 export interface SharedPartialOtherUserDto
 {
 	id?: string;
-	id42?: number;
+	id42?: string;
 	userName?: string;
 	email?: string;
 	avatarPath?: string;
+	isGuest?: boolean;
 	status?: SharedUserStatus;
 	gameStatus?: SharedGameStatusDto;
 	playStats?: SharedPlayStatsDto;
@@ -91,10 +93,12 @@ export interface SharedJoinedChannelsDto
 export interface SharedFullUserDto
 {
 	id: string;
-	id42: number;
+	id42: string;
 	userName: string;
 	email: string;
 	avatarPath?: string;
+
+	isGuest: boolean;
 
 	twoFaEnabled : boolean;
 
@@ -111,10 +115,12 @@ export interface SharedFullUserDto
 export interface SharedPartialUserDto
 {
 	id?: string;
-	id42?: number;
+	id42?: string;
 	userName?: string;
 	email?: string;
 	avatarPath?: string;
+
+	isGuest?: boolean;
 
 	twoFaEnabled? : boolean;
 

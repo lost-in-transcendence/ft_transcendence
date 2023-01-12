@@ -24,7 +24,6 @@ export class AuthService
 		{
 			user = await this.usersService.createUser({ id42, userName, email});
 			const url = avatarURL;
-			const prefix = user.id.split('-').join('')
 			const filename = `./asset/avatars/${user.id}_${Date.now().toString()}_avatar.png`;
 			const fileWriterStream = fs.createWriteStream(filename);
 			const response = await this.httpService.axiosRef({
@@ -44,24 +43,14 @@ export class AuthService
 		return { token, twoFaEnabled: user.twoFaEnabled };
 	}
 
-	async fakeLogin(fakeInfos: {id42: number, userName: string, email: string, avatarPath: string })
+	async fakeLogin(fakeInfos: {id42: string, userName: string, email: string, avatarPath: string })
 	{
-		const {userName, id42, email, avatarPath} = fakeInfos;
-		console.debug('fakeInfos : ', fakeInfos);
+		const {userName, id42, email} = fakeInfos;
 		let user: User = await this.usersService.user({userName});
 		if (!user)
 		{
 			user = await this.usersService.createUser(fakeInfos);
-			const url = avatarPath;
-			const prefix = user.id.split('-').join('')
-			const filename = `./asset/avatars/${user.id}_${Date.now().toString()}_avatar.png`;
-			const fileWriterStream = fs.createWriteStream(filename);
-			const response = await this.httpService.axiosRef({
-				url : url,
-				method: 'GET',
-				responseType: 'stream',
-			});
-			await response.data.pipe(fileWriterStream);
+			const filename = `./asset/Guest.png`;
 			const data: Prisma.UserUpdateInput = { id42, userName, email, avatarPath : filename};
 			await this.usersService.updateUser({
 				where: { id : user.id },

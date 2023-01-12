@@ -26,7 +26,6 @@ export class UsersService {
 	** @returns {Promis<User | null>} Returns a Promise to a User if found, or null if not found
 	*/
 	async user(where: Prisma.UserWhereUniqueInput): Promise<User | null> {
-		console.debug(where);
 		return this.prisma.user.findUnique(
 			{
 				where

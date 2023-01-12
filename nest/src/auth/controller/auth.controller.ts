@@ -56,11 +56,10 @@ export class AuthController
 
 	@Post('dev-signup')
 	@HttpCode(200)
-	async devAuth(@Body() fakeInfos: {id42: number, userName: string, email: string, avatarPath: any}, @Res({ passthrough: true }) res )
+	async devAuth(@Body() fakeInfos: {id42: string, userName: string, email: string, avatarPath: any, isGuest: Boolean }, @Res({ passthrough: true }) res )
 	{
-		fakeInfos.id42 = Date.now() % 2147483648;
-		// console.debug(fakeInfos);
 		fakeInfos.avatarPath = FAKE_IMG_URL;
+		fakeInfos.isGuest = true;
 		const {token} = await this.authService.fakeLogin(fakeInfos);
 		await this.authService.setJwtCookies(res, token);
 	}

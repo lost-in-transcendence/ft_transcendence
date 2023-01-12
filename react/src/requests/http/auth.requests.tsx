@@ -23,7 +23,7 @@ export async function logDev()
             'Accept': 'application/json',
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({userName: uuidv4(), email: uuidv4()}),
+        body: JSON.stringify({id42: uuidv4(), userName: uuidv4(), email: uuidv4()}),
     });
 }
 
