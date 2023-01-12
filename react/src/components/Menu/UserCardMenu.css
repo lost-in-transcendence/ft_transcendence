@@ -1,0 +1,121 @@
+@tailwind components;
+  
+  @layer components
+  {
+    .card-button
+    {
+      @apply h-[30px] text-left flex items-center hover:bg-[#2E3136] pl-[5px] gap-[10px] cursor-pointer
+    }
+  }
+  
+  .card {
+    box-sizing: border-box;
+    background: #292B2F;
+    width: 300px;
+    height: max-content;
+    max-height: 90vh;
+    border-radius: 9px;
+    -webkit-box-shadow: 0px 0px 16px 3px rgba(0, 0, 0, 0.2);
+    box-shadow: 0px 0px 16px 3px rgba(0, 0, 0, 0.2);
+    scrollbar-width: none;
+    z-index: 250;
+    padding-bottom: 10px;
+  }
+  
+  .card-header {
+    position: relative;
+  }
+  
+  .card-header .banner {
+    width: 100%;
+    height: 60px;
+  }
+  
+  .card-header .banner-image {
+    width: 100%;
+    height: 120px;
+    background-position: center !important;
+    background-size: 100% auto !important;
+  }
+  
+  .card-header .infos {
+    padding: 0 15px;
+  }
+  
+  .card-header .infos .profil-logo-image {
+    position: absolute;
+    top: 16px;
+  }
+  
+  .card-header .infos .profil-logo::before,
+  .card-header .infos .profil-logo-image::before {
+    opacity: 0;
+    cursor: pointer;
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    border: 6px solid #292B2F;
+    content: "See Profile";
+    color: #eeeeee;
+    background: #0000007e;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    transition-duration: 0.15s;
+    z-index: 50;
+  }
+  
+  .card-header .infos .profil-logo:hover::before,
+  .card-header .infos .profil-logo-image:hover::before {
+      opacity: 1;
+  }
+  
+  .card-content {
+    padding: 0 7px 5px 7px;
+    width: 90%;
+    height: 90%;
+    background-color: rgb(24,25,28) ;
+    margin: auto;
+    border-radius: 8px;
+  }
+
+  .card-content .username {
+    color: #eeeeee;
+    padding-top: 5px;
+    margin-top: 45px;
+    margin-bottom: 10px;
+    font-weight: 600;
+    font-size: 1.3rem;
+  }
+  
+  .card-content .username span {
+    font-weight: 500;
+    color: #8f8f8f;
+  }
+  
+  .card-content hr {
+    border: 1px solid rgb(51, 53, 59);
+  }
+  
+  .card-content .category-title {
+    color: #c2c2c2;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    margin-bottom: 10px;
+  }
+  
+  .card-content .about-me {
+    margin-bottom: 12px;
+    margin-top: 10px;
+  }
+  
+  .card-content .about-me p {
+    color: #eee;
+    font-size: 0.9rem;
+  }

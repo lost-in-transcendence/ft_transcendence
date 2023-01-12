@@ -1,6 +1,5 @@
 import { Link, Navigate, Outlet, redirect, useLocation, useNavigate } from "react-router-dom";
 import { useContext, useEffect, useState } from "react";
-import { AuthContext } from "../auth/AuthContext";
 import { appURL, backURL, generateTwoFa, getCookie, validateToken } from "../requests";
 import Modal from "../components/Modal/modal";
 import { TwoFa } from "../components/TwoFa/twofa";
@@ -28,7 +27,6 @@ async function tryValidateToken()
 
 export function Login()
 {
-	const auth = useContext(AuthContext);
 	const loc = useLocation();
 	const [status, setStatus] = useState('waiting');
 

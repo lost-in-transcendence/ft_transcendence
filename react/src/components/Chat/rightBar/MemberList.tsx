@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { FaCrown, FaAngleDoubleUp } from 'react-icons/fa'
 
 import { backURL } from "../../../requests";
+import { UserAvatarStatus } from "../../Avatar/UserAvatarStatus";
 import { ContextMenuData, Member } from "../dto";
 import { ContextMenu } from "./ContextMenu";
 
@@ -48,12 +49,14 @@ export function MemberList({ members, status }: { members: Member[], status: 'ON
 										targetId: user.id
 									});
 								}}
-								className="flex items-center gap-3 py-1 my-1 rounded hover:bg-zinc-500 cursor-pointer"
+								className="flex items-center gap-3 py-1 my-1 rounded hover:bg-zinc-500 cursor-pointer group"
 							>
-								<img
+
+								<UserAvatarStatus userName={user.userName} status={user.status} size={"10"} border={"border-zinc-700"} className={"ml-1 mr-0 group"} />
+								{/* <img
 									className="rounded-full h-10 w-10 ml-1"
 									src={`${backURL}/users/avatars/${user.userName}?time=${Date.now()}`}
-								/>
+								/> */}
 								<span> {displayName} </span>
 								{
 									u.role === 'OWNER' &&

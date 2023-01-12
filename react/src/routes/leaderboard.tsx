@@ -1,8 +1,4 @@
-import { useContext } from "react";
 import { redirect, useLoaderData } from "react-router-dom";
-import { AuthContext } from "../auth/AuthContext";
-import { getCookie } from "../requests/cookies"
-import { Navigate } from "react-router-dom";
 import { getUserMe } from "../requests";
 
 export async function loader()
@@ -14,7 +10,6 @@ export async function loader()
 export function LeaderBoard()
 {
 	const user: any = useLoaderData();
-	const auth = useContext(AuthContext);
 	return (
 		<div>
 			<h1>

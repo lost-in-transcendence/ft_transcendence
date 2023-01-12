@@ -4,5 +4,5 @@ export class SharedCreateChannelDto
 
 	mode: string;
 
-	password: string;
+	password?: string;
 }
