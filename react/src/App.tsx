@@ -1,9 +1,7 @@
-// import './App.css'
-// import './components/Menu/Menu.css'
-
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 
 import { ChatContextComponent } from './components/Chat/Context/chatContextComponent'
+import { ContextMenuContextComponent } from './components/Chat/ContextMenu/ContextMenuContextComponent'
 import GameSocketContextComponent from './components/Game/Context/game-socket-context-component'
 import {Callback, loader as callbackLoader} from './routes/callback'
 import { Chat, loader as chatLoader } from './routes/chat'
@@ -58,12 +56,18 @@ const router = createBrowserRouter(
 				},
 				{
 					path: '/game',
-					element: <GameSocketContextComponent> <Game /> </GameSocketContextComponent>,
+					element: <GameSocketContextComponent>
+								<Game />
+							</GameSocketContextComponent>,
 					loader: gameLoader,
 				},
 				{
 					path: "/chat",
-					element: <ChatContextComponent> <Chat /> </ChatContextComponent> ,
+					element: <ChatContextComponent> 
+								<ContextMenuContextComponent> 
+									<Chat />
+								</ContextMenuContextComponent>
+							</ChatContextComponent> ,
 					loader: chatLoader,
 				},
 				{

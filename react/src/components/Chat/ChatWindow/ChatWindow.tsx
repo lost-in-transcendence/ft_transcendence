@@ -1,11 +1,8 @@
 import
-React, {
+{
 	ChangeEvent,
-	ChangeEventHandler,
-	FormEvent,
 	useContext,
 	useEffect,
-	useLayoutEffect,
 	useRef,
 	useState,
 } from "react";
@@ -15,15 +12,14 @@ import { AiOutlineUserAdd } from "react-icons/ai"
 
 import { Channel } from "../../../dto/channels.dto";
 import ChatContext from "../Context/chatContext";
-import { ContextMenuData, Member, MessageDto } from "../dto";
+import { Member, MessageDto } from "../dto";
 import * as events from "../../../../shared/constants";
-import { Socket } from "socket.io-client";
 import { flushSync } from "react-dom";
 import { backURL } from "../../../requests";
-import { ContextMenu } from "../rightBar/ContextMenu";
 import SocketContext from "../../Socket/socket-context";
 import Modal from "../../Modal/modal";
 import { User } from "../../../dto/users.dto";
+import ContextMenuContext from "../ContextMenu/context-menu-context";
 
 export function ChatWindow({ className, users, channel }: { users: Member[], className?: string, channel: Channel })
 {
@@ -39,7 +35,7 @@ export function ChatWindow({ className, users, channel }: { users: Member[], cla
 	const [ownerBoxIsOpen, setOwnerBoxIsOpen] = useState(false)
 	const [inviteBoxIsOpen, setInviteBoxIsOpen] = useState(false)
 	const [visibleMessages, setVisibles] = useState<MessageDto[]>([]);
-	const [display, setDisplay] = useState<ContextMenuData | undefined>(undefined);
+	// const [display, setDisplay] = useState<ContextMenuData | undefined>(undefined);
 	const [formatedName, setFormatedName] = useState('');
 
 	const selfRef = useRef<HTMLLIElement>(null);
@@ -48,6 +44,8 @@ export function ChatWindow({ className, users, channel }: { users: Member[], cla
 	/* UPDATE BANNED USER AFTER TEST !!!!*/
 	/* UPDATE BANNED USER AFTER TEST !!!!*/
 	/* UPDATE BANNED USER AFTER TEST !!!!*/
+
+	const setContextMenu = useContext(ContextMenuContext).ContextMenuSetter;
 
 	const isPrivate = channel.mode === "PRIVATE"
 
@@ -144,7 +142,7 @@ export function ChatWindow({ className, users, channel }: { users: Member[], cla
 
 	useEffect(() =>
 	{
-		const handleClick = () => setDisplay(undefined);
+		const handleClick = () => setContextMenu(undefined);
 		window.addEventListener("click", handleClick);
 		return () =>
 		{
@@ -224,14 +222,14 @@ export function ChatWindow({ className, users, channel }: { users: Member[], cla
 					</button>
 				)}
 			</div>
-			{display && (
+			{/* {display && (
 				<ContextMenu
 					x={display.x}
 					y={display.y}
 					target={display.target}
 					channel={display.channel}
 				/>
-			)}
+			)} */}
 			<div className={className}>
 				<ul>
 					{visibleMessages.map((m, i, all) =>
@@ -273,10 +271,10 @@ export function ChatWindow({ className, users, channel }: { users: Member[], cla
 												if (!user)
 													return ;
 												e.preventDefault();
-												setDisplay({
+												setContextMenu({
 													x: e.pageX,
 													y: e.pageY,
-													target: user,
+													target: user.user,
 													channel: channel
 												});
 											}}

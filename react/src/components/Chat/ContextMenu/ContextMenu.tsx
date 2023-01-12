@@ -2,7 +2,7 @@ import { FormEvent, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import SocketContext from "../../Socket/socket-context";
-import { BanMemberDto, ContextMenuData, Member } from "../dto";
+import { BanMemberDto, ContextMenuData, Member, PartialUser } from "../dto";
 import * as events from '../../../../shared/constants'
 import ChatContext from "../Context/chatContext";
 import { Channel } from "../../../dto/channels.dto";
@@ -22,16 +22,30 @@ export function ContextMenu({ x, y, channel, target }: ContextMenuData)
 	let isAdmin: boolean = false;
 	let isOwner: boolean = false;
 
-	const targetId = target.user.id;
-	const userName = target.user.userName;
+	let targetIsAdmin: boolean = false;
+	let targetIsOwner: boolean = false;
 
-	if (channel.mode !== 'PRIVMSG')
+	const targetId = target.id;
+	const userName = target.userName;
+
+	if (channel && channel.mode !== 'PRIVMSG')
 	{
-		const me = channel.members?.find((m) => m.user?.id === currentUser.id);
-		if (me.role === "OWNER" || me.role === "ADMIN")
+		const me = channel.members.find((m) => m.user?.id === currentUser.id);
+		if (me)
+		{
+			if (me.role === "OWNER" || me.role === "ADMIN")
 			isAdmin = true
-		if (me.role === "OWNER")
+			if (me.role === "OWNER")
 			isOwner = true;
+		}
+		const targetMember = channel.members.find((m) => m.user.id === targetId)
+		if (targetMember)
+		{
+			if (targetMember.role === "ADMIN")
+				 targetIsAdmin = true;
+			else if (targetMember.role === "OWNER")
+				targetIsOwner = true;
+		}
 	}
 	// NEED TO FIND A WAY TO GET THIS INFO
 	const [banBoxIsOpen, setBanBoxIsOpen] = useState(false)
@@ -51,12 +65,12 @@ export function ContextMenu({ x, y, channel, target }: ContextMenuData)
 
 	function banUser()
 	{
-		mainSocket?.emit(events.BAN_USER, { userId: targetId, channelId: channel.id })
+		mainSocket?.emit(events.BAN_USER, { userId: targetId, channelId: channel?.id })
 	}
 
 	function unbanUser()
 	{
-		mainSocket?.emit(events.UNBAN_USER, { userId: targetId, channelId: channel.id })
+		mainSocket?.emit(events.UNBAN_USER, { userId: targetId, channelId: channel?.id })
 	}
 
 	function blockUser()
@@ -71,12 +85,12 @@ export function ContextMenu({ x, y, channel, target }: ContextMenuData)
 
 	function promoteUser()
 	{
-		chatSocket?.emit(events.PROMOTE_USER, { channelId: channel.id, userId: targetId });
+		chatSocket?.emit(events.PROMOTE_USER, { channelId: channel?.id, userId: targetId });
 	}
 
 	function demoteUser()
 	{
-		chatSocket?.emit(events.DEMOTE_USER, { channelId: channel.id, userId: targetId });
+		chatSocket?.emit(events.DEMOTE_USER, { channelId: channel?.id, userId: targetId });
 	}
 
 	function sendPrivmsg()
@@ -115,84 +129,154 @@ export function ContextMenu({ x, y, channel, target }: ContextMenuData)
 					<li
 						className={liClassName}
 						onClick={sendPrivmsg}
-					>
+						>
 						Direct Message
 					</li>
-					<hr className="border-gray-700" />
-					{
-						isOwner &&
-						(
-							target.role === 'ADMIN' ?
+						{
+							isInBlacklist ?
 								<li
 									className={liClassName}
-									onClick={demoteUser}
+									onClick={unblockUser}
 								>
-									Demote
+									Unblock
 								</li>
 								:
 								<li
 									className={liClassName}
-									onClick={promoteUser}
+									onClick={blockUser}
+								>
+									Block
+								</li>
+						}
+					<hr className="border-gray-700" />
+					{
+						channel ?
+						<>
+						{
+							
+							isOwner &&
+							(
+								targetIsAdmin ?
+								<li
+									className={liClassName}
+									onClick={demoteUser}
+									>
+									Demote
+									</li>
+								:
+								<li
+								className={liClassName}
+								onClick={promoteUser}
 								>
 									Promote
 								</li>
 						)
-					}
-					{
-						isAdmin && target.role !== 'OWNER' &&
-						<li className={liClassName}
+						}
+						{
+							isAdmin && !targetIsOwner &&
+							<li className={liClassName}
 							onClick={(e) => { e.stopPropagation(); setBanBoxIsOpen(true) }}
-						>
-							<Modal isOpen={banBoxIsOpen} onClose={() => setBanBoxIsOpen(false)}>
-								<BanBox
+							>
+								<Modal isOpen={banBoxIsOpen} onClose={() => setBanBoxIsOpen(false)}>
+									<BanBox
+										onClose={() => setBanBoxIsOpen(false)}
+										channel={channel}
+										target={target}
+										action='BAN'
+										/>
+								</Modal>
+								Ban
+							</li>
+						}
+						{
+							isAdmin && !targetIsOwner &&
+							<li className={liClassName}
+								onClick={(e) => { e.stopPropagation(); setMuteBoxIsOpen(true) }}
+								>
+								<Modal isOpen={mutBoxIsOpen} onClose={() => setMuteBoxIsOpen(false)}>
+									<BanBox
+										onClose={() => setMuteBoxIsOpen(false)}
+										channel={channel}
+										target={target}
+										action='MUTE'
+										/>
+								</Modal>
+								Mute
+							</li>
+						}
+						</>
+						:
+						<></>
+					}
+					{/* <hr className="border-gray-700" />
+					{
+						channel ?
+						<> 
+						{
+							isOwner &&
+							(
+								targetIsAdmin ?
+									<li
+									className={liClassName}
+									onClick={demoteUser}
+									>
+										Demote
+									</li>
+									:
+									<li
+									className={liClassName}
+									onClick={promoteUser}
+									>
+										Promote
+									</li>
+							)
+						}
+						{
+							isAdmin &&
+							<li className={liClassName}
+								onClick={(e) => { e.stopPropagation(); setBanBoxIsOpen(true) }}
+							>
+								<Modal isOpen={banBoxIsOpen} onClose={() => setBanBoxIsOpen(false)}>
+									<BanBox
 									onClose={() => setBanBoxIsOpen(false)}
 									channel={channel}
 									target={target}
 									action='BAN'
-								/>
-							</Modal>
-							Ban
-						</li>
-					}
-					{
-						isAdmin && target.role !== 'OWNER' &&
-						<li className={liClassName}
-							onClick={(e) => { e.stopPropagation(); setMuteBoxIsOpen(true) }}
-						>
-							<Modal isOpen={mutBoxIsOpen} onClose={() => setMuteBoxIsOpen(false)}>
-								<BanBox
+									/>
+								</Modal>
+								Ban
+							</li>
+						}
+						{
+							isAdmin &&
+							<li className={liClassName}
+								onClick={(e) => { e.stopPropagation(); setMuteBoxIsOpen(true) }}
+							>
+								<Modal isOpen={mutBoxIsOpen} onClose={() => setMuteBoxIsOpen(false)}>
+									<BanBox
 									onClose={() => setMuteBoxIsOpen(false)}
 									channel={channel}
 									target={target}
 									action='MUTE'
-								/>
-							</Modal>
-							Mute
-						</li>
-					}
-					{
-						isInBlacklist ?
-							<li
-								className={liClassName}
-								onClick={unblockUser}
-							>
-								Unblock
+									/>
+								</Modal>
+								Mute
 							</li>
-							:
-							<li
-								className={liClassName}
-								onClick={blockUser}
-							>
-								Block
-							</li>
-					}
+						}
+						</>
+						:
+						<></>
+					} */}
 				</>
 			}
 		</ul>
 	);
 }
 
-function BanBox({ onClose, channel, target, action }: { onClose: any, channel: Channel, target: Member, action: 'BAN' | 'MUTE' })
+
+
+
+function BanBox({ onClose, channel, target, action }: { onClose: any, channel: Channel, target: PartialUser, action: 'BAN' | 'MUTE' })
 {
 	const socket = useContext(ChatContext).ChatState.socket;
 
@@ -218,7 +302,7 @@ function BanBox({ onClose, channel, target, action }: { onClose: any, channel: C
 			default:
 				return;
 		}
-		const banParams: BanMemberDto = { userId: target.user.id, channelId: channel.id, banTime: finalTime, userName: target.user.userName };
+		const banParams: BanMemberDto = { userId: target.id, channelId: channel.id, banTime: finalTime, userName: target.userName };
 		if (action === 'BAN')
 			socket?.emit(events.BAN_USER, banParams);
 		else
@@ -233,7 +317,7 @@ function BanBox({ onClose, channel, target, action }: { onClose: any, channel: C
 
 	return (
 		<>
-			<h1 className="text-center mb-3" >{action === 'BAN' ? "Ban" : "Mute"} {target.user.userName}</h1>
+			<h1 className="text-center mb-3" >{action === 'BAN' ? "Ban" : "Mute"} {target.userName}</h1>
 			<form className="flex flex-col" onSubmit={submitForm}>
 				<label className="flex flex-row justify-around items-end p-2">
 					<p className="basis-0">Duration</p>

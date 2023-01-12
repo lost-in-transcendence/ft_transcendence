@@ -5,11 +5,8 @@ import { ChatComposer } from "../ChatComposer/ChatComposer";
 import { ChatWindow } from "../ChatWindow/ChatWindow";
 import ChatContext from "../Context/chatContext";
 import * as events from "../../../../shared/constants";
-import { Member } from "../dto";
-import { backURL } from "../../../requests";
+import { Member, PartialUser } from "../dto";
 import { ChatRightBar } from "../rightBar/ChatRightBar";
-import { ContextMenu } from "../rightBar/ContextMenu";
-
 import SocketContext from "../../Socket/socket-context";
 import { Channel } from "../../../dto/channels.dto";
 
@@ -20,45 +17,25 @@ export function ChatDisplay({ currentUser, channel }: { currentUser: User, chann
 
 	const socket = ctx.ChatState.socket;
 
-	const [users, setUsers] = useState<Member[]>([]);
-
-	const [display, setDisplay] = useState(false);
-
-	function updateUserInfo(id: string, data: any)
-	{
-		setUsers((prev) =>
-		{
-			const index = prev.findIndex((v) =>
-			{
-				return v.user.id === id;
-			});
-			if (index === -1) return prev;
-			const updated = prev.map((v, i) =>
-			{
-				if (i !== index) return v;
-				const updatedUser = { ...v.user };
-				Object.assign(updatedUser, data);
-				return { ...v, user: updatedUser };
-			});
-			return updated;
-		});
-	}
+	const users = ctx.ChatState.activeChannel? ctx.ChatState.activeChannel.members : [];
+	// const [users, setUsers] = useState<Member[]>([]);
+	const {ChatDispatch} = ctx;
 
 	useEffect(() =>
 	{
 		socket?.on(events.USERS, (payload: Member[]) =>
 		{
-			console.log({ payload });
-			setUsers(payload);
+			ChatDispatch({type: "update_active_members", payload});
 		});
 
-		socket?.on("updateUser", (payload: any) =>
+		socket?.on("updateUser", (payload: {id: string, data: PartialUser}) =>
 		{
 			const { id, data } = payload;
-			updateUserInfo(id, data);
+			data.id = id;
+			ChatDispatch({type: 'update_active_member', payload: data})
 		});
 
-		socket?.emit(events.USERS, { channelId: channel?.id });
+		// socket?.emit(events.USERS, { channelId: channel?.id });
 		return () =>
 		{
 			socket?.off(events.USERS);
@@ -68,14 +45,14 @@ export function ChatDisplay({ currentUser, channel }: { currentUser: User, chann
 	useEffect(() =>
 	{
 		socket?.emit(events.USERS, { channelId: channel?.id });
-	}, [channel]);
+	}, [channel.id]);
 
-	useEffect(() =>
-	{
-		const handleClick = () => setDisplay(false);
-		window.addEventListener("click", handleClick);
-		return () => window.removeEventListener("click", handleClick);
-	}, []);
+	// useEffect(() =>
+	// {
+	// 	// const handleClick = () => setDisplay(false);
+	// 	// window.addEventListener("click", handleClick);
+	// 	// return () => window.removeEventListener("click", handleClick);
+	// }, []);
 
 	return (
 		<div className="flex flex-row bg-slate-500 h-screen">
