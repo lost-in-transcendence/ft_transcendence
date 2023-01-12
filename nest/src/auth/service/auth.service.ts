@@ -47,6 +47,7 @@ export class AuthService
 	async fakeLogin(fakeInfos: {id42: number, userName: string, email: string, avatarPath: string })
 	{
 		const {userName, id42, email, avatarPath} = fakeInfos;
+		console.debug('fakeInfos : ', fakeInfos);
 		let user: User = await this.usersService.user({userName});
 		if (!user)
 		{

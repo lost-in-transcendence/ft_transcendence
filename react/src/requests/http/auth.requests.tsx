@@ -1,5 +1,7 @@
+
 import { backURL } from "../constants";
 import { getCookie } from "../cookies";
+import { v4 as uuidv4 } from 'uuid';
 
 export async function login(params: URLSearchParams)
 {
@@ -7,6 +9,21 @@ export async function login(params: URLSearchParams)
     {
         method: 'GET',
         credentials: 'include',
+    });
+}
+
+export async function logDev()
+{
+    return fetch(`${backURL}/auth/dev-signup`, 
+    {
+        method: 'POST',
+        credentials: 'include',
+        headers: 
+        {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({userName: uuidv4(), email: uuidv4()}),
     });
 }
 
@@ -29,6 +46,7 @@ export async function validateToken()
 	});
     return res;
 }
+
 
 export async function generateTwoFa()
 {
