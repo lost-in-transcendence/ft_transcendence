@@ -225,8 +225,9 @@ export class ChannelsGateway implements OnGatewayConnection
 			this.notify(channelId, `${user.userName} has left the channel`);
 			this.alert({ event: events.USERS, args: { channelId: channelId } });
 		}
-		this.alert({ event: events.CHANNELS });
-		// this.server.to(client.id).emit(events.ALERT, { event: events.CHANNELS })
+		else
+			this.alert({ event: events.CHANNELS });
+		this.server.to(client.id).emit(events.ALERT, { event: events.CHANNELS })
 	}
 
 	@SubscribeMessage(events.GET_BANNED_USERS)
