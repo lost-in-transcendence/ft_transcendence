@@ -219,12 +219,13 @@ export class ChannelsGateway implements OnGatewayConnection
 			}
 		}
 		if (channelMember.role !== 'BANNED')
-		await this.channelService.leaveChannel({ userId_channelId: { userId: user.id, channelId } });
+			await this.channelService.leaveChannel({ userId_channelId: { userId: user.id, channelId } });
 		client.leave(channelId);
 		this.notify(channelId, `${user.userName} has left the channel`);
 		if (!deleteChan)
 			this.alert({ event: events.USERS, args: { channelId: channelId } });
-		this.alert({ event: events.CHANNELS });
+		else
+			this.alert({ event: events.CHANNELS });
 	}
 
 	@SubscribeMessage(events.GET_BANNED_USERS)
@@ -240,12 +241,12 @@ export class ChannelsGateway implements OnGatewayConnection
 	{
 		this.logger.debug('In Ban User event');
 		const array: Socket[] = UserSocketStore.getUserSockets(body.userId);
+		await this.channelMemberService.banUser(body);
 		for (let n of array)
 		{
 			n.leave(body.channelId)
 			this.server.to(n.id).emit(events.ALERT, { event: events.CHANNELS });
 		}
-		this.channelMemberService.banUser(body);
 		this.server.to(body.channelId).emit(events.ALERT, { event: events.USERS, args: {channelId: body.channelId} });
 	}
 
@@ -264,9 +265,11 @@ export class ChannelsGateway implements OnGatewayConnection
 	}
 
 	@SubscribeMessage(events.CHANNELS)
-	async channels(@ConnectedSocket() client: Socket, @GetUserWs('id', ParseUUIDPipe) userId: string)
+	async channels(@ConnectedSocket() client: Socket, @GetUserWs('id', ParseUUIDPipe) userId: string, @GetUserWs() user: User)
 	{
 		const visibleChans: PartialChannelDto[] = await this.getVisibleChannels(userId);
+		this.logger.debug(`In event CHANNELS user: ${user.userName}`)
+		this.logger.debug({visibleChans});
 		this.server.to(client.id).emit(events.CHANNELS, visibleChans);
 	}
 

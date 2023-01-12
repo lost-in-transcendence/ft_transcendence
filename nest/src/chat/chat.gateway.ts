@@ -76,7 +76,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 			{
 				if (chan.role === 'BANNED' && chan.banExpires.getTime() <= Date.now())
 				{
-					this.channelMemberService.changeRole({
+					await this.channelMemberService.changeRole({
 						userId: client.data.user.id,
 						channelId: chan.channelId,
 						role: 'MEMBER'
@@ -84,7 +84,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 					this.server.to(chan.channelId).emit(events.ALERT, { event: events.USERS, args: { channelId: chan.channelId } });
 				}
 				else if (chan.role === 'MUTED' && chan.banExpires.getTime() <= Date.now())
-					this.channelMemberService.changeRole({
+					await this.channelMemberService.changeRole({
 						userId: client.data.user.id,
 						channelId: chan.channelId,
 						role: 'MEMBER'
