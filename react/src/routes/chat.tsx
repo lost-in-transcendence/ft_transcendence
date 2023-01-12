@@ -5,6 +5,8 @@ import ChatContext from '../components/Chat/Context/chatContext'
 import { ChatSidebar } from "../components/Menu/ChatSideBar";
 import { ChatDisplay } from "../components/Chat/ChatDisplay/ChatDisplay";
 import SocketContext from "../components/Socket/socket-context";
+import ContextMenuContext, { ContextMenuProvider } from "../components/Chat/ContextMenu/context-menu-context";
+import { ContextMenu } from "../components/Chat/ContextMenu/ContextMenu";
 
 export async function loader()
 {
@@ -23,22 +25,36 @@ export function Chat()
 	const state = ctx.ChatState;
 	const data: any = useLoaderData();
 	const { user } = data;
+	const contextMenu = useContext(ContextMenuContext).ContextMenuState;
 
 	return (
-		<div className="flex flex-col md:flex-row">
-			<ChatSidebar user={user} />
-			<div className="text-white basis-full overflow-auto justify-self-center mr-auto bg-gray-800">
-				{
-					state.activeChannel ?
+		<>
+		{
+			contextMenu ?
+			<ContextMenu
+			x={contextMenu.x}
+			y={contextMenu.y}
+			channel={contextMenu.channel}
+			target={contextMenu.target} />
+			:
+			<></>
+			
+		}
+			<div className="flex flex-col md:flex-row">
+				<ChatSidebar user={user} />
+				<div className="text-white basis-full overflow-auto justify-self-center mr-auto bg-gray-800">
+					{
+						state.activeChannel ?
 						<ChatDisplay currentUser={user} channel={state.activeChannel} />
 						:
 						<>
-							<h1 className="text-5xl text-center">Friends</h1>
-							<ChatFriendList />
-						</>
-				}
+								<h1 className="text-5xl text-center">Friends</h1>
+								<ChatFriendList />
+							</>
+					}
+				</div>
 			</div>
-		</div>
+		</>
 	)
 }
 

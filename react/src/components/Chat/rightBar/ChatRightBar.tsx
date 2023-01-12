@@ -3,7 +3,7 @@ import { Channel } from "../../../dto/channels.dto";
 import { User } from "../../../dto/users.dto";
 import { backURL } from "../../../requests";
 import { ContextMenuData, Member } from "../dto";
-import { ContextMenu } from "./ContextMenu";
+import { ContextMenu } from "../ContextMenu/ContextMenu";
 import { MemberList } from "./MemberList";
 
 export function ChatRightBar({ users, channel}: { users: Member[], channel: Channel })

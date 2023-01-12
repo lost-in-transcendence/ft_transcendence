@@ -15,6 +15,9 @@ import { Channel } from "../../dto/channels.dto";
 export function ChatSidebar({ user }: any)
 {
 	const ctx = useContext(ChatContext);
+	
+	const [isOpen, setIsOpen] = useState(false);
+	const [loading, setLoading] = useState(true);
 
 	let privMsgs: Channel[] = [];
 	let joinedChans: Channel[] = [];
@@ -34,16 +37,11 @@ export function ChatSidebar({ user }: any)
 		);
 	}
 
-	const [isOpen, setIsOpen] = useState(false);
-	const [loading, setLoading] = useState(true);
-
 	useEffect(() =>
 	{
 		ctx.ChatState.socket?.emit(events.CHANNELS);
 		setLoading(false);
 	}, []);
-
-	console.log("loggin visible chans", { visibleChans });
 
 	function setFriends()
 	{

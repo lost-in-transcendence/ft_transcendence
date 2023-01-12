@@ -1,19 +1,20 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { FaCrown, FaAngleDoubleUp } from 'react-icons/fa'
 import { Channel } from "../../../dto/channels.dto";
 
 import { backURL } from "../../../requests";
 import { UserAvatarStatus } from "../../Avatar/UserAvatarStatus";
 import { ContextMenuData, Member } from "../dto";
-import { ContextMenu } from "./ContextMenu";
+import { ContextMenu } from "../ContextMenu/ContextMenu";
+import ContextMenuContext from "../ContextMenu/context-menu-context";
 
 export function MemberList({ members, status, channel}: { members: Member[], status: 'ONLINE' | 'OFFLINE', channel: Channel})
 {
-	const [display, setDisplay] = useState<ContextMenuData | undefined>(undefined);
-
+	// const [display, setDisplay] = useState<ContextMenuData | undefined>(undefined);
+	const setContextMenu = useContext(ContextMenuContext).ContextMenuSetter;
 	useEffect(() =>
 	{
-		const handleClick = () => setDisplay(undefined);
+		const handleClick = () => setContextMenu(undefined);
 		window.addEventListener("click", handleClick);
 		return () =>
 		{
@@ -26,10 +27,10 @@ export function MemberList({ members, status, channel}: { members: Member[], sta
 
 	return (
 		<>
-			{
+			{/* {
 				display &&
 				<ContextMenu x={display.x} y={display.y} channel={channel} target={display.target}/>
-			}
+			} */}
 			<h3 className={"ml-2 mt-2 text-zinc-400"}>{status}</h3>
 			<ul>
 				{
@@ -43,11 +44,11 @@ export function MemberList({ members, status, channel}: { members: Member[], sta
 								onContextMenu={(e) =>
 								{
 									e.preventDefault();
-									setDisplay({
+									setContextMenu({
 										x: e.pageX,
 										y: e.pageY,
 										channel: channel,
-										target: u
+										target: u.user
 									});
 								}}
 								className="flex items-center gap-3 py-1 my-1 rounded hover:bg-zinc-500 cursor-pointer group"
