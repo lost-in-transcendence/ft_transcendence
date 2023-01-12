@@ -45,13 +45,12 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	async handleDisconnect(client: Socket)
 	{
 		this.logger.log(`Client ${client.id} disconnected from Main websocket Gateway`);
-		this.logger.debug(`socket id : ${client.id}`);
 		this.socketStore.removeUserSocket(client.data.user.id, client);
-		const ret = await this.userService.user({ id: client.data.user.id });
-		if (!this.socketStore.getUserSockets(client.data.user.id))
+		const ret = await this.userService.user({id: client.data.user.id});
+		if (this.socketStore.getUserSockets(ret.id).length === 0)
 		{
-			this.userService.updateUser({ where: { id: client.data.user.id }, data: { status: StatusType.OFFLINE, gameStatus: GameStatusType.NONE } });
-			this.updateUser(client, client.data.user, {status: StatusType.OFFLINE, gameStatus: GameStatusType.NONE});
+			this.userService.updateUser({ where: { id:ret.id }, data: { status: StatusType.OFFLINE, gameStatus: GameStatusType.NONE } });
+			this.updateUser(client, ret, {status: StatusType.OFFLINE, gameStatus: GameStatusType.NONE});
 		}
 		else if (ret.gameStatus === 'NONE')
 		{
@@ -171,6 +170,17 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		{
 			this.server.to(v.id).emit('invitationDeclined');
 		})
+	}
+
+	@SubscribeMessage('changeFriends')
+	async changeFriend(@ConnectedSocket() client: Socket, @GetUserWs() user: User)
+	{
+		const friends = (await this.userService.userSelect({ id: user.id }, { friends: true })).friends;
+		this.socketStore.getUserSockets(user.id).forEach((v) =>
+		{
+			this.server.to(v.id).emit(events.UPDATE_USER, { friends });
+
+		});
 	}
 
 	@SubscribeMessage(events.BLOCK_USER)

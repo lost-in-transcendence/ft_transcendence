@@ -75,6 +75,15 @@ export default function SocketContextComponent(props: any)
 		{
 			SocketDispatch({type: 'update_user', payload});
 		})
+
+		socket.on("updateFriend", (payload: any) =>
+		{
+			const {id, data} = payload;
+			Object.assign(data, {id});
+			SocketDispatch({type: 'update_friend', payload: data});
+
+		})
+
 		socket.on('notification', (payload: any) =>
 		{
 			const {type, inviter, inviterId, gameId} = payload;

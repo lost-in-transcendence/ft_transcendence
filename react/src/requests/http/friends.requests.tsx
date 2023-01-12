@@ -1,7 +1,7 @@
 import { backURL } from "../constants";
 import { getCookie } from "../cookies";
 
-export async function addFriend(id: string)
+export async function addFriend(id: string): Promise<boolean>
 {
     const res = await fetch(`${backURL}/friends/add` , 
     {
@@ -17,9 +17,10 @@ export async function addFriend(id: string)
     {
         throw res;
     }
+    return res.ok;
 }
 
-export async function removeFriend(id: string)
+export async function removeFriend(id: string) : Promise<boolean>
 {
     const res = await fetch(`${backURL}/friends/remove` , 
     {
@@ -35,4 +36,5 @@ export async function removeFriend(id: string)
     {
         throw res;
     }
+    return res.ok;
 }

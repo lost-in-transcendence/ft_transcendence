@@ -2,9 +2,7 @@ import { Action } from "@remix-run/router";
 import React, { createContext } from "react";
 import { Socket } from "socket.io-client";
 import { SharedGameStatusDto, SharedUserStatus } from "../../../shared/dtos";
-import { GameStatus } from "../../dto/game.dto";
-import { PartialUser, User } from "../../dto/users.dto";
-
+import { OtherUser, PartialOtherUser, PartialUser, User } from "../../dto/users.dto";
 
 
 export interface ISocketContextState
@@ -36,9 +34,9 @@ export const defaultSocketContextState: ISocketContextState =
 	user: defaultUser
 }
 
-export type TSocketContextActions = 'update_socket' | 'update_user'
+export type TSocketContextActions = 'update_socket' | 'update_user' | 'update_friend'
 
-export type TSocketContextPayload =  Socket | PartialUser;
+export type TSocketContextPayload =  Socket | PartialUser | PartialOtherUser;
 
 export interface ISocketContextActions
 {
@@ -53,6 +51,29 @@ function updateUser(user: User, payload: PartialUser)
 	return (newUser);
 }
 
+function updateFriends(user: User, payload: PartialOtherUser)
+{
+	const {id, ...data} = payload;
+	const updatedUser = {...user}
+	const {friends} = updatedUser;
+	
+	const index = updatedUser.friends?.findIndex((v) =>
+	{
+		return v.id === id;
+	});
+	if (index === -1)
+		return user;
+	updatedUser.friends = updatedUser.friends?.map((v: OtherUser, i: number) =>
+	{
+        if (i !== index)
+			return v;
+        const updatedFriend = { ...v };
+        Object.assign(updatedFriend, data);
+        return updatedFriend;
+    });
+	return updatedUser;
+}
+
 export function SocketReducer(state: ISocketContextState, action: ISocketContextActions)
 {
 	// console.info(`Message Received - Action: ${action.type} - Payload `, action.payload)
@@ -65,6 +86,11 @@ export function SocketReducer(state: ISocketContextState, action: ISocketContext
 			{
 				const newUser = updateUser(state.user, action.payload);
 				return {...state, user: newUser as User};
+			}
+		case 'update_friend':
+			{
+				const updatedFriendsUser = updateFriends(state.user, action.payload);
+				return {...state, user: updatedFriendsUser as User};
 			}
 		default:
 			return { ...state };

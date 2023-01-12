@@ -1,5 +1,4 @@
 import { Logger } from "@nestjs/common";
-import { map } from "rxjs";
 import { Socket } from 'socket.io';
 
 export class UserSocketStore
@@ -27,6 +26,10 @@ export class UserSocketStore
 
 	static getUserSockets(id: string): Socket[]
 	{
-		return (this.userSockets.get(id));
+		const ret = this.userSockets.get(id);
+		if (!ret)
+			return []
+		else
+			return ret;
 	}
 }
