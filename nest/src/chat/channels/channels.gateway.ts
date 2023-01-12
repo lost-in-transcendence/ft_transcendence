@@ -213,20 +213,20 @@ export class ChannelsGateway implements OnGatewayConnection
 			}
 			else
 			{
-				client.leave(channelId);
-				this.DstroyChannel(channelId)
+				await this.DstroyChannel(channelId)
 				deleteChan = true;
 			}
 		}
-		if (channelMember.role !== 'BANNED')
-			await this.channelService.leaveChannel({ userId_channelId: { userId: user.id, channelId } });
 		client.leave(channelId);
-		this.notify(channelId, `${user.userName} has left the channel`);
 		if (!deleteChan)
+		{
+			if (channelMember.role !== 'BANNED')
+				await this.channelService.leaveChannel({ userId_channelId: { userId: user.id, channelId } });
+			this.notify(channelId, `${user.userName} has left the channel`);
 			this.alert({ event: events.USERS, args: { channelId: channelId } });
-		else
-			this.alert({ event: events.CHANNELS });
-		this.server.to(client.id).emit(events.ALERT, { event: events.CHANNELS })
+		}
+		this.alert({ event: events.CHANNELS });
+		// this.server.to(client.id).emit(events.ALERT, { event: events.CHANNELS })
 	}
 
 	@SubscribeMessage(events.GET_BANNED_USERS)
@@ -259,7 +259,7 @@ export class ChannelsGateway implements OnGatewayConnection
 	@SubscribeMessage(events.MUTE_USER)
 	async muteUser(@MessageBody() body: BanMemberDto, @GetUserWs() user: User)
 	{
-		this.channelMemberService.muteUser(body)
+		await this.channelMemberService.muteUser(body)
 		this.server.to(body.channelId).emit(events.NOTIFY, { channelId: body.channelId, content: `${body.userName} has been muted by ${user.userName}` })
 		this.server.to(body.channelId).emit(events.ALERT, { event: events.USERS, args: { channelId: body.channelId } })
 	}
@@ -465,7 +465,7 @@ export class ChannelsGateway implements OnGatewayConnection
 	{
 		// TODO Handle destroy message
 
-		this.channelService.remove(channelId);
+		await this.channelService.remove(channelId);
 		this.server.socketsLeave(channelId);
 	}
 

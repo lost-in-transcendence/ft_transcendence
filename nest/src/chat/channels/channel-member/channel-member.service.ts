@@ -1,4 +1,4 @@
-import { ImATeapotException, Injectable, Logger, PreconditionFailedException } from '@nestjs/common';
+import { ForbiddenException, ImATeapotException, Injectable, Logger, PreconditionFailedException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -65,6 +65,9 @@ export class ChannelMemberService
 
 	async banUser(dto: BanMemberDto)
 	{
+		const bannedUser = await this.prisma.channelMember.findUnique({where: {userId_channelId: {userId: dto.userId, channelId: dto.channelId}}});
+		if (bannedUser.role === 'OWNER')
+			throw new ForbiddenException(`Cannot ban the owner of a channel`);
 		const ret = await this.prisma.channelMember.update({
 			where: {
 				userId_channelId: { userId: dto.userId, channelId: dto.channelId }
@@ -78,6 +81,9 @@ export class ChannelMemberService
 
 	async muteUser(dto: BanMemberDto)
 	{
+		const mutedUser = await this.prisma.channelMember.findUnique({where: {userId_channelId: {userId: dto.userId, channelId: dto.channelId}}});
+		if (mutedUser.role === 'OWNER')
+			throw new ForbiddenException(`Cannot mute the owner of a channel`);
 		const ret = await this.prisma.channelMember.update({
 			where: {
 				userId_channelId: { userId: dto.userId, channelId: dto.channelId }
@@ -86,7 +92,8 @@ export class ChannelMemberService
 				muteExpires: new Date(Date.now() + dto.banTime),
 				role: 'MUTED'
 			}
-		})
+		});
+		return (ret);
 	}
 
 	async changeRole(dto: ChannelMemberDto)

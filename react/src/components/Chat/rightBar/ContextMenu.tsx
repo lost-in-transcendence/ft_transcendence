@@ -139,7 +139,7 @@ export function ContextMenu({ x, y, channel, target }: ContextMenuData)
 						)
 					}
 					{
-						isAdmin &&
+						isAdmin && target.role !== 'OWNER' &&
 						<li className={liClassName}
 							onClick={(e) => { e.stopPropagation(); setBanBoxIsOpen(true) }}
 						>
@@ -155,7 +155,7 @@ export function ContextMenu({ x, y, channel, target }: ContextMenuData)
 						</li>
 					}
 					{
-						isAdmin &&
+						isAdmin && target.role !== 'OWNER' &&
 						<li className={liClassName}
 							onClick={(e) => { e.stopPropagation(); setMuteBoxIsOpen(true) }}
 						>
