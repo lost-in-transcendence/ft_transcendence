@@ -16,6 +16,10 @@ export class BanMemberDto implements SharedBanUserDto
 	@IsNumber()
 	@IsNotEmpty()
 	banTime: number;
+
+	@IsString()
+	@IsNotEmpty()
+	userName: string;
 }
 
 export class ChannelMemberDto //implements SharedChannelMemberDto

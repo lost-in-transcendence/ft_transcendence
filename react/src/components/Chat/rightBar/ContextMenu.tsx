@@ -218,7 +218,7 @@ function BanBox({ onClose, channel, target, action }: { onClose: any, channel: C
 			default:
 				return;
 		}
-		const banParams: BanMemberDto = { userId: target.user.id, channelId: channel.id, banTime: finalTime };
+		const banParams: BanMemberDto = { userId: target.user.id, channelId: channel.id, banTime: finalTime, userName: target.user.userName };
 		if (action === 'BAN')
 			socket?.emit(events.BAN_USER, banParams);
 		else

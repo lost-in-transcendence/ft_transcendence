@@ -39,6 +39,7 @@ export interface SharedBanUserDto {
 	userId: string;
 	channelId: string;
 	banTime: number;
+	userName: string;
 }
 
 export enum SharedChannelMode {

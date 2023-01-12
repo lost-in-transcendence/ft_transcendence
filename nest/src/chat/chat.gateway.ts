@@ -128,7 +128,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 		{
 			if (channelMember.role === "MUTED" && channelMember.muteExpires.getTime() <= Date.now())
 			{
-				this.channelMemberService.changeRole({channelId: dto.channelId, userId: user.id, role: "MEMBER"})
+				await this.channelMemberService.changeRole({channelId: dto.channelId, userId: user.id, role: "MEMBER"})
 				this.server.to(dto.channelId).emit(events.ALERT, {event: events.USERS, args: {channelId: dto.channelId}})
 			}
 			else

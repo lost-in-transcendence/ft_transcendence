@@ -241,12 +241,15 @@ export function ChatWindow({ className, users, channel }: { users: Member[], cla
 						const prev = all[i - 1];
 						const user = users.find((u) => u.user.id === m.userId);
 
-						if (!user)
-							return;
+						// /!\
+						// if (!user)
+						// 	return;
+						// /!\
 
 						if (blackList)
 						{
-							if (blackList.find((u) => u.id === m.userId)) return;
+							if (blackList.find((u) => u.id === m.userId))
+								return;
 						}
 
 						if (prev) prevUser = prev.userId;
@@ -267,6 +270,8 @@ export function ChatWindow({ className, users, channel }: { users: Member[], cla
 											className="hover:bg-slate-600 cursor-pointer rounded px-1 flex items-center"
 											onContextMenu={(e) =>
 											{
+												if (!user)
+													return ;
 												e.preventDefault();
 												setDisplay({
 													x: e.pageX,
