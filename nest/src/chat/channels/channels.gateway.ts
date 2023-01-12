@@ -352,6 +352,7 @@ export class ChannelsGateway implements OnGatewayConnection
 			{
 				this.server.to(s.id).emit(events.ALERT, { event: events.CHANNELS });
 			})
+			this.server.to(body.channelId).emit(events.ALERT, {event: events.CHANNELS});
 		}
 	}
 
