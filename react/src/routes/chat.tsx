@@ -1,4 +1,4 @@
-import { useContext} from "react";
+import { useContext, useEffect} from "react";
 import { redirect, useLoaderData } from "react-router-dom";
 import { getUserMeModal } from "../requests";
 import ChatContext from '../components/Chat/Context/chatContext'
@@ -26,6 +26,12 @@ export function Chat()
 	const data: any = useLoaderData();
 	const { user } = data;
 	const contextMenu = useContext(ContextMenuContext).ContextMenuState;
+	// const channelIsUndefined = state.activeChannel === undefined ? true : false;
+
+	useEffect(() =>
+	{
+		console.log("Chat render");
+	})
 
 	return (
 		<>
@@ -44,13 +50,13 @@ export function Chat()
 				<ChatSidebar user={user} />
 				<div className="text-white basis-full overflow-auto justify-self-center mr-auto bg-gray-800">
 					{
-						state.activeChannel ?
-						<ChatDisplay currentUser={user} channel={state.activeChannel} />
+						state.activeChannel ?	
+						<ChatDisplay currentUser={user}/>
 						:
 						<>
-								<h1 className="text-5xl text-center">Friends</h1>
-								<ChatFriendList />
-							</>
+						<h1 className="text-5xl text-center">Friends</h1>
+						<ChatFriendList />
+						</>
 					}
 				</div>
 			</div>

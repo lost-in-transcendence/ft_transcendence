@@ -21,10 +21,15 @@ import Modal from "../../Modal/modal";
 import { User } from "../../../dto/users.dto";
 import ContextMenuContext from "../ContextMenu/context-menu-context";
 
-export function ChatWindow({ className, users, channel }: { users: Member[], className?: string, channel: Channel })
+export function ChatWindow({ className, }: { className?: string,})
 {
 	const ctx = useContext(ChatContext);
 	const mainCtx = useContext(SocketContext);
+
+	const channel = ctx.ChatState.activeChannel;
+	if (!channel)
+		return <></>
+	const users = channel.members;
 
 	const blackList = useContext(SocketContext).SocketState.user.blacklist;
 	const mainSocket = mainCtx.SocketState.socket;
@@ -44,6 +49,12 @@ export function ChatWindow({ className, users, channel }: { users: Member[], cla
 	/* UPDATE BANNED USER AFTER TEST !!!!*/
 	/* UPDATE BANNED USER AFTER TEST !!!!*/
 	/* UPDATE BANNED USER AFTER TEST !!!!*/
+
+	useEffect(() =>
+	{
+		console.log("ChatWindow render");
+		console.log("Messages:", {visibleMessages});
+	})
 
 	const setContextMenu = useContext(ContextMenuContext).ContextMenuSetter;
 
@@ -69,9 +80,9 @@ export function ChatWindow({ className, users, channel }: { users: Member[], cla
 			events.NOTIFY,
 			(payload: { channelId: string; content: string }) =>
 			{
-				console.clear();
+				// console.clear();
 				console.log({ payload });
-				if (channel && payload.channelId === channel.id)
+				if (payload.channelId === channel.id)
 				{
 					flushSync(() =>
 					{
@@ -133,7 +144,7 @@ export function ChatWindow({ className, users, channel }: { users: Member[], cla
 			mainSocket?.off(events.NOTIFY);
 			socket?.off(events.TO_CHANNEL);
 		};
-	}, [channel]);
+	}, [channel.id]);
 
 	useEffect(() =>
 	{

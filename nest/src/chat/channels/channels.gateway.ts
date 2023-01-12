@@ -152,7 +152,8 @@ export class ChannelsGateway implements OnGatewayConnection
 		const members = await this.getUsersFromChannel({ channelId: joinedChannel.id, userId: user.id });
 		if (!members)
 			throw new WsException({ status: '401', message: 'You are not part of this channel' });
-		this.server.to(joinedChannel.id).emit(events.USERS, members);
+		this.server.to(joinedChannel.id).emit(events.ALERT, { event: events.USERS, args: { channelId: joinedChannel.id} });
+		// this.server.to(joinedChannel.id).emit(events.USERS, members);
 		const newChanList = await this.getVisibleChannels(user.id);
 		this.server.to(client.id).emit('channels', newChanList);
 	}
@@ -223,7 +224,7 @@ export class ChannelsGateway implements OnGatewayConnection
 			if (channelMember.role !== 'BANNED')
 				await this.channelService.leaveChannel({ userId_channelId: { userId: user.id, channelId } });
 			this.notify(channelId, `${user.userName} has left the channel`);
-			this.alert({ event: events.USERS, args: { channelId: channelId } });
+			this.server.to(channelId).emit(events.ALERT, { event: events.USERS, args: { channelId: channelId} });
 		}
 		else
 			this.alert({ event: events.CHANNELS });
@@ -299,7 +300,7 @@ export class ChannelsGateway implements OnGatewayConnection
 		const users: SharedChannelMembersDto[] = await this.getUsersFromChannel({ channelId, userId });
 		if (!users)
 			throw new WsException({ status: '401', message: 'You are not part of this channel' });
-		this.server.to(client.id).emit(events.USERS, users);
+		this.server.to(client.id).emit(events.USERS, {channelId, users});
 	}
 
 	@SubscribeMessage(events.UPDATE_CHANNEL_INFO)
@@ -323,8 +324,9 @@ export class ChannelsGateway implements OnGatewayConnection
 		if (currentUser.role !== 'OWNER')
 			throw new WsException({ status: '401', message: 'You are not the owner of this channel' });
 		await this.channelMemberService.changeRole({ userId: dto.userId, channelId: dto.channelId, role: 'ADMIN' });
-		const newMemberList = await this.getUsersFromChannel({ channelId: dto.channelId, userId: user.id });
-		this.server.to(dto.channelId).emit(events.USERS, newMemberList);
+		// const newMemberList = await this.getUsersFromChannel({ channelId: dto.channelId, userId: user.id });
+		this.server.to(dto.channelId).emit(events.ALERT, { event: events.USERS, args: { channelId: dto.channelId} });
+		// this.server.to(dto.channelId).emit(events.USERS, newMemberList);
 	}
 
 	@SubscribeMessage(events.DEMOTE_USER)
@@ -334,8 +336,9 @@ export class ChannelsGateway implements OnGatewayConnection
 		if (currentUser.role !== 'OWNER')
 			throw new WsException({ status: '401', message: 'You are not the owner of this channel' });
 		await this.channelMemberService.changeRole({ userId: dto.userId, channelId: dto.channelId, role: 'MEMBER' });
-		const newMemberList = await this.getUsersFromChannel({ channelId: dto.channelId, userId: user.id });
-		this.server.to(dto.channelId).emit(events.USERS, newMemberList);
+		// const newMemberList = await this.getUsersFromChannel({ channelId: dto.channelId, userId: user.id });
+		this.server.to(dto.channelId).emit(events.ALERT, { event: events.USERS, args: { channelId: dto.channelId} });
+		// this.server.to(dto.channelId).emit(events.USERS, newMemberList);
 	}
 
 	@SubscribeMessage(events.INVITE_TO_PRIVATE_CHANNEL)
