@@ -29,10 +29,12 @@ enum GameStatusType {
 
 model User {
     id         String  @id @default(uuid())
-    id42       Int     @unique
+    id42       String  @unique
     userName   String  @unique
     email      String  @unique
     avatarPath String?
+
+    isGuest    Boolean @default(false)
 
     twoFaEnabled Boolean @default(false)
     twoFaSecret  String?

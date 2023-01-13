@@ -14,11 +14,12 @@ export interface ISocketContextState
 export const defaultUser: User =
 {
 	id: '',
-	id42: 0,
+	id42: '0',
 	userName: '',
 	email: '',
 	avatarPath: '',
 	twoFaEnabled: false,
+	isGuest: false,
 	friends: [],
 	blacklist: [],
 	status: SharedUserStatus.OFFLINE,

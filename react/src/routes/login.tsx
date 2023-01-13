@@ -1,6 +1,6 @@
 import { Link, Navigate, Outlet, redirect, useLocation, useNavigate } from "react-router-dom";
 import { useContext, useEffect, useState } from "react";
-import { appURL, backURL, generateTwoFa, getCookie, validateToken } from "../requests";
+import { appURL, backURL, generateTwoFa, getCookie, logDev, validateToken } from "../requests";
 import Modal from "../components/Modal/modal";
 import { TwoFa } from "../components/TwoFa/twofa";
 
@@ -57,6 +57,16 @@ export function Login()
 		}
 		setStatus(event.data);
 	}
+
+	async function logAsGuest()
+	{
+		const  res = await logDev();
+		if (res.status === 200)
+		{
+			setStatus('success');
+		}
+	}
+
 	async function login()
 	{
 		setStatus('loading')
@@ -114,6 +124,9 @@ export function Login()
 			<h1>Login</h1>
 			<button onClick={login}>
 				Log in
+			</button>
+			<button onClick={logAsGuest}>
+				Log as Guest
 			</button>
 			
 			{status === 'loading' &&
