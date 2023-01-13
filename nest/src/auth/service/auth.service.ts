@@ -17,12 +17,12 @@ export class AuthService
 
 	async login(profile42: any)
 	{
-		const { id42, userName, email, image } = profile42;
+		const { id42, isGuest, userName, email, image } = profile42;
 		const avatarURL = image.link;
-		let user: User = await this.usersService.user({ id42 });
+		let user: User = await this.usersService.user({ id42: id42.toString() });
 		if (!user)
 		{
-			user = await this.usersService.createUser({ id42, userName, email});
+			user = await this.usersService.createUser({  id42: id42.toString(), userName, email});
 			const url = avatarURL;
 			const filename = `./asset/avatars/${user.id}_${Date.now().toString()}_avatar.png`;
 			const fileWriterStream = fs.createWriteStream(filename);
@@ -32,7 +32,7 @@ export class AuthService
 				responseType: 'stream',
 			});
 			await response.data.pipe(fileWriterStream);
-			const data: Prisma.UserUpdateInput = { id42, userName, email, avatarPath : filename};
+			const data: Prisma.UserUpdateInput = { id42: id42.toString(), userName, email, avatarPath : filename};
 			await this.usersService.updateUser({
 				where: { id : user.id },
 				data
