@@ -1,13 +1,8 @@
-<<<<<<< HEAD
 import { SharedGameStatusDto } from "../game";
 
 export class SharedUpdateUserDto
 {
     readonly userName?: string
-=======
-export class SharedUpdateUserDto {
-	readonly userName?: string
->>>>>>> channel-admin
 
 	readonly email?: string
 }
@@ -44,7 +39,6 @@ export interface SharedOtherUserDto {
 	playStats: SharedPlayStatsDto;
 }
 
-<<<<<<< HEAD
 export interface SharedPartialOtherUserDto
 {
 	id?: string;
@@ -57,9 +51,6 @@ export interface SharedPartialOtherUserDto
 	playStats?: SharedPlayStatsDto;
 }
 
-export enum SharedChannelMode
-{
-=======
 export interface SharedBanUserDto {
 	userId: string;
 	channelId: string;
@@ -68,7 +59,6 @@ export interface SharedBanUserDto {
 }
 
 export enum SharedChannelMode {
->>>>>>> channel-admin
 	PUBLIC = 'PUBLIC',
 	PRIVATE = 'PRIVATE',
 	PROTECTED = 'PROTECTED',

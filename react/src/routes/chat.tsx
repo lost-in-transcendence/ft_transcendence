@@ -80,13 +80,15 @@ export function ChatFriendList()
 	const {friends} = user;
 	const onlineFriends = friends?.filter((v) => {return v.status !== "OFFLINE"});
 	const offlineFriends = friends?.filter((v) => {return v.status === "OFFLINE"});
-	// const {displayContext, setDisplayContext} = contextMenu
+
 	const chatCtx = useContext(ChatContext);
 	const channels = chatCtx.ChatState.visibleChannels;
 
+	const setContextMenu = useContext(ContextMenuContext).ContextMenuSetter;
+
 	useEffect(() =>
 	{
-		const handleClick = () => setDisplayContext(undefined);
+		const handleClick = () => setContextMenu(undefined);
 		window.addEventListener("click", handleClick);
 		return () =>
 		{
@@ -134,11 +136,11 @@ export function ChatFriendList()
 							onContextMenu={(e) =>
 								{
 									e.preventDefault();
-									setDisplayContext({
+									setContextMenu({
 										x: e.pageX,
 										y: e.pageY,
-										userName: v.userName,
-										targetId: v.id
+										channel: undefined,
+										target: v
 									});
 								}}
 							onClick={(e) =>
@@ -198,11 +200,11 @@ export function ChatFriendList()
 							onContextMenu={(e) =>
 								{
 									e.preventDefault();
-									setDisplayContext({
+									setContextMenu({
 										x: e.pageX,
 										y: e.pageY,
-										userName: v.userName,
-										targetId: v.id
+										channel: undefined,
+										target: v
 									});
 								}}
 								onClick={(e) =>

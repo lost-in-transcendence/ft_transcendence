@@ -8,6 +8,9 @@ export class TimeoutStore
 	static setTimeoutId({channelId, userId}: {channelId: string, userId: string}, timeoutId: NodeJS.Timeout) 
 	{
         const key = channelId + userId
+		const currentTimeoutId = this.timeouts.get(key);
+		if (currentTimeoutId)
+			clearTimeout(currentTimeoutId);
         this.timeouts.set(key, timeoutId)
     }
 
@@ -15,8 +18,11 @@ export class TimeoutStore
 	{
         const key = channelId + userId
         const timeoutId = this.timeouts.get(key);
-        clearTimeout(timeoutId);
-        this.timeouts.delete(key);
+		if (timeoutId)
+		{
+			clearTimeout(timeoutId);
+			this.timeouts.delete(key);
+		}
 	}
 
 	static getTimeoutId({channelId, userId}: {channelId: string, userId: string})

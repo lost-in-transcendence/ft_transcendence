@@ -46,7 +46,7 @@ export default function Modal({isOpen, onClose, children, onOpen, className = 'b
 
 	return ReactDOM.createPortal(
 
-		<div className={`modal-overlay z-20 ${isOpen ? 'modal-open' : ''}`} onClick={(e) => { e.stopPropagation(); closeModal() }}>
+		<div className={`modal-overlay z-[9999] ${isOpen ? 'modal-open' : ''}`} onClick={(e) => { e.stopPropagation(); closeModal() }}>
 			<div className={`modal-content ${className}`} onClick={e => e.stopPropagation()}>
 				<div className="modal-body">
 					{displayChild ? children : null}

@@ -78,7 +78,7 @@ export function ChatWindow({ className, }: { className?: string, })
 				{
 					flushSync(() =>
 					{
-						setVisibles((prev) =>
+						setVisibles((prev : MessageDto[]) =>
 						{
 							const newMessage: MessageDto = {
 								channelId: channel.id,
@@ -100,7 +100,7 @@ export function ChatWindow({ className, }: { className?: string, })
 			{
 				flushSync(() =>
 				{
-					setVisibles((prev) =>
+					setVisibles((prev: MessageDto[]) =>
 					{
 						const newMessage: MessageDto = {
 							channelId: channel.id,
@@ -121,7 +121,7 @@ export function ChatWindow({ className, }: { className?: string, })
 			{
 				flushSync(() =>
 				{
-					setVisibles((prev) => [...prev, payload]);
+					setVisibles((prev: MessageDto[]) => [...prev, payload]);
 				});
 				selfRef.current?.scrollIntoView({ block: "end", behavior: "smooth" });
 			}

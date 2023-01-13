@@ -7,6 +7,8 @@ import * as events from '../../../../shared/constants'
 import ChatContext from "../Context/chatContext";
 import { Channel } from "../../../dto/channels.dto";
 import Modal from "../../Modal/modal";
+import { addFriend, removeFriend } from "../../../requests";
+import ContextMenuContext from "./context-menu-context";
 
 export function ContextMenu({ x, y, channel, target }: ContextMenuData)
 {
@@ -17,6 +19,8 @@ export function ContextMenu({ x, y, channel, target }: ContextMenuData)
 	const chatSocket = chatCtx.ChatState.socket;
 
 	const blacklist = mainCtx.SocketState.user.blacklist;
+	const friendlist = mainCtx.SocketState.user.friends;
+
 	const currentUser = mainCtx.SocketState.user;
 
 	let isAdmin: boolean = false;
@@ -27,6 +31,17 @@ export function ContextMenu({ x, y, channel, target }: ContextMenuData)
 
 	const targetId = target.id;
 	const userName = target.userName;
+	// NEED TO FIND A WAY TO GET THIS INFO
+	const [banBoxIsOpen, setBanBoxIsOpen] = useState(false)
+	const [mutBoxIsOpen, setMuteBoxIsOpen] = useState(false)
+
+
+	const channels = chatCtx.ChatState.visibleChannels;
+
+	const isInBlacklist: boolean = blacklist?.find((u) => u.id === targetId) ? true : false;
+	const isInFriendList: boolean = friendlist?.find((u) => u.id === targetId) ? true : false;
+
+	const navigate = useNavigate();
 
 	if (channel && channel.mode !== 'PRIVMSG')
 	{
@@ -47,31 +62,21 @@ export function ContextMenu({ x, y, channel, target }: ContextMenuData)
 				targetIsOwner = true;
 		}
 	}
-	// NEED TO FIND A WAY TO GET THIS INFO
-	const [banBoxIsOpen, setBanBoxIsOpen] = useState(false)
-	const [mutBoxIsOpen, setMuteBoxIsOpen] = useState(false)
-
-
-	const channels = chatCtx.ChatState.visibleChannels;
-
-	const isInBlacklist: boolean = blacklist?.find((u) => u.id === targetId) ? true : false;
-
-	const navigate = useNavigate();
 
 	function goToProfile(userName: string)
 	{
 		navigate(`/profile/view/${userName}`);
 	}
 
-	function banUser()
-	{
-		mainSocket?.emit(events.BAN_USER, { userId: targetId, channelId: channel?.id })
-	}
+	// function banUser()
+	// {
+	// 	mainSocket?.emit(events.BAN_USER, { userId: targetId, channelId: channel?.id })
+	// }
 
-	function unbanUser()
-	{
-		mainSocket?.emit(events.UNBAN_USER, { userId: targetId, channelId: channel?.id })
-	}
+	// function unbanUser()
+	// {
+	// 	mainSocket?.emit(events.UNBAN_USER, { userId: targetId, channelId: channel?.id })
+	// }
 
 	function blockUser()
 	{
@@ -102,9 +107,17 @@ export function ContextMenu({ x, y, channel, target }: ContextMenuData)
 			chatCtx.ChatState.socket?.emit(events.NEW_PRIVMSG, { userId: targetId });
 		chatCtx.ChatDispatch({ type: 'update_active', payload: channelExists });
 	}
+	
+	async function toggleFriend(id: string, isInFriendList: boolean)
+	{
+		let toggleFunc: Function = isInFriendList ? removeFriend : addFriend;
+		if (await toggleFunc(id) === true)
+			mainSocket?.emit("changeFriends");
+	}
+
 
 	const liClassName: string =
-		"hover:bg-indigo-600 rounded cursor-pointer text-white";
+		'hover:bg-indigo-600 cursor-pointer rounded text-white';
 
 	return (
 		<ul
@@ -124,7 +137,12 @@ export function ContextMenu({ x, y, channel, target }: ContextMenuData)
 				currentUser.id !== targetId &&
 				<>
 					<li className={liClassName}>Invite to play</li>
-					<li className={liClassName}>[conditional friend]</li>
+					<li
+					className={liClassName}
+					onClick={() => toggleFriend(targetId, isInFriendList)}
+					>
+						{isInFriendList ? 'Remove' : 'Add'} Friend
+					</li>
 					<li className={liClassName}>Invite to channel</li>
 					<li
 						className={liClassName}
@@ -148,10 +166,10 @@ export function ContextMenu({ x, y, channel, target }: ContextMenuData)
 									Block
 								</li>
 						}
-					<hr className="border-gray-700" />
 					{
 						channel ?
 						<>
+							<hr className="border-gray-700" />
 						{
 							
 							isOwner &&
@@ -170,7 +188,7 @@ export function ContextMenu({ x, y, channel, target }: ContextMenuData)
 								>
 									Promote
 								</li>
-						)
+							)
 						}
 						{
 							isAdmin && !targetIsOwner &&
@@ -273,12 +291,11 @@ export function ContextMenu({ x, y, channel, target }: ContextMenuData)
 	);
 }
 
-
-
-
 function BanBox({ onClose, channel, target, action }: { onClose: any, channel: Channel, target: PartialUser, action: 'BAN' | 'MUTE' })
 {
-	const socket = useContext(ChatContext).ChatState.socket;
+	const {socket} = useContext(ChatContext).ChatState;
+
+	const setContextMenu = useContext(ContextMenuContext).ContextMenuSetter;
 
 	const [data, setData] = useState<{ time: number, timeUnit: string }>({ time: 1, timeUnit: "sec" })
 
@@ -307,6 +324,7 @@ function BanBox({ onClose, channel, target, action }: { onClose: any, channel: C
 			socket?.emit(events.BAN_USER, banParams);
 		else
 			socket?.emit(events.MUTE_USER, banParams)
+		setContextMenu(undefined);
 		onClose();
 	}
 
