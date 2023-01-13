@@ -136,6 +136,7 @@ export class UsersController {
 		const user = await this.userService.user({userName})
 		if (user?.avatarPath)
 		{
+			this.logger.debug(user.avatarPath);
 			res.sendFile(user.avatarPath, { root: './' });
 		}
 	}
