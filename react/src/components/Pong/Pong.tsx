@@ -9,6 +9,11 @@ const gameHeight = 600;
 const paddleSize = 100;
 const ballSize = 25;
 
+const themes = {
+  classic: {ballColor: 'white', paddleColor: 'white', background: 'bg-black' },
+  camouflage: {ballColor: 'green', paddleColor: 'green', background: 'bg-green-600'}
+};
+
 type GameItems = {
   paddle1Pos: number;
   paddle2Pos: number;
@@ -53,8 +58,8 @@ function DisplayTimer(props: {
   return <p>{timerstr}</p>;
 }
 
-export function Pong(props: { goBack: any; asSpectator: boolean }) {
-  const { goBack, asSpectator } = props;
+export function Pong(props: { goBack: any, asSpectator: boolean, gameInfos: {theme: string, user1Name: string, user2Name: string} | undefined}) {
+  const { goBack, asSpectator, gameInfos} = props;
   const { socket } = useContext(GameSocketContext).GameSocketState;
   const masterSocket = useContext(SocketContext).SocketState.socket;
   const [showEndScreen, setShowEndScreen] = useState(false);
@@ -78,6 +83,18 @@ export function Pong(props: { goBack: any; asSpectator: boolean }) {
   });
 
   const [timer, setTimer] = useState(0);
+
+  const [theme, setTheme] = useState<{ballColor: string, paddleColor: string, background: string} | (undefined)>(undefined);
+  useEffect( () => {
+    switch (props.gameInfos?.theme)
+    {
+      case 'camouflage':
+        setTheme(themes.camouflage);
+        break;
+      default:
+        setTheme(themes.classic);
+    }
+  }, [])
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -124,14 +141,17 @@ export function Pong(props: { goBack: any; asSpectator: boolean }) {
   function drawGame(ctx: any) {
     const heightRatio = ctx.canvas.height / 600;
     const widthRatio = ctx.canvas.width / 800;
-    // background
+    
+
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-    ctx.fillStyle = "#242424";
-    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+    // background
+    // ctx.fillStyle = "#242424";
+    // ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
     // outline
-    ctx.strokeStyle = "#fff";
-    ctx.strokeRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    // ctx.strokeStyle = "#fff";
+    // ctx.strokeRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
     // middle line
     ctx.strokeStyle = "#fff";
@@ -143,16 +163,16 @@ export function Pong(props: { goBack: any; asSpectator: boolean }) {
 
     // score
     ctx.font = "30px Orbitron";
-    ctx.fillStyle = "#888";
-    ctx.fillText(gameItems.player1Score, gameWidth / 2 / 2, 100);
-    ctx.fillText(gameItems.player2Score, (gameWidth / 2) * 1.5, 100);
+    ctx.fillStyle = theme?.paddleColor;
+    ctx.fillText(gameItems.player1Score, ctx.canvas.width / 2 / 2, 100);
+    ctx.fillText(gameItems.player2Score, (ctx.canvas.width / 2) * 1.5, 100);
 
     // display names
-    ctx.fillText("player 1", gameWidth / 2 / 2 - 30, 40);
-    ctx.fillText("player 2", (gameWidth / 2) * 1.5 - 30, 40);
+    ctx.fillText(gameInfos?.user1Name, ctx.canvas.width / 2 / 2 - 30, 40);
+    ctx.fillText(gameInfos?.user2Name, (ctx.canvas.width / 2) * 1.5 - 30, 40);
 
     // paddles
-    ctx.fillStyle = "#fff";
+    ctx.fillStyle = theme?.paddleColor;
     ctx.fillRect(
       1,
       gameItems.paddle1Pos * heightRatio,
@@ -167,6 +187,7 @@ export function Pong(props: { goBack: any; asSpectator: boolean }) {
     );
 
     // ball
+    ctx.fillStyle = theme?.ballColor;
     ctx.beginPath();
     ctx.arc(
       gameItems.ballPos.x * widthRatio,
@@ -214,6 +235,7 @@ export function Pong(props: { goBack: any; asSpectator: boolean }) {
         onKeyUp={(e: any) => handleKeyUp(e)}
         tabIndex={0}
         draw={drawGame}
+        bg={theme? theme.background : ''}
       ></Canvas>
       {showEndScreen ? (
         <EndScreen

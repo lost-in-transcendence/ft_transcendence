@@ -40,6 +40,7 @@ export function Game()
 	const [asSpectator, setAsSpectator] = useState(false);
 
 	const [roomState, setRoomState] = useState('');
+	const [gameInfos, setGameInfos] = useState<{theme: string, user1Name: string, user2Name: string} | undefined>(undefined);
 
 	const loc = useLocation();
 
@@ -87,9 +88,12 @@ export function Game()
 
 		socket?.on('roomReady', (payload: any) =>
 		{
-			const {room} = payload;
+			const {roomId, user1Name, user2Name, theme} = payload;
+			console.log('roomReady received  payload:', payload);
 			setStatus('matchFound');
-			setRoomState(room);
+			// console.log('roomReady received  room:', roomId);
+			setRoomState(roomId);
+			setGameInfos({theme, user1Name, user2Name});
 			// masterSocket?.emit('changeGameStatus', {gameStatus: GameStatus.INGAME})
 		});
 
@@ -172,7 +176,7 @@ export function Game()
 		{
 			status === 'ongoingGame' ?
 			<>
-				<Pong goBack={leaveGame} asSpectator={asSpectator}/>
+				<Pong goBack={leaveGame} asSpectator={asSpectator} gameInfos={gameInfos}/>
 			</>
 			: <GameSideBar socket={socket} status={status} setQuickPlay={(e : any) => {setStatus('quickplayMenu'); setError(null);}} setCustomGame={(e: any) => {setStatus('customGame'); setError(null);}}/>
 		}
@@ -263,6 +267,7 @@ export function CustomGameScreen(props: {goBack: any})
 	const [customGameInfo, setCustomGameInfo] = useState({
 		objective: Objective.SCORE,
 		goal: 5,
+		theme: 'classic',
 		invitation: false,
 		invitedUser: ''
 	})
@@ -315,6 +320,19 @@ export function CustomGameScreen(props: {goBack: any})
 		<div className="flex flex-row gap-4 mx-auto w-full">
 			<form className="flex flex-col"
 			onSubmit={customGameSubmit}>
+				<div className="flex flex-row gap-4 items-center mx-auto w-full">
+					<p className="flex flex-col text-gray-100 text-xl bg-gray-800">Theme</p>
+					<select className="flex flex-col text-gray-100 bg-gray-700 text-xl"
+					value={customGameInfo.theme}
+					onChange={(e) => 
+					{
+						setCustomGameInfo({...customGameInfo, theme: e.target.value})
+					}}
+					>
+						<option value='classic'>Classic</option>
+						<option value='camouflage'>Camouflage</option>
+					</select>
+				</div>
 				<div className="flex flex-row gap-4 items-center mx-auto w-full">
 					<p className="flex flex-col text-gray-100 text-xl bg-gray-800">Objective Type</p>
 					<select className="flex flex-col text-gray-100 bg-gray-700 text-xl"

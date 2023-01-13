@@ -34,12 +34,13 @@ export class GameWaitingRoom
 
     objective: Objective;
     goal: number;
+    theme: string;
 
     type: GameType;
 
 
-    constructor(params: {id: string, user1: User, user1SocketId: string, invitation: boolean, objective: Objective, goal: number, type: GameType, user2?: User, user2SocketId?: string, invitedUser?: string}) {
-        const {id, user1, user1SocketId, user2, user2SocketId, objective, goal, type, invitation, invitedUser} = params;
+    constructor(params: {id: string, user1: User, user1SocketId: string, invitation: boolean, objective: Objective, goal: number, theme: string, type: GameType, user2?: User, user2SocketId?: string, invitedUser?: string}) {
+        const {id, user1, user1SocketId, user2, user2SocketId, objective, goal, type, invitation, invitedUser, theme} = params;
         this.id = id;
         this.user1 = user1;
         this.user1SocketId = user1SocketId;
@@ -50,6 +51,7 @@ export class GameWaitingRoom
         this.type = type;
         this.invitation = invitation;
         this.invitedUser = invitedUser;
+        this.theme = theme;
     }
 }
 
@@ -181,12 +183,12 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
                     }
                 });
             this.gameComputer.newGame(availableRoom);
-            this.server.to(availableRoom.user1SocketId).to(availableRoom.user2SocketId).emit('roomReady', {room: ret.id});
+            this.server.to(availableRoom.user1SocketId).to(availableRoom.user2SocketId).emit('roomReady', {roomId: ret.id, theme: availableRoom.theme, user1Name: availableRoom.user1.userName, user2Name: availableRoom.user2?.userName});
             this.gameComputer.emitOngoingGames();
             return;
         }
         const ret = await this.gamesService.create({data:{}});
-        this.waitingRooms.push(new GameWaitingRoom({id: ret.id, user1: user, user1SocketId: client.id, invitation: false, objective: Objective.SCORE, goal: 5, type: GameType.QUICKPLAY}));
+        this.waitingRooms.push(new GameWaitingRoom({id: ret.id, user1: user, user1SocketId: client.id, invitation: false, objective: Objective.SCORE, goal: 5, theme: 'classic', type: GameType.QUICKPLAY}));
         await this.gamesService.update({
             where: {id: ret.id},
             data: {
@@ -230,8 +232,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     async createCustomGame (@ConnectedSocket() client: Socket, @GetUserWs() user: User, @MessageBody() payload: CustomGame)
     {
         const ret = await this.gamesService.create({data:{}});
-        const {objective, goal, invitation, invitedUser} = payload;
-        this.waitingRooms.push(new GameWaitingRoom({id: ret.id, user1: user, user1SocketId: client.id, invitation: invitation, invitedUser: invitedUser, objective: objective, goal: goal, type: GameType.CUSTOM}));
+        const {objective, goal, invitation, invitedUser, theme} = payload;
+        this.waitingRooms.push(new GameWaitingRoom({id: ret.id, user1: user, user1SocketId: client.id, invitation: invitation, invitedUser: invitedUser, objective: objective, goal: goal, theme: theme, type: GameType.CUSTOM}));
         await this.gamesService.update({
             where: {id: ret.id},
             data: {
@@ -292,7 +294,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
                 }
             });
         this.gameComputer.newGame(customGameRoom);
-        this.server.to(customGameRoom.user1SocketId).to(customGameRoom.user2SocketId).emit('roomReady', {room: ret.id});
+        this.server.to(customGameRoom.user1SocketId).to(customGameRoom.user2SocketId).emit('roomReady', {roomId: ret.id, user1Name: customGameRoom.user1.userName, user2Name: customGameRoom.user2.userName, theme: customGameRoom.theme });
         this.gameComputer.emitOngoingGames();
         return;
     }
@@ -357,6 +359,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
                     id : room.id,
                     objective: room.objective,
                     goal: room.goal,
+                    theme: room.theme,
                     user1: room.user1.userName,
                     invitation: room.invitation,
                     invitedUser: room.invitedUser
@@ -385,5 +388,5 @@ interface CustomGame
     goal: number;
     invitation: boolean;
     invitedUser?: string;
-
+    theme: string;
 }

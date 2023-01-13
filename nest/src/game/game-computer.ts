@@ -110,8 +110,8 @@ class OngoingGame
     // scoreObjective: number;
     timer?: number;
     goal: number;
-
     objective: Objective;
+    theme: string;
 
     paddle1: Paddle;
     paddle2: Paddle;
@@ -125,7 +125,7 @@ class OngoingGame
     disconnectedSocket: string;
     spectators: Spectator[] = [];
 
-    constructor(params: {id: string, user1: User, user2: User, user1SocketId: string, user2SocketId: string, objective: Objective, goal: number;})
+    constructor(params: {id: string, user1: User, user2: User, user1SocketId: string, user2SocketId: string, objective: Objective, goal: number, theme: string})
     {
         const {id, user1, user2, user1SocketId, user2SocketId, objective, goal} = params;
         this.id = id;
@@ -138,6 +138,7 @@ class OngoingGame
         this.ball = new Ball({x: width / 2, y:height / 2}, {x: 1, y:1}, 25);
         this.objective = objective;
         this.goal = goal;
+        this.theme = this.theme;
         this.winner = 0;
         if (this.objective === Objective.TIME)
         {
@@ -163,7 +164,7 @@ export class GameComputer
 
     async newGame(waitingRoom: GameWaitingRoom)
     {
-        const {id, user1, user2, objective, goal, user1SocketId, user2SocketId} = waitingRoom;
+        const {id, user1, user2, objective, goal, theme, user1SocketId, user2SocketId} = waitingRoom;
         const game = new OngoingGame(
             {
                 id, 
@@ -173,6 +174,7 @@ export class GameComputer
                 user2SocketId,
                 objective,
                 goal,
+                theme,
             });
         this.ongoingGames.push(game);
         this.runGame(game);

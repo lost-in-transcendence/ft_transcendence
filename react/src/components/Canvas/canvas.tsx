@@ -1,12 +1,12 @@
 import { useEffect, useRef } from "react";
 import { useCanvas } from "../../hooks/use-canvas";
 
-export function Canvas (props: {draw: Function, tabIndex: number, onKeyUp: any, onKeyDown: any})
+export function Canvas (props: {draw: Function, tabIndex: number, onKeyUp: any, onKeyDown: any, bg: string})
 {
     const {draw, tabIndex, onKeyUp, onKeyDown} = props;
     const canvasRef: any = useCanvas(draw);
 
-    return <canvas onKeyUp={onKeyUp} onKeyDown={onKeyDown} ref={canvasRef} tabIndex={tabIndex} /*width={width} height={height} *//>
+    return <canvas className={props.bg} onKeyUp={onKeyUp} onKeyDown={onKeyDown} ref={canvasRef} tabIndex={tabIndex} /*width={width} height={height} *//>
 }
 
 // export function Canvas(props: {draw: Function, height: number, width: number})
