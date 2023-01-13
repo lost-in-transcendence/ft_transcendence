@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from "react";
-import { useLoaderData, useLocation } from "react-router-dom";
-import { getAllUsersSelect } from "../requests";
+import { Params, useLoaderData, useLocation, useParams, useSearchParams } from "react-router-dom";
+import { getAllUsersSelect, getOngoingGame } from "../requests";
 import GameSocketContext from "../components/Game/Context/game-socket-context";
 import { Pong } from "../components/Pong/Pong";
 import SocketContext from "../components/Socket/socket-context";
@@ -9,6 +9,7 @@ import { Accordeon } from "../components/Menu/Accordeon"
 import { GameSideBar } from "../components/Game/Context/GameSideBar";
 import { SharedGameStatusDto } from "../../shared/dtos";
 import { Spinner } from "../components/Spinner/Spinner";
+import { PartialUser } from "../dto/users.dto";
 
 export async function loader()
 {
@@ -28,7 +29,6 @@ export enum Objective
     SCORE,
 }
 
-
 export function Game()
 {
 	const loaderData: any = useLoaderData();
@@ -41,7 +41,9 @@ export function Game()
 
 	const [roomState, setRoomState] = useState('');
 
-	const loc = useLocation();
+	// const loc = useLocation();
+	const [params, setParams] = useSearchParams();
+	console.log("params:", params.get('action'), params.get('userName'));
 
 	useEffect(() =>
 	{
@@ -88,14 +90,17 @@ export function Game()
 		socket?.on('roomReady', (payload: any) =>
 		{
 			const {room} = payload;
+			setError(null);
 			setStatus('matchFound');
 			setRoomState(room);
+			masterSocket?.off('invitationDeclined');
 			// masterSocket?.emit('changeGameStatus', {gameStatus: GameStatus.INGAME})
 		});
 
 		socket?.on('startGame', () =>
 		{
-			setError('starting game');
+			// setError('starting game');
+			setError(null);
 			setAsSpectator(false);
 			setStatus('ongoingGame');
 			masterSocket?.emit('changeGameStatus', {gameStatus: GameStatus.INGAME})
@@ -103,7 +108,7 @@ export function Game()
 
 		socket?.on('startGameAsSpectator', () =>
 		{
-			setError('starting game as spectator');
+			// setError('starting game as spectator');
 			setAsSpectator(true);
 			setStatus('ongoingGame');
 			masterSocket?.emit('changeGameStatus', {gameStatus: GameStatus.INGAME})
@@ -125,7 +130,7 @@ export function Game()
 		socket?.on('matchDeclinedByOpponent', () =>
 		{
 			setStatus('waiting');
-			setError('Your opponent declined the match lol what a fucking loser');
+			setError('Your opponent declined the match');
 			setRoomState('');
 			masterSocket?.emit('changeGameStatus', {gameStatus: GameStatus.NONE})
 		});
@@ -139,11 +144,53 @@ export function Game()
 
 	useEffect(() =>
 	{
-		if (loc?.state?.action === 'joinInvite')
-			socket?.emit('joinCustomGame', {room: loc?.state?.gameId});
-		loc.state = {};
-	}, [loc]);
-
+		async function load()
+		{
+			const action = params.get('action');
+			const userName = params.get('userName');
+			const gameId = params.get('gameId');
+			if (!action)
+				return;
+			if (action === 'invitePlayer')
+			{
+				if (!userName)
+				{
+					setError("Cannot invite, no username provided")
+					return;
+				}
+				setStatus('customGame');
+				return;
+			}
+			else if (action === 'joinInvite')
+			{
+				if (!gameId)
+				{
+					setError("Cannot find game, no game Id provided");
+					return;
+				}
+				socket?.emit('joinCustomGame', {room: gameId});
+			}
+			else if (action === 'spectateGame')
+			{
+				if (!userName)
+				{
+					setError("Cannot find game, no username provided");
+					return;
+				}
+				const res = await getOngoingGame(userName);
+				const ongoingGame = await res.json();
+				console.log("my oh my i have found you n", {ongoingGame});
+				if (Object.keys(ongoingGame).length === 0)
+				{
+					setError("Cannot find game, game does not exist or has ended");
+					return;
+				}
+				socket?.emit('joinAsSpectator', {room: ongoingGame.id});
+			}
+		}
+		load();
+	}, [params]);
+	
 	function goBack()
 	{
 		setStatus('waiting');
@@ -174,7 +221,7 @@ export function Game()
 			<>
 				<Pong goBack={leaveGame} asSpectator={asSpectator}/>
 			</>
-			: <GameSideBar socket={socket} status={status} setQuickPlay={(e : any) => {setStatus('quickplayMenu'); setError(null);}} setCustomGame={(e: any) => {setStatus('customGame'); setError(null);}}/>
+			: <GameSideBar socket={socket} status={status} setQuickPlay={() => {setStatus('quickplayMenu'); setError(null);}} setCustomGame={() => {setStatus('customGame'); setError(null);}}/>
 		}
 		{
 			error ?
@@ -243,7 +290,7 @@ export function Game()
 			</div>
 
 			: status === 'customGame' ?
-			<CustomGameScreen goBack={goBack} />
+			<CustomGameScreen goBack={goBack} params={params}/>
 
 			:
 			<></>
@@ -253,9 +300,9 @@ export function Game()
 	)
 }
 
-export function CustomGameScreen(props: {goBack: any})
+export function CustomGameScreen( {goBack, params}: {goBack: Function, params: URLSearchParams})
 {
-	const {goBack} = props;
+	// const {goBack, params} = props;
 	const {socket} = useContext(GameSocketContext).GameSocketState;
 	const me = useContext(SocketContext).SocketState.user;
 	const masterSocket = useContext(SocketContext).SocketState.socket;
@@ -270,7 +317,7 @@ export function CustomGameScreen(props: {goBack: any})
 
 	const [userSearchFilter, setUserSearchFilter] = useState("");
 	const [userToInvite, setUserToInvite] = useState<undefined | {userName: string, id: string}>(undefined);
-	const [userList, setUserList] = useState([]);
+	const [userList, setUserList] = useState<PartialUser[]>([]);
 	let filteredList = userList.filter( (user: any) => {
 		return user.userName.includes(userSearchFilter) && user.id !== me.id;
 	});
@@ -279,6 +326,28 @@ export function CustomGameScreen(props: {goBack: any})
 
 	useEffect(() =>
 	{
+		async function load()
+		{
+			const loadedUserList = await loadUserList();
+			const action = params.get('action');
+			const userName = params.get('userName');
+			if (!action)
+				return;
+			if (action === 'invitePlayer')
+			{
+				if (!userName)
+				{
+					return;
+				}
+				console.log(loadedUserList);
+				const ret = loadedUserList.find((v: PartialUser) => {return v.userName === userName})
+				console.log(ret);
+				if (!ret || !ret.id)
+					return;
+				setGameVisibility('invite')
+				setUserToInvite({userName, id: ret.id})
+			}
+		}
 		async function loadUserList()
 		{
 			const res = await getAllUsersSelect(new URLSearchParams(
@@ -290,9 +359,9 @@ export function CustomGameScreen(props: {goBack: any})
 			));
 			const ret = await res.json();
 			setUserList(ret);
+			return ret;
 		}
-		loadUserList();
-
+		load();
 	}, [])
 
 	function customGameSubmit(e: any)
@@ -414,7 +483,7 @@ export function CustomGameScreen(props: {goBack: any})
 						text-xl text-gray-400 cursor-pointer rounded bg-gray-600 border-2 border-red-600
 						hover:bg-gray-500 hover:text-white hover:shadow-gray-900 hover:shadow-sm
 						focus:bg-gray-500 focus:text-white focus:shadow-gray-900 focus:shadow-sm"
-			onClick={goBack}>Go Back!</button>
+			onClick={() => goBack()}>Go Back!</button>
 			</form>
 		</div>
 	)

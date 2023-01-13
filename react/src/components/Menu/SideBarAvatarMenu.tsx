@@ -6,7 +6,7 @@ import { BsPencilFill } from "react-icons/bs";
 import { IoIosArrowForward } from "react-icons/io";
 
 import { SharedUserStatus } from "../../../shared/dtos";
-import { logout } from "../../requests";
+import { getUserMe, getUserMeSelect, logout } from "../../requests";
 import { changeStatus } from "../../requests/ws/users.messages";
 import { CurrentStatus, UserAvatarStatusProfile } from "../Avatar/UserAvatarStatus";
 import SocketContext from "../Socket/socket-context";
@@ -17,6 +17,7 @@ export function SideBarAvatarMenu(props: {close: any})
 {
 	const [dropdownDisplay, setDropdownDisplay] = useState(false);
 	const {user, socket} = useContext(SocketContext).SocketState;
+	const [playStats, setPlayStats] = useState<any>(undefined);
 	const {userName, status} = user;
 	const ref: any = useRef(null)
 	let scrollHeight: number = -345;
@@ -25,9 +26,20 @@ export function SideBarAvatarMenu(props: {close: any})
 	useEffect(() =>
 	{
 		scrollHeight = ref.current.scrollHeight * -1;
-		// console.log({ref});
-		// console.log(scrollHeight);
+		async function loadPlayStats()
+		{
+			const res = await getUserMeSelect(new URLSearchParams({'playStats': 'true'}));
+			const json = await res.json();
+			console.log(json);
+			setPlayStats(json.playStats);
+		}
+		loadPlayStats();
 	}, []);
+
+	useEffect(() =>
+	{
+		console.log(playStats);
+	})
 
 	return (
   		<div ref={ref} className="card absolute left-[56px]" style={{top: `${scrollHeight}` + "px"}}
@@ -56,8 +68,9 @@ export function SideBarAvatarMenu(props: {close: any})
         		<hr />
       			<div className="about-me pl-[5px]">
         			<div className="category-title">About Me</div>
-					<p>Probably put game info right there</p>
-					<p>Like win/loss ratio, rank, gamestatus</p>
+					{user.gameStatus !== 'NONE' ? <p>Currently {user.gameStatus === 'WAITING'? 'In Queue' : 'In Game'}</p> : <></>}
+					<p>Rank: #{playStats?.rank}, {playStats?.points} points</p>
+					<p>Wins: {playStats?.wins} | Losses: {playStats?.losses}</p>
       			</div>
 				<hr />
 				<div className='relative card-button my-[10px]'

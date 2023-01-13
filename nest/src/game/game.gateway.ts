@@ -5,7 +5,7 @@ import { CustomWsFilter } from "src/websocket-server/filters";
 import { UserInterceptor } from "src/websocket-server/interceptor";
 import { WsValidationPipe } from "src/websocket-server/pipes";
 import { Socket, Namespace } from 'socket.io';
-import { GameStatusType, User } from '@prisma/client';
+import { Game, GameStatusType, User } from '@prisma/client';
 import { GetUserWs } from "src/users/decorator/get-user-ws";
 import { GamesService } from "./game.service";
 import { create } from "domain";
@@ -72,15 +72,11 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     {}
 
 
-    afterInit()
+    async afterInit()
     {
         this.logger.log("Game Gateway initialized");
         this.gameComputer.initServer(this.server);
-        // const timerId = setInterval(() => 
-		// {
-        //     const rooms = this.waitingRooms
-        //     console.log({rooms});
-		// }, 15000)
+        await this.gamesService.updateMany({where: {ongoing: true}, data: {ongoing: false}});
     }
 
     async handleConnection(client: Socket, ...args: any[])

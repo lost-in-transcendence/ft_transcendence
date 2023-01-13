@@ -1,17 +1,12 @@
 import
 {
-	ChangeEvent,
 	useContext,
 	useEffect,
 	useRef,
 	useState,
 } from "react";
-import { GiConsoleController } from "react-icons/gi";
 import { FaCog } from "react-icons/fa"
-import { RiCheckboxBlankCircleLine as Unchecked, RiCheckboxCircleLine as Checked } from 'react-icons/ri'
 import { AiOutlineUserAdd } from "react-icons/ai"
-
-import { Channel } from "../../../dto/channels.dto";
 import ChatContext from "../Context/chatContext";
 import { Member, MessageDto } from "../dto";
 import * as events from "../../../../shared/constants";
@@ -19,8 +14,9 @@ import { flushSync } from "react-dom";
 import { backURL } from "../../../requests";
 import SocketContext from "../../Socket/socket-context";
 import Modal from "../../Modal/modal";
-import { User } from "../../../dto/users.dto";
 import ContextMenuContext from "../ContextMenu/context-menu-context";
+import { InviteBox } from "./InviteBox";
+import { OwnerBox } from "./OwnerBox";
 
 export function ChatWindow({ className, }: { className?: string, })
 {
@@ -41,7 +37,6 @@ export function ChatWindow({ className, }: { className?: string, })
 	const [ownerBoxIsOpen, setOwnerBoxIsOpen] = useState(false)
 	const [inviteBoxIsOpen, setInviteBoxIsOpen] = useState(false)
 	const [visibleMessages, setVisibles] = useState<MessageDto[]>([]);
-	// const [display, setDisplay] = useState<ContextMenuData | undefined>(undefined);
 	const [formatedName, setFormatedName] = useState('');
 
 	const selfRef = useRef<HTMLLIElement>(null);
@@ -225,14 +220,6 @@ export function ChatWindow({ className, }: { className?: string, })
 					</button>
 				)}
 			</div>
-			{/* {display && (
-				<ContextMenu
-					x={display.x}
-					y={display.y}
-					target={display.target}
-					channel={display.channel}
-				/>
-			)} */}
 			<div className={className}>
 				<ul>
 					{visibleMessages.map((m, i, all) =>
@@ -320,221 +307,6 @@ export function ChatWindow({ className, }: { className?: string, })
 					})}
 				</ul>
 			</div>
-		</>
-	);
-}
-
-function InviteBox({ channel, user, onClose }: { channel: Channel, user: User, onClose: Function })
-{
-	const mainSocket = useContext(SocketContext).SocketState.socket
-	const chatSocket = useContext(ChatContext).ChatState.socket;
-
-	const [friends, setFriends] = useState<{ id: string, userName: string, checked: boolean }[]>([])
-
-	useEffect(() =>
-	{
-		mainSocket?.on(events.GET_FRIENDLIST, (payload: { id: string, userName: string }[]) =>
-		{
-			const invitables = payload.filter((p) => !channel.members.find((m) => m.user.id === p.id))
-			setFriends(invitables.map((p) => ({ ...p, checked: false })));
-		})
-		mainSocket?.emit(events.GET_FRIENDLIST, { userId: user.id })
-
-		return (() =>
-		{
-			mainSocket?.off(events.GET_FRIENDLIST);
-		})
-	}, [])
-
-	function onCheck(checked: boolean, userId: string)
-	{
-		setFriends((prev) =>
-		{
-			const newArray = prev.map((p) =>
-			{
-				if (p.id === userId)
-					return { ...p, checked: !p.checked }
-				return { ...p }
-			})
-			return newArray
-		})
-	}
-
-	function onSubmit(e: React.MouseEvent<HTMLButtonElement, MouseEvent>)
-	{
-		e.preventDefault();
-		const usersToInvite: string[] = [];
-		for (let f of friends)
-		{
-			if (f.checked)
-				usersToInvite.push(f.id);
-		}
-		if (usersToInvite.length <= 0)
-		{
-			onClose();
-			return;
-		}
-		chatSocket?.emit(events.INVITE_TO_PRIVATE_CHANNEL, { usersToInvite, channelId: channel.id });
-		onClose();
-	}
-
-	return (
-		<div className="flex flex-col items-center justify-center">
-			{
-				friends.length > 0 ?
-					<>
-						<div className="bg-gray-400 rounded shadow-inner max-h-96 w-11/12 text-center overflow-auto p-2">
-							{
-								friends.map((f) =>
-								{
-									return (
-										<div
-											key={f.id}
-											className="flex items-center justify-around cursor-pointer rounded hover:bg-slate-700 hover:text-gray-100"
-											onClick={() => onCheck(f.checked, f.id)}
-										>
-											<span>{f.userName}</span>
-											<CheckBox checked={f.checked} />
-										</div>
-									)
-								})
-							}
-
-						</div>
-						<button
-							className="bg-indigo-300 w-24 mt-2"
-							onClick={(e) => onSubmit(e)}
-						>
-							Invite
-						</button>
-					</>
-				:
-				<p>No friends to invite</p>
-			}
-		</div>
-	)
-}
-
-function CheckBox({ checked = false }: { checked: boolean })
-{
-	return (
-		checked ? <Checked /> : <Unchecked />
-	)
-}
-
-function OwnerBox({ onClose, channel }: { onClose: any, channel: Channel })
-{
-	const [data, setData] = useState<{ channelId: string, channelName?: string; mode?: string; password?: string; }>({ channelId: channel.id });
-	const [bannedUsers, setbannedUsers] = useState<Member[]>([]);
-	const socket = useContext(ChatContext).ChatState.socket;
-
-	const ctx = useContext(ChatContext);
-
-	function updateChannel(e: any)
-	{
-		e.preventDefault();
-		ctx.ChatState.socket?.emit(events.UPDATE_CHANNEL_INFO, data);
-		// onClose();
-	}
-
-	useEffect(() =>
-	{
-		console.log({ bannedUsers });
-	})
-
-	useEffect(() =>
-	{
-		socket?.on(events.GET_BANNED_USERS, (payload: Member[]) =>
-		{
-			setbannedUsers(payload);
-		})
-
-		socket?.emit(events.GET_BANNED_USERS, { channelId: channel.id });
-		return (() =>
-		{
-			socket?.off(events.GET_BANNED_USERS);
-		})
-	}, [])
-
-	if (!channel)
-	{
-		onClose();
-		return <></>
-	}
-
-	return (
-		<>
-			<h1 className="text-center mb-3" >Channel Settings</h1>
-			<form className="flex flex-col" onSubmit={updateChannel}>
-				<label className="flex flex-row justify-between p-2">
-					<p>Channel Name</p>
-					<input
-						type={"text"}
-						onChange={(e) => setData({ ...data, channelName: e.target.value })}
-						className="basis-1/2 rounded shadow"
-						defaultValue={channel.channelName}
-					/>
-				</label>
-				<label className="flex flex-row justify-between p-2">
-					<p>Mode</p>
-					<select
-						className="basis-1/2 rounded shadow"
-						name="mode"
-						defaultValue={channel.mode}
-						onChange={(e) =>
-							setData({ ...data, mode: e.target.value })
-						}
-					>
-						<option value={"PUBLIC"}>Public</option>
-						<option value={"PRIVATE"}>Private</option>
-						<option value={"PROTECTED"}>Password protected</option>
-					</select>
-				</label>
-				{data.mode === "PROTECTED" && (
-					<label className="flex flex-row justify-between p-2">
-						<p>Password</p>
-						<input
-							type={"text"}
-							onChange={(e) => setData({ ...data, password: e.target.value })}
-							className="basis-1/2 rounded shadow"
-							placeholder="Password"
-						/>
-					</label>
-				)}
-				<input
-					type={"submit"}
-					value={'Update Channel Infos'}
-					className="bg-indigo-300 shadow border rounded self-center px-2"
-				/>
-			</form>
-			{
-				(bannedUsers && bannedUsers.length > 0) ?
-					<form className="flex flex-row gap-2 justify-between items-center p-2">
-						<label className="basis-full">
-							Banned
-							<select className="ml-2 rounded shadow">
-								{
-									bannedUsers.map((u: Member) =>
-									{
-										return (
-											<option key={u.user.id}>
-												{u.user.userName}
-											</option>
-										)
-
-									})
-								}
-							</select>
-						</label>
-						<input
-							type={'submit'}
-							value={'Unban'}
-							className='bg-indigo-300 rounded border px-2 h-6'
-						/>
-					</form>
-					:
-					null
-			}
 		</>
 	);
 }

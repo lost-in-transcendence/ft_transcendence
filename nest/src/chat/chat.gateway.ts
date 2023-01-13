@@ -197,11 +197,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
 	async unbanUser(userId: string, channelId: string)
 	{
-		await this.channelMemberService.changeRole({
-			userId: userId,
-			channelId: channelId,
-			role: 'MEMBER'
-		});
+		// await this.channelMemberService.changeRole({
+		// 	userId: userId,
+		// 	channelId: channelId,
+		// 	role: 'MEMBER'
+		// });
+		await this.channelService.leaveChannel({ userId_channelId: { userId, channelId } });
 		this.server.to(channelId).emit(events.ALERT, { event: events.USERS, args: { channelId: channelId } });
 		const userSockets = UserSocketStore.getUserSockets(userId);
 		userSockets.forEach((v) =>

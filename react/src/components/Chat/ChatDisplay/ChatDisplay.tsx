@@ -18,26 +18,12 @@ export function ChatDisplay({ currentUser }: { currentUser: User,})
 	const socket = ctx.ChatState.socket;
 
 	const channel = ctx.ChatState.activeChannel;
-	// if (!channel)
-	// 	return <></>
-	// const users = channel.members;
-	// const realChannel = ctx.ChatState.activeChannel
-	// const [users, setUsers] = useState<Member[]>([]);
 	const {ChatDispatch} = ctx;
-
-	useEffect(() =>
-	{
-		console.log("ChatDisplay render");
-	})
 
 	useEffect(() =>
 	{
 		socket?.on(events.USERS, (payload: {channelId: string, users: Member[]}) =>
 		{
-			// console.log("in USERS event", {payload});
-			// console.log("current channel Id", channel.id);
-			// console.log("context channel id", realChannel?.id)
-			// if (payload.channelId === channel.id)
 			ChatDispatch({type: "update_active_members", payload: {channelId: payload.channelId, users: payload.users}});
 		});
 
@@ -48,7 +34,6 @@ export function ChatDisplay({ currentUser }: { currentUser: User,})
 			ChatDispatch({type: 'update_active_member', payload: data})
 		});
 
-		// socket?.emit(events.USERS, { channelId: channel?.id });
 		return () =>
 		{
 			socket?.off(events.USERS);
@@ -59,15 +44,7 @@ export function ChatDisplay({ currentUser }: { currentUser: User,})
 	useEffect(() =>
 	{
 		socket?.emit(events.USERS, { channelId: channel?.id });
-		// console.log("in ChatDisplay channel.id render");
 	}, [channel?.id]);
-
-	// useEffect(() =>
-	// {
-	// 	// const handleClick = () => setDisplay(false);
-	// 	// window.addEventListener("click", handleClick);
-	// 	// return () => window.removeEventListener("click", handleClick);
-	// }, []);
 
 	return (
 		<div className="flex flex-row bg-slate-500 h-screen">

@@ -1,6 +1,7 @@
 import { ForbiddenException, HttpException, Injectable, Logger, UseFilters, UseInterceptors, UsePipes } from '@nestjs/common';
 import { User } from '@prisma/client';
 import { Socket, Namespace } from 'socket.io';
+import { PlayStatsService } from 'src/playstats/playstats-service';
 import { GameWaitingRoom } from './game.gateway';
 import { GamesService } from './game.service';
 
@@ -154,7 +155,7 @@ export class GameComputer
 
     private readonly logger = new Logger(GameComputer.name);
 
-    constructor (private readonly gamesService: GamesService) {}
+    constructor (private readonly gamesService: GamesService, private readonly playStatsService: PlayStatsService) {}
 
     initServer(server: Namespace)
     {
@@ -330,6 +331,7 @@ export class GameComputer
         }
         this.gamesService.update({where: {id: game.id}, data: 
             {
+                ongoing: false,
                 players:
                 {
                     update:
@@ -351,28 +353,50 @@ export class GameComputer
             {
                 draw: true,
             });
+            this.playStatsService.update({where: {userId: game.user1.id}, 
+                data:
+                {
+                    points: {increment: 1},
+                } });
+            this.playStatsService.update({where: {userId: game.user2.id},
+            data:
+            {
+                points: {increment: 1}
+            }});
             this.server.socketsLeave(game.id);
             return;
         }
 
-        let winnerName, loserName;
+        let winner, loser;
         if (game.winner === 1)
         {
-            winnerName = game.user1.userName;
-            loserName = game.user2.userName;
+            winner = game.user1;
+            loser = game.user2;
         }
         else
         {
-            winnerName = game.user2.userName;
-            loserName = game.user1.userName;
+            winner = game.user2;
+            loser = game.user1;
         }
 
         this.server.to(game.id).emit('endGame', 
         {
-            winner: winnerName,
-            loser: loserName,
-            reason: game.disconnectedSocket ? `${loserName} disconnected.` : ''
+            winner: winner.userName,
+            loser: loser.userName,
+            reason: game.disconnectedSocket ? `${loser.userName} disconnected.` : ''
         })
+        this.playStatsService.update({where: {userId: winner.id}, 
+            data:
+            {
+                wins: {increment: 1},
+                points: {increment: 3},
+            } });
+        this.playStatsService.update({where: {userId: loser.id},
+        data:
+        {
+            losses: {increment: 1},
+            points: {decrement: 1}
+        }});
         this.server.socketsLeave(game.id);
     }
 
@@ -483,6 +507,10 @@ export class GameComputer
             this.server.to(game.id).emit('startGame');
             game.timer = Date.now() + game.goal * 60 * 1000;
             game.status = GameStatusValue.ONGOING;
+            this.gamesService.update({where: {id: game.id}, data: 
+                {
+                    ongoing: true,
+                }});
             this.emitOngoingGames();
         }
     }

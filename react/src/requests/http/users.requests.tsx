@@ -42,6 +42,8 @@ export async function getUserModal(userName : string, params : URLSearchParams)
 	return res;
 }
 
+
+
 export async function getUserMe()
 {
     const res = await fetch(`${backURL}/users/me`, 
@@ -84,6 +86,19 @@ export async function getUserMeModal(params : URLSearchParams)
 	return res;
 }
 
+export async function getUserMeSelect(params : URLSearchParams)
+{
+	const res = await fetch(`${backURL}/users/me/select?` + params, 
+	{
+		method: 'GET',
+		headers: {"Authorization": "Bearer " + getCookie("jwt")}
+	});
+	if (res.status !== 200)
+	{
+		throw res;
+	}
+	return res;
+}
 
 export async function updateUser(params : SharedUpdateUserDto)
 {
@@ -142,6 +157,40 @@ export async function getMyMatchHistory()
 		method: 'GET',
 		headers: {"Authorization": "Bearer " + getCookie("jwt")}
 	});
+	if (res.status !== 200)
+	{
+		throw res;
+	}
+	return res;
+}
+
+export async function getUserMatchHistory(userId: string)
+{
+	const res = await fetch(`${backURL}/match-history/get/${userId}`,
+	{
+		method: 'GET',
+		headers: {"Authorization": "Bearer " + getCookie("jwt")}
+	});
+	if (res.status !== 200)
+	{
+		throw res;
+	}
+	return res;
+}
+
+export async function getOngoingGame(userName: string)
+{
+	const res = await fetch(`${backURL}/games/ongoing`,
+	{
+		method: 'POST',
+		headers: 
+		{
+			"Authorization": "Bearer " + getCookie("jwt"),
+			"Content-Type": "application/json"
+		},
+		body: JSON.stringify({userName})
+
+	})
 	if (res.status !== 200)
 	{
 		throw res;

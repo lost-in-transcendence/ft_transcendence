@@ -9,7 +9,6 @@ export function GameSideBar(props : {socket: any, status: any, setCustomGame: an
 {
 	const me: User = useContext(SocketContext).SocketState.user;
 	const {socket} = useContext(GameSocketContext).GameSocketState;
-	// const {goBack} = props;
 	const [waitingRooms, setWaitingRooms] = useState([]);
 	const [ongoingGames, setOngoingGames] = useState([]);
 

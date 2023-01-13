@@ -34,6 +34,11 @@ export class GamesService
 		return await this.prisma.game.update(params);
 	}
 
+	async updateMany(params: Prisma.GameUpdateManyArgs)
+	{
+		return await this.prisma.game.updateMany(params);
+	}
+
 	async remove(params: Prisma.GameDeleteArgs)
 	{
 		return await this.prisma.game.delete(params);

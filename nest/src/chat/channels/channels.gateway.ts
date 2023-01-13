@@ -224,6 +224,7 @@ export class ChannelsGateway implements OnGatewayConnection
 		{
 			if (channelMember.role !== 'BANNED')
 				await this.channelService.leaveChannel({ userId_channelId: { userId: user.id, channelId } });
+			TimeoutStore.clearTimeoutId({userId: user.id, channelId})
 			this.notify(channelId, `${user.userName} has left the channel`);
 			this.server.to(channelId).emit(events.ALERT, { event: events.USERS, args: { channelId: channelId} });
 		}
@@ -259,11 +260,7 @@ export class ChannelsGateway implements OnGatewayConnection
 
 	async unbanUser(userId: string, channelId: string)
 	{
-		await this.channelMemberService.changeRole({
-			userId: userId,
-			channelId: channelId,
-			role: 'MEMBER'
-		});
+		await this.channelService.leaveChannel({ userId_channelId: { userId, channelId } });
 		this.server.to(channelId).emit(events.ALERT, { event: events.USERS, args: { channelId: channelId } });
 		const userSockets = UserSocketStore.getUserSockets(userId);
 		userSockets.forEach((v) =>

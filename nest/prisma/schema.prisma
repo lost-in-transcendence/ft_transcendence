@@ -57,8 +57,7 @@ model Game {
     id       String       @id @default(uuid())
     playedAt DateTime     @default(now())
     players  PlayerGame[]
-    // p1Id    String
-    // p2Id    String
+    ongoing  Boolean      @default(false)
 }
 
 model PlayerGame {

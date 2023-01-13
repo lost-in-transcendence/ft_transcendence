@@ -27,7 +27,7 @@ export function InviteNotification(props: {inviter: string, inviterId: string, g
     {
         declineInvite = false;
         closeToast();
-        navigate('/game', {state: {action: 'joinInvite', gameId: gameId}});
+        navigate('/game?' + new URLSearchParams({'action': 'joinInvite', 'gameId' : gameId}));
     }
 
     function decline()
