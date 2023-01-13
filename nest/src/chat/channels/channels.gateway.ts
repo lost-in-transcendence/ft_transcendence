@@ -10,18 +10,20 @@ import { GetUserWs } from "src/users/decorator/get-user-ws";
 import { CustomWsFilter } from "src/websocket-server/filters";
 import { WsValidationPipe } from "src/websocket-server/pipes";
 import { ChannelsService } from "./channels.service";
-import { ChannelDto, CreateChannelDto, PartialChannelDto } from "./dto";
+import { ChannelDto, CreateChannelDto, PartialChannelDto, UpdateChannelDto } from "./dto";
 import { joinChannelDto, joinChannelMessageDto } from "./dto/join-channel.dto";
 import { UserInterceptor } from "src/websocket-server/interceptor";
 import { UsersService } from "src/users/users.service";
 import * as events from 'shared/constants';
 import { MessagesService } from "../messages/messages.service";
 import { getManyMessageDto } from "../messages/dto";
-import { SharedChannelMembersDto, SharedPartialUserDto } from "shared/dtos";
+import { SharedBanUserDto, SharedChannelMembersDto, SharedPartialUserDto } from "shared/dtos";
 import { UserSocketStore } from "../global/user-socket.store";
-import { ChannelMemberDto } from "./channel-member/dto";
+import { BanMemberDto, ChannelMemberDto, UpdateChannelMemberDto } from "./channel-member/dto";
 //import { env } from "process";
 import { ChannelMemberService } from "./channel-member/channel-member.service";
+import e from "express";
+import { TimeoutStore } from "../global/timeout-store";
 
 @UseInterceptors(UserInterceptor)
 @UseFilters(new CustomWsFilter())
@@ -89,17 +91,17 @@ export class ChannelsGateway implements OnGatewayConnection
 		const channelName: string = userId > user.id ? userId + '_' + user.id : user.id + '_' + userId;
 		const dto: CreateChannelDto = { channelName, mode: 'PRIVMSG' };
 		const newChannel: PartialChannelDto = await this.channelService.create(dto, user.id);
-		await this.channelService.joinChannel({userId, channelId: newChannel.id, role: 'MEMBER'});
+		await this.channelService.joinChannel({ userId, channelId: newChannel.id, role: 'MEMBER' });
 
 		currentUserSocketIds.forEach((u) =>
 		{
 			u.join(newChannel.id);
-			this.server.to(u.id).emit(events.ALERT, {event: events.CHANNELS});
+			this.server.to(u.id).emit(events.ALERT, { event: events.CHANNELS });
 		});
-		targetUserSocketIds.forEach( (u) =>
+		targetUserSocketIds.forEach((u) =>
 		{
 			u.join(newChannel.id);
-			this.server.to(u.id).emit(events.ALERT, {event: events.CHANNELS});
+			this.server.to(u.id).emit(events.ALERT, { event: events.CHANNELS });
 		})
 		this.server.to(client.id).emit(events.UPDATE_ACTIVE_CHAN, newChannel);
 	}
@@ -110,17 +112,29 @@ export class ChannelsGateway implements OnGatewayConnection
 		@ConnectedSocket() client: Socket,
 		@GetUserWs() user: User)
 	{
-		const dto: joinChannelDto = {
-			userId: user.id,
-			channelId: body.channelId,
-			role: 'MEMBER'
+
+		const channelMember = await this.channelMemberService.getOne({ userId: user.id, channelId: body.channelId })
+		let dto: joinChannelDto;
+		if (channelMember)
+		{
+			dto = {
+				userId: user.id,
+				channelId: body.channelId,
+				role: channelMember.role
+			}
 		}
-		const channelMember = await this.channelMemberService.getOne(dto)
+		else
+			dto = {
+				userId: user.id,
+				channelId: body.channelId,
+				role: "MEMBER"
+			}
+
 		if (channelMember && channelMember.role === 'BANNED')
-			return ;
+			return;
 		const channel: Channel = await this.channelService.findOne({ id: dto.channelId });
 
-		if (channel.mode === 'PRIVATE' && !channel.whitelist.includes(user.id))
+		if (channel.mode === 'PRIVATE' && channelMember.role !== "INVITED")
 			throw new WsException({ status: 'Unauthorized', message: 'Channel is Private ! Get out of here !' });
 		if (channel.mode === 'PROTECTED')
 		{
@@ -139,7 +153,8 @@ export class ChannelsGateway implements OnGatewayConnection
 		const members = await this.getUsersFromChannel({ channelId: joinedChannel.id, userId: user.id });
 		if (!members)
 			throw new WsException({ status: '401', message: 'You are not part of this channel' });
-		this.server.to(joinedChannel.id).emit(events.USERS, members);
+		this.server.to(joinedChannel.id).emit(events.ALERT, { event: events.USERS, args: { channelId: joinedChannel.id} });
+		// this.server.to(joinedChannel.id).emit(events.USERS, members);
 		const newChanList = await this.getVisibleChannels(user.id);
 		this.server.to(client.id).emit('channels', newChanList);
 	}
@@ -150,12 +165,14 @@ export class ChannelsGateway implements OnGatewayConnection
 		@ConnectedSocket() client: Socket,
 		@GetUserWs() user: any)
 	{
+		let deleteChan: boolean = false;
 		const channelMemberDto: ChannelMemberDto = {
 			userId: client.data.user.id,
 			channelId,
 			role: null
 		}
 		const channelMember = await this.channelMemberService.getOne(channelMemberDto);
+
 		if (!channelMember)
 			throw new WsException({ status: 'Error', message: 'Cannot leave channel you are not a part of !' });
 		if (channelMember.role === 'OWNER')
@@ -198,38 +215,93 @@ export class ChannelsGateway implements OnGatewayConnection
 			}
 			else
 			{
-				client.leave(channelId);
-				this.DstroyChannel(channelId)
-				const newChanList = await this.getVisibleChannels(user.id);
+				await this.DstroyChannel(channelId)
+				deleteChan = true;
 			}
 		}
-		if (channelMember.role !== 'BANNED')
-			await this.channelService.leaveChannel({userId_channelId: {userId: user.id, channelId}});
 		client.leave(channelId);
-		this.notify(channelId, `${user.userName} has left the channel`);
-		this.alert({event: events.CHANNELS});
-		this.alert({event: events.USERS, args: {channelId: channelId}});
-
-		// const newChanList = await this.getVisibleChannels(user.id);
-		// this.server.to(client.id).emit('channels', newChanList);
-		// TODO Handle leave message
+		if (!deleteChan)
+		{
+			if (channelMember.role !== 'BANNED')
+				await this.channelService.leaveChannel({ userId_channelId: { userId: user.id, channelId } });
+			this.notify(channelId, `${user.userName} has left the channel`);
+			this.server.to(channelId).emit(events.ALERT, { event: events.USERS, args: { channelId: channelId} });
+		}
+		else
+			this.alert({ event: events.CHANNELS });
+		this.server.to(client.id).emit(events.ALERT, { event: events.CHANNELS })
 	}
 
-	@SubscribeMessage('banUser')
-	async banUser(
-		@ConnectedSocket() client: Socket,
-		@MessageBody() body: any
-		)
+	@SubscribeMessage(events.GET_BANNED_USERS)
+	async getBannedUsers(@MessageBody('channelId', ParseUUIDPipe) channelId: string, @ConnectedSocket() client: Socket)
 	{
-		this.logger.debug("BAN COUCOU")
+		const banList = await this.channelMemberService.getBanList({ channelId });
+		this.server.to(client.id).emit(events.GET_BANNED_USERS, banList);
+	}
+
+	@SubscribeMessage(events.BAN_USER)
+	async banUser(@ConnectedSocket() client: Socket, @MessageBody() body: BanMemberDto, @GetUserWs() user: User)
+	{
 		const array: Socket[] = UserSocketStore.getUserSockets(body.userId);
+		await this.channelMemberService.banUser(body);
 		for (let n of array)
+		{
 			n.leave(body.channelId)
-		return (this.channelService.banUser(body.userId, body.channelId))
+			this.server.to(n.id).emit(events.ALERT, { event: events.CHANNELS });
+		}
+		this.server.to(body.channelId).emit(events.NOTIFY, { channelId: body.channelId, content: `${body.userName} has been banned by ${user.userName}` })
+		this.server.to(body.channelId).emit(events.ALERT, { event: events.USERS, args: { channelId: body.channelId } });
+
+		TimeoutStore.setTimeoutId(
+			{userId: body.userId, channelId: body.channelId},
+			setTimeout(() => this.unbanUser(body.userId, body.channelId), body.banTime));
+	}
+
+	async unbanUser(userId: string, channelId: string)
+	{
+		await this.channelMemberService.changeRole({
+			userId: userId,
+			channelId: channelId,
+			role: 'MEMBER'
+		});
+		this.server.to(channelId).emit(events.ALERT, { event: events.USERS, args: { channelId: channelId } });
+		const userSockets = UserSocketStore.getUserSockets(userId);
+		userSockets.forEach((v) =>
+		{
+			this.server.to(v.id).emit(events.ALERT, {event: events.CHANNELS});
+		})
+	}
+
+	async unmuteUser(userId: string, channelId: string)
+	{
+		await this.channelMemberService.changeRole({
+			userId: userId,
+			channelId: channelId,
+			role: 'MEMBER'
+		})
+		this.server.to(channelId).emit(events.ALERT, {event: events.USERS, args: {channelId: channelId}})
+	}
+
+	// @SubscribeMessage(events.UNBAN_USER)
+	// async unbanUser(@MessageBody() body: any)
+	// {
+	// 	return (this.channelService.unbanUser(body.userId, body.channelId))
+	// }
+
+	@SubscribeMessage(events.MUTE_USER)
+	async muteUser(@MessageBody() body: BanMemberDto, @GetUserWs() user: User)
+	{
+		await this.channelMemberService.muteUser(body)
+		this.server.to(body.channelId).emit(events.NOTIFY, { channelId: body.channelId, content: `${body.userName} has been muted by ${user.userName}` })
+		this.server.to(body.channelId).emit(events.ALERT, { event: events.USERS, args: { channelId: body.channelId } })
+		TimeoutStore.setTimeoutId(
+			{userId: body.userId, channelId: body.channelId},
+			setTimeout(() => this.unmuteUser(body.userId, body.channelId), body.banTime)
+			)
 	}
 
 	@SubscribeMessage(events.CHANNELS)
-	async channels(@ConnectedSocket() client: Socket, @GetUserWs('id', ParseUUIDPipe) userId: string)
+	async channels(@ConnectedSocket() client: Socket, @GetUserWs('id', ParseUUIDPipe) userId: string, @GetUserWs() user: User)
 	{
 		const visibleChans: PartialChannelDto[] = await this.getVisibleChannels(userId);
 		this.server.to(client.id).emit(events.CHANNELS, visibleChans);
@@ -259,29 +331,78 @@ export class ChannelsGateway implements OnGatewayConnection
 	@SubscribeMessage(events.USERS)
 	async channelUsers(@ConnectedSocket() client: Socket, @MessageBody('channelId', ParseUUIDPipe) channelId: string, @GetUserWs('id', ParseUUIDPipe) userId: string)
 	{
-		const users: SharedChannelMembersDto[] | ChannelMember[] = await this.getUsersFromChannel({ channelId, userId });
-		this.logger.debug({ users });
+		const users: SharedChannelMembersDto[] = await this.getUsersFromChannel({ channelId, userId });
 		if (!users)
 			throw new WsException({ status: '401', message: 'You are not part of this channel' });
-		this.server.to(client.id).emit(events.USERS, users);
+		this.server.to(client.id).emit(events.USERS, {channelId, users});
 	}
 
-	// @SubscribeMessage('handshake')
-	// async handshake(@ConnectedSocket() client: Socket, @GetUserWs('id', ParseUUIDPipe) userId: string)
-	// {
-	// 	const channels: PartialChannelDto[] = await this.getVisibleChannels(userId);
-	// 	this.server.to(client.id).emit('handshake', channels);
-	// }
+	@SubscribeMessage(events.UPDATE_CHANNEL_INFO)
+	async updateChannel(@MessageBody() dto: UpdateChannelDto)
+	{
+		let data: Prisma.ChannelUpdateInput = { channelName: dto.channelName, mode: dto.mode };
+
+		if (dto.mode === 'PROTECTED')
+		{
+			const hash = await bcrypt.hash(dto.password || '', 10);
+			data.hash = hash;
+		}
+		await this.channelService.update({ id: dto.channelId }, data);
+		this.alert({ event: events.CHANNELS });
+	}
+
+	@SubscribeMessage(events.PROMOTE_USER)
+	async promoteUser(@ConnectedSocket() client: Socket, @GetUserWs() user: User, @MessageBody() dto: UpdateChannelMemberDto)
+	{
+		const currentUser = await this.channelMemberService.getOne({ channelId: dto.channelId, userId: user.id });
+		if (currentUser.role !== 'OWNER')
+			throw new WsException({ status: '401', message: 'You are not the owner of this channel' });
+		await this.channelMemberService.changeRole({ userId: dto.userId, channelId: dto.channelId, role: 'ADMIN' });
+		// const newMemberList = await this.getUsersFromChannel({ channelId: dto.channelId, userId: user.id });
+		this.server.to(dto.channelId).emit(events.ALERT, { event: events.USERS, args: { channelId: dto.channelId} });
+		// this.server.to(dto.channelId).emit(events.USERS, newMemberList);
+	}
+
+	@SubscribeMessage(events.DEMOTE_USER)
+	async demoteUser(@ConnectedSocket() client: Socket, @GetUserWs() user: User, @MessageBody() dto: UpdateChannelMemberDto)
+	{
+		const currentUser = await this.channelMemberService.getOne({ channelId: dto.channelId, userId: user.id });
+		if (currentUser.role !== 'OWNER')
+			throw new WsException({ status: '401', message: 'You are not the owner of this channel' });
+		await this.channelMemberService.changeRole({ userId: dto.userId, channelId: dto.channelId, role: 'MEMBER' });
+		// const newMemberList = await this.getUsersFromChannel({ channelId: dto.channelId, userId: user.id });
+		this.server.to(dto.channelId).emit(events.ALERT, { event: events.USERS, args: { channelId: dto.channelId} });
+		// this.server.to(dto.channelId).emit(events.USERS, newMemberList);
+	}
+
+	@SubscribeMessage(events.INVITE_TO_PRIVATE_CHANNEL)
+	async inviteToPrivateChannel(@MessageBody() body: { usersToInvite: string[], channelId: string }, @ConnectedSocket() client: Socket, @GetUserWs() user: User)
+	{
+		for (let invitedUser of body.usersToInvite)
+		{
+			await this.channelMemberService.create({ userId: invitedUser, channelId: body.channelId, role: 'INVITED' });
+			const socketIds = UserSocketStore.getUserSockets(invitedUser);
+			socketIds.forEach((s) =>
+			{
+				this.server.to(s.id).emit(events.ALERT, { event: events.CHANNELS });
+			})
+			this.server.to(body.channelId).emit(events.ALERT, {event: events.CHANNELS});
+		}
+	}
 
 	/*************************/
 	/*        UTILS          */
 	/*************************/
 
-	async getUsersFromChannel({ channelId, userId }: { channelId: string, userId: string }): Promise<SharedChannelMembersDto[] | ChannelMember[]>
+	async getUsersFromChannel({ channelId, userId }: { channelId: string, userId: string }): Promise<SharedChannelMembersDto[]>
 	{
+		let users: SharedChannelMembersDto[] = []
 		const channels: PartialChannelDto[] = await this.getVisibleChannels(userId);
-		const users: SharedChannelMembersDto[] | ChannelMember[]= channels.find((c) => c.id === channelId).members;
-		return (users);
+		const currentChannel = channels.find((c) => c.id === channelId);
+		if (currentChannel)
+			users = currentChannel.members;
+		const ret = users.filter((u) => u.role !== 'BANNED');
+		return (ret);
 	}
 
 	async getVisibleChannels(userId: string): Promise<PartialChannelDto[]>
@@ -295,12 +416,12 @@ export class ChannelsGateway implements OnGatewayConnection
 						{ mode: 'PROTECTED' },
 						{ members: { some: { userId } } }
 					],
-					NOT:
-                    [
-                        {
-                            members: { some: { userId , role: RoleType.BANNED} }
-                        }
-                    ]
+				NOT:
+					[
+						{
+							members: { some: { userId, role: RoleType.BANNED } }
+						}
+					]
 			},
 			select:
 			{
@@ -383,7 +504,17 @@ export class ChannelsGateway implements OnGatewayConnection
 	{
 		// TODO Handle destroy message
 
-		this.channelService.remove(channelId);
+		const banList = await this.channelMemberService.getBanList({channelId});
+		const muteList = await this.channelMemberService.getMuteList({channelId});
+		banList.forEach((v) =>
+		{
+			TimeoutStore.clearTimeoutId({userId: v.user.id, channelId})
+		});
+		muteList.forEach((v) =>
+		{
+			TimeoutStore.clearTimeoutId({userId: v.user.id, channelId})
+		});
+		await this.channelService.remove(channelId);
 		this.server.socketsLeave(channelId);
 	}
 
@@ -392,8 +523,8 @@ export class ChannelsGateway implements OnGatewayConnection
 		this.server.to(channelId).emit(events.NOTIFY, { channelId, content });
 	}
 
-	alert({event, args}: {event: string, args?: any})
+	alert({ event, args }: { event: string, args?: any })
 	{
-		this.server.emit(events.ALERT, {event, args});
+		this.server.emit(events.ALERT, { event, args });
 	}
 }

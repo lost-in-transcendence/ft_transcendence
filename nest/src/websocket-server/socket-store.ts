@@ -24,7 +24,6 @@ export class SocketStore
 		for (let n of newArray)
 			this.setUserSockets(id, n)
 		this.userSockets.set(id, newArray);
-		this.userSockets.set(id, newArray);
 	}
 
 	getUserSockets(id: string): Socket[]

@@ -6,7 +6,6 @@ import { useContext } from "react";
 
 import { backURL } from "../requests/constants";
 import { getMyMatchHistory, getUserMeFull } from "../requests";
-import { UserCard } from "../components/UserCard/UserCard";
 import SocketContext from "../components/Socket/socket-context";
 import { MatchHistoryCard } from "../components/MatchHistoryCard/MatchHistoryCard";
 
@@ -103,24 +102,6 @@ export function Profile()
 					</div>
 				</div>
 				<div className="flex-break"></div>
-			</div>
-			<div className="friendListContainer  w-11/12 md:w-1/2 bg-zinc-500 text-center rounded">
-				<h2>Friends</h2>
-				{
-					user.friends.length > 0 ?
-						(
-							<div className="overflow-y-auto">
-								<ul>
-									{user.friends.map((f: any) =>
-									{
-										return <UserCard user={f}></UserCard>
-									})}
-								</ul>
-							</div>
-						)
-						:
-						<h3>You have no friends :(</h3>
-				}
 			</div>
 			<button onClick={() => { navigate("/profile/edit"); }}>Edit Profile</button>
 		</div>

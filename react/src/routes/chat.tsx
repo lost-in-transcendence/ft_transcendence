@@ -9,11 +9,13 @@ import { UserAvatarStatus } from "../components/Avatar/UserAvatarStatus";
 import { BsFillChatFill } from "react-icons/bs";
 import { SharedOtherUserDto } from "../../shared/dtos";
 import { ContextMenuData } from "../components/Chat/dto";
-import { ContextMenu } from "../components/Chat/rightBar/ContextMenu";
+// import { ContextMenu } from "../components/Chat/rightBar/ContextMenu";
 import * as events from '../../../shared/constants'
 import { Channel } from "../dto/channels.dto";
 import { PartialOtherUser } from "../dto/users.dto";
 
+import ContextMenuContext, { ContextMenuProvider } from "../components/Chat/ContextMenu/context-menu-context";
+import { ContextMenu } from "../components/Chat/ContextMenu/ContextMenu";
 
 export async function loader()
 {
@@ -32,35 +34,46 @@ export function Chat()
 	const state = ctx.ChatState;
 	const data: any = useLoaderData();
 	const { user } = data;
-	const [displayContext, setDisplayContext] = useState<ContextMenuData | undefined>(undefined);
+	const contextMenu = useContext(ContextMenuContext).ContextMenuState;
+	// const channelIsUndefined = state.activeChannel === undefined ? true : false;
+
+	useEffect(() =>
+	{
+		console.log("Chat render");
+	})
 
 	return (
-		<div className="flex flex-col md:flex-row">
-			<ChatSidebar user={user} />
-			<div className="text-white basis-full overflow-auto justify-self-center mr-auto bg-gray-800">
-				{
-					state.activeChannel ?
-						<ChatDisplay currentUser={user} setDisplayContext={setDisplayContext}/>
+		<>
+		{
+			contextMenu ?
+			<ContextMenu
+			x={contextMenu.x}
+			y={contextMenu.y}
+			channel={contextMenu.channel}
+			target={contextMenu.target} />
+			:
+			<></>
+			
+		}
+			<div className="flex flex-col md:flex-row">
+				<ChatSidebar user={user} />
+				<div className="text-white basis-full overflow-auto justify-self-center mr-auto bg-gray-800">
+					{
+						state.activeChannel ?	
+						<ChatDisplay currentUser={user}/>
 						:
 						<>
-							<h1 className="text-5xl text-center">Friends</h1>
-							<ChatFriendList setDisplayContext={setDisplayContext}/>
+						<h1 className="text-5xl text-center">Friends</h1>
+						<ChatFriendList />
 						</>
-				}
+					}
+				</div>
 			</div>
-			{displayContext && (
-        	<ContextMenu
-          		x={displayContext.x}
-          		y={displayContext.y}
-         		userName={displayContext.userName}
-          		targetId={displayContext.targetId}
-        	/>
-      		)}
-		</div>
+		</>
 	)
 }
 
-export function ChatFriendList({setDisplayContext} : {setDisplayContext: React.Dispatch<React.SetStateAction<ContextMenuData | undefined>> })
+export function ChatFriendList()
 {
 	const mainCtx = useContext(SocketContext);
 	const {user} = mainCtx.SocketState;

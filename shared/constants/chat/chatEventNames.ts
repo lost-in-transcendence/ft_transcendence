@@ -9,6 +9,11 @@ export const JOINED_CHANNELS: string = 'joinedChannels';
 export const JOINABLE_CHANNELS: string = 'joinableChannels';
 export const NEW_PRIVMSG: string = 'newPrivmsg';
 export const UPDATE_ACTIVE_CHAN: string = 'updateActiveChannel';
+export const UPDATE_CHANNEL_INFO: string = 'updateChannelInfo';
+export const PROMOTE_USER: string = 'promoteUser';
+export const DEMOTE_USER: string = 'demoteUser';
+export const GET_BANNED_USERS: string = 'getBannedUsers';
+export const INVITE_TO_PRIVATE_CHANNEL: string = 'inviteToPrivateChannel';
 
 export const USERS: string = 'users';
 
