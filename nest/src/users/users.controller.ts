@@ -135,10 +135,7 @@ export class UsersController {
 	async getAvatar(@Param('userName') userName, @Res() res: Response) {
 		const user = await this.userService.user({userName})
 		if (user?.avatarPath)
-		{
-			this.logger.debug(user.avatarPath);
 			res.sendFile(user.avatarPath, { root: './' });
-		}
 	}
 
 	@UseGuards(FullAuthGuard)
