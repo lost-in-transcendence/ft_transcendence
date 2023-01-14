@@ -156,6 +156,9 @@ export function ChatWindow({ className, }: { className?: string, })
 
 	useEffect(() =>
 	{
+		let finalName = channel.channelName;
+		if (finalName.length > 24)
+			finalName = finalName.slice(0, 24) + '...';
 		if (channel.mode === "PRIVMSG")
 		{
 			const userTo = users.find(
@@ -165,7 +168,7 @@ export function ChatWindow({ className, }: { className?: string, })
 				setFormatedName(userTo.user.userName);
 		}
 		else
-			setFormatedName(channel.channelName);
+			setFormatedName(finalName);
 	});
 
 

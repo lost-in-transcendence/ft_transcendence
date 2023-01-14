@@ -17,7 +17,7 @@ export function ChatRightBar()
 	const offlineMembers: Member[] = users.filter((u) => u.user.status === 'OFFLINE' && u.role !== "INVITED");
 
 	return (
-		<div className="bg-zinc-700 w-60 overflow-hidden break-words">
+		<div className="bg-zinc-700 w-60 overflow-auto break-words">
 			<MemberList members={onlineMembers} status={'ONLINE'} channel={channel}/>
 			<MemberList members={offlineMembers} status={'OFFLINE'} channel={channel}/>
 		</div>

@@ -15,7 +15,7 @@ import { Channel } from "../../dto/channels.dto";
 export function ChatSidebar({ user }: any)
 {
 	const ctx = useContext(ChatContext);
-	
+
 	const [isOpen, setIsOpen] = useState(false);
 	const [loading, setLoading] = useState(true);
 

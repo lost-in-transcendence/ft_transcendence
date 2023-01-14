@@ -8,6 +8,7 @@ import { backURL } from "../requests/constants";
 import { getMyMatchHistory, getUserMeFull } from "../requests";
 import SocketContext from "../components/Socket/socket-context";
 import { MatchHistoryCard } from "../components/MatchHistoryCard/MatchHistoryCard";
+import { User } from "../dto/users.dto";
 
 export async function loader()
 {
@@ -20,8 +21,6 @@ export function Profile()
 {
 	const data: any = useLoaderData();
 	const {user, matchHistory} = data;
-	// console.log({ user });
-	// console.log({matchHistory});
 	const playerStats = user.playStats;
 	const navigate = useNavigate();
 	const { status } = useContext(SocketContext).SocketState.user;
@@ -42,13 +41,17 @@ export function Profile()
 					<h3 className="font-bold text-5xl">{user.userName}</h3>
 					<p className="text-center">{user.email}</p>
 					<p className="text-center">{status}</p>
-					<p className="text-center">{user.gameStatus}</p>
+					{
+						user.gameStatus !== 'NONE' ?
+						<p className="text-center">{user.gameStatus}</p>
+						: null
+					}
 				</div>
 			</div>
 			<div className="profilePong
 								flex flex-col justify-evenly items-center gap-4
 								md:flex-row md:items-start md:justify-evenly md:gap-0
-								bg-zinc-500 w-11/12 md:max-h-96
+								bg-zinc-500 w-11/12 md:max-h-96 p-2
 								rounded">
 				<div className="profileStatsContainer w-full h-max p-1">
 					<table className="w-full">
@@ -79,18 +82,21 @@ export function Profile()
 					</table>
 				</div>
 				<div className="profileHistoryContainer w-full h-full p-1">
-					<h2 className="text-center font-bold" >Match History</h2>
+					<h2 className="text-center font-bold" >
+						Match History
+					</h2>
+					<br/>
 					<div className=" w-full md:h-[90%] overflow-y-auto">
 						{
 							user.matchHistory !== 0 ?
 								(
-									<ul className="">
+									<ul className="flex flex-col justify-center items-center">
 										{ matchHistory.map((v: any) =>
 										{
 											if (!v || !v.player1 || !v.player2)
 												return;
 											return (
-											<li key={v.gameId}>
+											<li className="w-full" key={v.gameId}>
 												<MatchHistoryCard player1={v.player1} player2={v.player2} />
 											</li>)
 										})}
