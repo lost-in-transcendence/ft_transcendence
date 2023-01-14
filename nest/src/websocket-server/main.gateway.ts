@@ -2,7 +2,7 @@ import { Logger, ParseEnumPipe, ParseUUIDPipe, UseFilters, UseInterceptors, UseP
 import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer, WsException } from "@nestjs/websockets";
 import { Socket, Server, Namespace } from 'socket.io';
 import { env } from "process";
-import { StatusType, GameStatusType, User, RoleType } from "@prisma/client";
+import { StatusType, GameStatusType, User, RoleType, PlayStats } from "@prisma/client";
 
 import { UsersService } from "src/users/users.service";
 import { CustomWsFilter } from "./filters";
@@ -15,6 +15,7 @@ import { type } from "os";
 import { SocketStore } from "./socket-store";
 import { IsNotEmpty, IsUUID } from "class-validator";
 import { ChannelsService } from "src/chat/channels/channels.service";
+import { PlayStatsService } from "src/playstats/playstats-service";
 
 @UseInterceptors(UserInterceptor)
 @UseFilters(new CustomWsFilter())
@@ -24,8 +25,10 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 {
 	private readonly logger = new Logger(MainGateway.name);
 	private readonly socketStore = new SocketStore();
+	private nextRanking: Date;
+	private rankInterval: number = 1000 * 60;
 
-	constructor(private readonly userService: UsersService, private readonly channelService: ChannelsService) {}
+	constructor(private readonly userService: UsersService, private readonly playStatsService: PlayStatsService, private readonly channelService: ChannelsService) {}
 
 	@WebSocketServer()
 	server: Server;
@@ -33,6 +36,29 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	afterInit(server: Server)
 	{
 		this.logger.log('Main Gateway initialized');
+		
+		// const intervalId = setInterval(async () =>
+		// {
+		// 	this.nextRanking = new Date(Date.now() + this.rankInterval)
+		// 	this.server.emit("nextRanking", {nextRanking: this.nextRanking});
+		// 	const usersByPoints = await this.playStatsService.findMany(
+		// 		{
+		// 			orderBy:
+		// 			{
+		// 				points: 'desc',
+		// 			},
+		// 			include:
+		// 			{
+		// 				user: true,
+		// 			}
+		// 		});
+		// 	usersByPoints.forEach((v: PlayStats, i: number) =>
+		// 	{
+
+		// 	})
+		// 	// get all users ordered by descending points
+		// 	// assign rank to each user based on index
+		// }, this.rankInterval)
 	}
 
 	handleConnection(client: Socket)
