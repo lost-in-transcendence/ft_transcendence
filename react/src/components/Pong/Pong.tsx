@@ -11,7 +11,8 @@ const ballSize = 25;
 
 const themes = {
   classic: {ballColor: 'white', paddleColor: 'white', background: 'bg-black' },
-  camouflage: {ballColor: 'green', paddleColor: 'green', background: 'bg-green-600'}
+  camouflage: {ballColor: 'green', paddleColor: 'green', background: 'bg-green-600'},
+  rolandGarros: {ballColor: 'yellow', paddleColor: 'white', background: 'bg-rolandGarros bg-cover bg-no-repeat'},
 };
 
 type GameItems = {
@@ -58,7 +59,7 @@ function DisplayTimer(props: {
   return <div className="flex mx-auto bg-gray-700 text-gray-400 text-xl">{timerstr}</div>;
 }
 
-export function Pong(props: { goBack: any, asSpectator: boolean, gameInfos: {theme: string, user1Name: string, user2Name: string} | undefined}) {
+export function Pong(props: { goBack: any, asSpectator: boolean, gameInfos: {theme: string, user1Name: string, user2Name: string, launchTime: number} | undefined}) {
   const { goBack, asSpectator, gameInfos} = props;
   const { socket } = useContext(GameSocketContext).GameSocketState;
   const masterSocket = useContext(SocketContext).SocketState.socket;
@@ -91,10 +92,16 @@ export function Pong(props: { goBack: any, asSpectator: boolean, gameInfos: {the
       case 'camouflage':
         setTheme(themes.camouflage);
         break;
+      case 'rolandGarros':
+        setTheme(themes.rolandGarros);
+        break;
       default:
         setTheme(themes.classic);
     }
-    // if (gameInfos?.user1Name.length >)
+    if (gameInfos?.launchTime)
+    {
+      setTimer(Math.round((Date.now() - gameInfos.launchTime) / 1000));
+    }
   }, [])
 
   useEffect(() => {
@@ -223,7 +230,7 @@ export function Pong(props: { goBack: any, asSpectator: boolean, gameInfos: {the
   }
 
   return (
-    <div className="flex flex-col items-center w-full items-center">
+    <div className="flex flex-col items-center w-full">
 
       <div className="flex flex-row bg-gray-700 my-2 w-full h-[20%]">
 
@@ -251,25 +258,31 @@ export function Pong(props: { goBack: any, asSpectator: boolean, gameInfos: {the
       </div> 
 
 
-      {
-      showEndScreen ? 
-      <EndScreen
-        winner={endScreen.winner}
-        loser={endScreen.loser}
-        draw={endScreen.draw}
-        reason={endScreen.reason}
-      />
-      :
-      <div className={theme? theme.background + ' flex mx-auto': ''}>
+      <div className={theme? theme.background + ' mx-auto relative': 'mx-auto relative'}>
         <Canvas
         onKeyDown={(e: any) => handleKeyDown(e)}
         onKeyUp={(e: any) => handleKeyUp(e)}
         tabIndex={0}
         draw={drawGame}
         />
-      </div>
+      {
+        showEndScreen ? 
+        <EndScreen
+        winner={endScreen.winner}
+        loser={endScreen.loser}
+        draw={endScreen.draw}
+        reason={endScreen.reason}
+        />
+        :
+        <>
+      </>
       }
-      <button onClick={goBack}>Go Back</button>
+      </div>
+      <button className="flex flex-row gap-4 items-center mt-10 mx-auto h-12 w-auto justify-items-center
+						text-xl text-gray-400 cursor-pointer rounded bg-gray-600
+						hover:bg-gray-500 hover:text-white hover:shadow-gray-900 hover:shadow-sm
+						focus:bg-gray-500 focus:text-white focus:shadow-gray-900 focus:shadow-sm"
+            onClick={goBack}>Go Back</button>
     </div>
   );
 }
@@ -285,17 +298,23 @@ export function EndScreen(props: {
   let title, content;
   if (draw) {
     title = "Draw";
-    content = "You both suck lol";
+    content = "What a game!";
   } else {
-    title = `${winner} wins!`;
-    content = `${loser} sucks lol`;
+    title = `${winner.length > 15? winner.slice(0,15) + '...' : winner} wins!`;
+    content = `${loser.length > 15 ? loser.slice(0,15) + '...': loser} could have done better`;
   }
 
   return (
-    <div className="flex">
-      <h2>{title}</h2>
-      <p>{content}</p>
-      <p>{reason}</p>
+    <div className="absolute inset-1/3">
+      <div className="flex flex-col bg-gray-700">
+        <h2 className="flex text-xl text-gray-400 mx-auto">{title}</h2>
+        {
+          reason ?
+            <p className="flex text-xl text-gray-400 mx-auto">{reason}</p>
+          :
+            <p className="flex text-xl text-gray-400 mx-auto">{content}</p>
+        }
+      </div>
     </div>
   );
 }

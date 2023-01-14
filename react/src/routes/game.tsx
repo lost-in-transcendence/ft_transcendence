@@ -40,7 +40,7 @@ export function Game()
 	const [asSpectator, setAsSpectator] = useState(false);
 
 	const [roomState, setRoomState] = useState('');
-	const [gameInfos, setGameInfos] = useState<{theme: string, user1Name: string, user2Name: string} | undefined>(undefined);
+	const [gameInfos, setGameInfos] = useState<{theme: string, user1Name: string, user2Name: string, launchTime: number} | undefined>(undefined);
 
 	const loc = useLocation();
 
@@ -88,12 +88,12 @@ export function Game()
 
 		socket?.on('roomReady', (payload: any) =>
 		{
-			const {roomId, user1Name, user2Name, theme} = payload;
+			const {roomId, user1Name, user2Name, theme, launchTime} = payload;
 			console.log('roomReady received  payload:', payload);
 			setStatus('matchFound');
 			// console.log('roomReady received  room:', roomId);
 			setRoomState(roomId);
-			setGameInfos({theme, user1Name, user2Name});
+			setGameInfos({theme, user1Name, user2Name, launchTime});
 			// masterSocket?.emit('changeGameStatus', {gameStatus: GameStatus.INGAME})
 		});
 
@@ -108,11 +108,11 @@ export function Game()
 		socket?.on('startGameAsSpectator', (payload: any) =>
 		{
 			// setError('starting game as spectator');
-			const {user1Name, user2Name, theme} = payload;
+			const {user1Name, user2Name, theme, launchTime} = payload;
 			console.log(payload);
 			setAsSpectator(true);
 			setStatus('ongoingGame');
-			setGameInfos({theme, user1Name, user2Name});
+			setGameInfos({theme, user1Name, user2Name, launchTime});
 			masterSocket?.emit('changeGameStatus', {gameStatus: GameStatus.INGAME})
 		});
 
@@ -175,12 +175,12 @@ export function Game()
 	}
 
 	return (
-		<div className="flex flex-col md:flex-row">
+		<div className="flex flex-col md:flex-row w-full">
 		{
 			status === 'ongoingGame' ?
-			<>
+			<div className="">
 				<Pong goBack={leaveGame} asSpectator={asSpectator} gameInfos={gameInfos}/>
-			</>
+			</div>
 			: <GameSideBar socket={socket} status={status} setQuickPlay={(e : any) => {setStatus('quickplayMenu'); setError(null);}} setCustomGame={(e: any) => {setStatus('customGame'); setError(null);}}/>
 		}
 		{
@@ -334,6 +334,7 @@ export function CustomGameScreen(props: {goBack: any})
 					>
 						<option value='classic'>Classic</option>
 						<option value='camouflage'>Camouflage</option>
+						<option value='rolandGarros'>Roland Garros</option>
 					</select>
 				</div>
 				<div className="flex flex-row gap-4 items-center mx-auto w-full">

@@ -116,6 +116,8 @@ class OngoingGame
     paddle1: Paddle;
     paddle2: Paddle;
     
+    launchTime: number;
+
     ball: any;
 
     winner: number;
@@ -140,6 +142,7 @@ class OngoingGame
         this.goal = goal;
         this.theme = theme;
         this.winner = 0;
+        this.launchTime = 0;
         if (this.objective === Objective.TIME)
         {
             this.timer = this.goal * 1000 * 60;
@@ -373,7 +376,7 @@ export class GameComputer
         {
             winner: winnerName,
             loser: loserName,
-            reason: game.disconnectedSocket ? `${loserName} disconnected.` : ''
+            reason: game.disconnectedSocket ? `${loserName.length > 15 ? loserName.slice(0,15) + '...' : loserName} disconnected.` : ''
         })
         this.server.socketsLeave(game.id);
     }
@@ -484,6 +487,7 @@ export class GameComputer
         {
             this.server.to(game.id).emit('startGame');
             game.timer = Date.now() + game.goal * 60 * 1000;
+            game.launchTime = Date.now();
             game.status = GameStatusValue.ONGOING;
             this.emitOngoingGames();
         }
@@ -524,11 +528,6 @@ export class GameComputer
         return 0;
     }
 
-    async startGame()
-    {
-
-    }
-
     getOngoingGames()
     {
         const ongoingGames = []
@@ -543,6 +542,7 @@ export class GameComputer
                     goal: room.goal,
                     user1: room.user1.userName,
                     user2: room.user2.userName,
+                    theme: room.theme,
                 }
             );
         }

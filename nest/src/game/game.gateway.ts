@@ -182,8 +182,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
                         }
                     }
                 });
-            this.gameComputer.newGame(availableRoom);
-            this.server.to(availableRoom.user1SocketId).to(availableRoom.user2SocketId).emit('roomReady', {roomId: ret.id, theme: availableRoom.theme, user1Name: availableRoom.user1.userName, user2Name: availableRoom.user2?.userName});
+            const newGame = await this.gameComputer.newGame(availableRoom);
+            this.server.to(availableRoom.user1SocketId).to(availableRoom.user2SocketId).emit('roomReady', {roomId: ret.id, theme: availableRoom.theme, user1Name: availableRoom.user1.userName, user2Name: availableRoom.user2?.userName, launchTime: newGame.launchTime});
             this.gameComputer.emitOngoingGames();
             return;
         }
@@ -293,8 +293,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
                     }
                 }
             });
-        this.gameComputer.newGame(customGameRoom);
-        this.server.to(customGameRoom.user1SocketId).to(customGameRoom.user2SocketId).emit('roomReady', {roomId: ret.id, user1Name: customGameRoom.user1.userName, user2Name: customGameRoom.user2.userName, theme: customGameRoom.theme });
+        const newGame = await this.gameComputer.newGame(customGameRoom);
+        this.server.to(customGameRoom.user1SocketId).to(customGameRoom.user2SocketId).emit('roomReady', {roomId: ret.id, user1Name: customGameRoom.user1.userName, user2Name: customGameRoom.user2.userName, theme: customGameRoom.theme, launchTime: newGame.launchTime});
         this.gameComputer.emitOngoingGames();
         return;
     }
@@ -340,7 +340,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
         if (!this.gameComputer.userJoin(room, user, client.id))
             return;
         client.join(room);
-        this.server.to(client.id).emit('startGameAsSpectator', {user1Name: gameRoom.user1.userName, user2Name: gameRoom.user2.userName, theme: gameRoom.theme });
+        this.server.to(client.id).emit('startGameAsSpectator', {user1Name: gameRoom.user1.userName, user2Name: gameRoom.user2.userName, theme: gameRoom.theme, launchTime: gameRoom.launchTime});
     }
 
     @SubscribeMessage('paddleMove')

@@ -12,7 +12,7 @@ export function useCanvas(draw: any)
 
         function updateDimensions()
         {
-            canvas.width = window.innerWidth * 66 / 100;
+            canvas.width = window.innerWidth * 75 / 100;
             canvas.height = window.innerHeight * 66 / 100;
         }
 

@@ -10,7 +10,11 @@ module.exports = {
 			animation:
 			{
 				'spin-slow': 'spin 10s linear infinite',
-			}
+			},
+			backgroundImage:
+			{
+				'rolandGarros': "url('/assets/rolandGarros.jpeg')"
+			},
 		},
 	},
 	plugins: [],
