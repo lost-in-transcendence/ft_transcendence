@@ -74,8 +74,8 @@ export function ProfileView()
 			<div className="profilePong
 		flex flex-col justify-evenly items-center gap-4
 		md:flex-row md:items-start md:justify-evenly md:gap-0
-		bg-zinc-500 w-11/12 md:max-h-96 p-2
-		rounded">
+		bg-gray-500 w-11/12 md:max-h-96 p-2
+		rounded shadow">
 				<div className="profileStatsContainer w-full h-max p-1">
 					<table className="w-full">
 						<thead><tr><th colSpan={2}>Stats</th></tr></thead>
