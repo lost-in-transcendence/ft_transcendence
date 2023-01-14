@@ -90,7 +90,7 @@ export function Profile()
 						{
 							user.matchHistory !== 0 ?
 								(
-									<ul className="shadow flex flex-col justify-center items-center">
+									<ul className="flex flex-col justify-center items-center">
 										{ matchHistory.map((v: any) =>
 										{
 											if (!v || !v.player1 || !v.player2)
