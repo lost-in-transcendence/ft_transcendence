@@ -20,12 +20,15 @@ export enum SharedUserStatus {
 	TA_GRAND_MERE = 'TA_GRAND_MERE',
 }
 
-export interface SharedPlayStatsDto {
-	wins: number;
-	losses: number;
-	rank: number;
-	points: number;
-	achievement_points: number;
+export interface SharedPlayStatsDto
+{
+    user: SharedPartialUserDto,
+	userId: string,
+	wins: number,
+	losses: number,
+	points: number,
+	rank: number,
+	achievement_points: number,
 }
 
 export interface SharedOtherUserDto {

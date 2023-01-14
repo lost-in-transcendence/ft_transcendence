@@ -37,28 +37,31 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	{
 		this.logger.log('Main Gateway initialized');
 		
-		// const intervalId = setInterval(async () =>
-		// {
-		// 	this.nextRanking = new Date(Date.now() + this.rankInterval)
-		// 	this.server.emit("nextRanking", {nextRanking: this.nextRanking});
-		// 	const usersByPoints = await this.playStatsService.findMany(
-		// 		{
-		// 			orderBy:
-		// 			{
-		// 				points: 'desc',
-		// 			},
-		// 			include:
-		// 			{
-		// 				user: true,
-		// 			}
-		// 		});
-		// 	usersByPoints.forEach((v: PlayStats, i: number) =>
-		// 	{
-
-		// 	})
-		// 	// get all users ordered by descending points
-		// 	// assign rank to each user based on index
-		// }, this.rankInterval)
+		const intervalId = setInterval(async () =>
+		{
+			this.nextRanking = new Date(Date.now() + this.rankInterval)
+			this.server.emit("nextRanking", {nextRanking: this.nextRanking});
+			const usersByPoints = await this.playStatsService.findMany(
+				{
+					orderBy:
+					{
+						points: 'desc',
+					},
+					include:
+					{
+						user: true,
+					}
+				});
+			usersByPoints.forEach((v: PlayStats, i: number) =>
+			{
+				const {userId} = v;
+				this.playStatsService.update(
+					{
+						where : {userId},
+						data: {rank: {set: i + 1}},
+					})
+			});
+		}, this.rankInterval)
 	}
 
 	handleConnection(client: Socket)
@@ -87,6 +90,12 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		{
 			this.updateUser(client, ret, {gameStatus: GameStatusType.NONE});
 		}
+	}
+
+	@SubscribeMessage('nextRanking')
+	async sendNextRanking(@ConnectedSocket() client: Socket)
+	{
+		this.server.to(client.id).emit("nextRanking", {nextRanking: this.nextRanking});
 	}
 
 	@SubscribeMessage(events.CHANGE_STATUS)
@@ -271,15 +280,4 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			this.server.to(v.id).emit(chatEvents.NOTIFY, { content: `You have unblocked ${blockedName}` })
 		});
 	}
-}
-
-export class InviteNotificationDto
-{
-	@IsUUID()
-	@IsNotEmpty()
-	gameId: string;
-
-	@IsUUID()
-	@IsNotEmpty()
-	invitedUser: string;
 }
