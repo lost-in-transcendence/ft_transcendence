@@ -1,12 +1,12 @@
 import { useRef, useState } from "react"
 
-export function Accordeon({ title, children, bgColor='bg-gray-600', width='w-full'}: any)
+export function Accordeon({ title, children, bgColor = 'bg-gray-600', width = 'w-full' }: any)
 {
 	const [isOpen, setIsOpen] = useState<boolean>(false);
 	const selfRef = useRef<HTMLDivElement>(null)
 
 	return (
-		<div className="accordeon">
+		<div className={`accordeon ${isOpen && ''}`}>
 			<button
 				onClick={() => setIsOpen(!isOpen)}
 				className={
@@ -26,6 +26,12 @@ export function Accordeon({ title, children, bgColor='bg-gray-600', width='w-ful
 					children
 				}
 			</div>
+			{
+				isOpen &&
+				<div className="flex justify-center items-center">
+					<hr className="my-2 w-1/2 border-gray-500 " />
+				</div>
+			}
 		</div>
 	)
 }

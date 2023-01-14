@@ -48,12 +48,13 @@ export function ChannelCard({
 		ctx.ChatDispatch({ type: "update_active", payload: channel });
 	}
 
-	let formatedName: string;
+	let formatedName: string = channel.channelName;
 	if (channel.mode === "PRIVMSG")
 	{
 		const userTo = channel.members?.find((u: Member) => u.user.id !== user?.id);
-		formatedName = userTo.user.userName;
-	} else formatedName = channel.channelName;
+		if (userTo)
+			formatedName = userTo.user.userName;
+	}
 	if (formatedName.length > 13)
 		formatedName = formatedName.slice(0, 13) + "...";
 
