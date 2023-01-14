@@ -116,7 +116,6 @@ export function ProfileView()
 									<ul className="flex flex-col justify-center items-center">
 										{matchHistory.map((v: any) =>
 										{
-											console.log({ v })
 											if (!v || !v.player1 || !v.player2)
 												return;
 											return (

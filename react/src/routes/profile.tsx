@@ -3,6 +3,7 @@
 
 import {useLoaderData, useNavigate } from "react-router-dom";
 import { useContext } from "react";
+import { BsPencilFill } from "react-icons/bs";
 
 import { backURL } from "../requests/constants";
 import { getMyMatchHistory, getUserMeFull } from "../requests";
@@ -109,7 +110,15 @@ export function Profile()
 				</div>
 				<div className="flex-break"></div>
 			</div>
-			<button onClick={() => { navigate("/profile/edit"); }}>Edit Profile</button>
+			<button
+				className="bg-indigo-500 rounded shadow px-2 text-gray-300 flex items-center gap-1"
+				onClick={() => { navigate("/profile/edit"); }}
+			>
+					<span>
+						<BsPencilFill size={12} />
+					</span>
+					<span>Edit Profile</span>
+			</button>
 		</div>
 	)
 }

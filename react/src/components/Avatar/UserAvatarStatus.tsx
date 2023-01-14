@@ -4,11 +4,11 @@ import { SharedUserStatus } from "../../../shared/dtos";
 import { backURL } from "../../requests";
 
 export function UserAvatarStatus({userName, status, size = '12', border = 'border-gray-900', className = ''} : {userName: string, status: SharedUserStatus, size?: string, border?: string, className?: string})
-{	
+{
 	return (
 		<>
 			<div className={"m-auto inline-block relative " + className}>
-				<img className={`w-${size} rounded-full border-4 ` + border} 
+				<img className={`w-${size} h-${size} rounded-full border-4 ` + border}
                 // style={{width: `${size}px`}}
                 src={`${backURL}/users/avatars/${userName}?time=${Date.now()}`} />
 				<CurrentStatus className={"w-[40%] absolute bottom-0 right-0 rounded-full border-[4px] " + border} status={status}/>
