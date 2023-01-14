@@ -105,11 +105,14 @@ export function Game()
 			masterSocket?.emit('changeGameStatus', {gameStatus: GameStatus.INGAME})
 		});
 
-		socket?.on('startGameAsSpectator', () =>
+		socket?.on('startGameAsSpectator', (payload: any) =>
 		{
 			// setError('starting game as spectator');
+			const {user1Name, user2Name, theme} = payload;
+			console.log(payload);
 			setAsSpectator(true);
 			setStatus('ongoingGame');
+			setGameInfos({theme, user1Name, user2Name});
 			masterSocket?.emit('changeGameStatus', {gameStatus: GameStatus.INGAME})
 		});
 

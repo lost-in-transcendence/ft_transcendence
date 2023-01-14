@@ -55,7 +55,7 @@ function DisplayTimer(props: {
     timerstr += ":" + (seconds < 10 ? `0${seconds}` : seconds);
   }
 
-  return <div className="flex bg-gray-700 text-gray-400 text-5xl my-2">{timerstr}</div>;
+  return <div className="flex mx-auto bg-gray-700 text-gray-400 text-xl">{timerstr}</div>;
 }
 
 export function Pong(props: { goBack: any, asSpectator: boolean, gameInfos: {theme: string, user1Name: string, user2Name: string} | undefined}) {
@@ -223,27 +223,43 @@ export function Pong(props: { goBack: any, asSpectator: boolean, gameInfos: {the
   }
 
   return (
-    <div className="flex flex-col items-center w-full">
-      <DisplayTimer
-        timer={timer}
+    <div className="flex flex-col items-center w-full items-center">
+
+      <div className="flex flex-row bg-gray-700 my-2 w-full h-[20%]">
+
+        <div className="flex flex-col h-full w-[30%] text-xl text-gray-400 border-gray-600 border-2 justify-center">
+          <p className="truncate text-center border-b border-gray-600">{gameInfos?.user1Name}</p>
+        </div>
+        <div className="flex flex-col h-full w-[10%] text-xl text-gray-400 border-gray-600 border-2 justify-center">
+          <p className="flex mx-auto">{gameItems.player1Score}</p>
+        </div>
+
+        <DisplayTimer timer={timer}
         years={false}
         hours={false}
         minutes={true}
         seconds={true}
-      />
-      <div className="flex flex-row bg-gray-700 my-2 w-full">
-        <div className="flex flex-col h-full w-1/2 text-5xl text-gray-400 border-gray-600 border-2 justify-center">
-        <p className="truncate text-center border-b border-gray-600">{gameInfos?.user1Name}</p>
-        <p className="flex mx-auto">{gameItems.player1Score}</p>
-        </div>
-        <div className="flex flex-col h-full w-1/2 text-5xl text-gray-400 border-gray-600 border-2 justify-center">
-        <p className="truncate text-center border-b border-gray-600">{gameInfos?.user2Name}</p>
-        <p className="flex mx-auto">{gameItems.player2Score}</p>
-        </div>
-        <div className="flex">
+        />
 
+        <div className="flex flex-col h-full w-[10%] text-xl text-gray-400 border-gray-600 border-2 justify-center">
+          <p className="flex mx-auto">{gameItems.player2Score}</p>
         </div>
-      </div>
+        <div className="flex flex-col h-full w-[30%] text-xl text-gray-400 border-gray-600 border-2 justify-center">
+          <p className="truncate text-center border-b border-gray-600">{gameInfos?.user2Name}</p>
+        </div>
+
+      </div> 
+
+
+      {
+      showEndScreen ? 
+      <EndScreen
+        winner={endScreen.winner}
+        loser={endScreen.loser}
+        draw={endScreen.draw}
+        reason={endScreen.reason}
+      />
+      :
       <div className={theme? theme.background + ' flex mx-auto': ''}>
         <Canvas
         onKeyDown={(e: any) => handleKeyDown(e)}
@@ -252,16 +268,7 @@ export function Pong(props: { goBack: any, asSpectator: boolean, gameInfos: {the
         draw={drawGame}
         />
       </div>
-      {showEndScreen ? (
-        <EndScreen
-          winner={endScreen.winner}
-          loser={endScreen.loser}
-          draw={endScreen.draw}
-          reason={endScreen.reason}
-        />
-      ) : (
-        <></>
-      )}
+      }
       <button onClick={goBack}>Go Back</button>
     </div>
   );

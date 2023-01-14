@@ -127,7 +127,7 @@ class OngoingGame
 
     constructor(params: {id: string, user1: User, user2: User, user1SocketId: string, user2SocketId: string, objective: Objective, goal: number, theme: string})
     {
-        const {id, user1, user2, user1SocketId, user2SocketId, objective, goal} = params;
+        const {id, user1, user2, user1SocketId, user2SocketId, objective, goal, theme} = params;
         this.id = id;
         this.user1 = user1;
         this.user2 = user2;
@@ -138,7 +138,7 @@ class OngoingGame
         this.ball = new Ball({x: width / 2, y:height / 2}, {x: 1, y:1}, 25);
         this.objective = objective;
         this.goal = goal;
-        this.theme = this.theme;
+        this.theme = theme;
         this.winner = 0;
         if (this.objective === Objective.TIME)
         {

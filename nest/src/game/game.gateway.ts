@@ -333,10 +333,14 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     @SubscribeMessage('joinAsSpectator')
     async joinAsSpectator(@ConnectedSocket() client: Socket, @GetUserWs() user: User, @MessageBody('room') room: string)
     {
+        const gameRoom = await this.gameComputer.findGame(room);
+        console.log(gameRoom);
+        if (!gameRoom)
+            return;
         if (!this.gameComputer.userJoin(room, user, client.id))
             return;
         client.join(room);
-        this.server.to(client.id).emit('startGameAsSpectator');
+        this.server.to(client.id).emit('startGameAsSpectator', {user1Name: gameRoom.user1.userName, user2Name: gameRoom.user2.userName, theme: gameRoom.theme });
     }
 
     @SubscribeMessage('paddleMove')
