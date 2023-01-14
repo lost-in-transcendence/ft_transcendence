@@ -124,20 +124,35 @@ export function Login()
 				<Navigate to={"/"} />
 			}
 			<div className="bg-gray-700 text-gray-300 rounded-lg shadow-lg w-1/2 gap-1
-							flex flex-col items-center justify-start min-w-[480px]
+							flex flex-col items-center justify-start min-w-[700px]
 							p-2 m-2">
-				<h1 className="text-center text-8xl">Amalgam</h1>
+				<h1 className="text-center text-8xl">Transcendence</h1>
 				<h2 className="mt-4 text-2xl text-center">The awesome website to play pong with your friends !</h2>
 				<h3 className='text-xs mb-6'> But only if they are a 42 student</h3>
 				{
+					error ?
+					<div className="text-red-600 text-lg mb-1">
+						{error}
+					</div>
+					: null
+				}
+				{
+					status === 'error' ?
+					<div className="text-red-600 text-2xl mb-1">
+						There was an error, try again
+					</div>
+					:
+					null
+				}
+				{
 					status === 'loading' ?
-						<Spinner />
-						:
-						<div className="basis-full w-full flex items-center justify-center mb-4">
+					<Spinner />
+					:
+					<div className="basis-full w-full flex items-center justify-center mb-4">
 							<button
 								onClick={login}
 								className='bg-indigo-500 rounded shadow-md px-3 py-1 text-2xl'
-							>
+								>
 								Log in with 42
 							</button>
 						</div>
@@ -146,12 +161,6 @@ export function Login()
 					Log as Guest
 				</button>
 			</div>
-			{
-				status === 'error' &&
-				<p>BIG ERROR!!!</p>
-			}
-			{/* <p>state = {status}</p> */}
-
 		</div>
 	)
 }

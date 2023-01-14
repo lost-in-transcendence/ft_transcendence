@@ -41,7 +41,11 @@ export function Profile()
 					<h3 className="font-bold text-5xl">{user.userName}</h3>
 					<p className="text-center">{user.email}</p>
 					<p className="text-center">{status}</p>
-					<p className="text-center">{user.gameStatus}</p>
+					{
+						user.gameStatus !== 'NONE' ?
+						<p className="text-center">{user.gameStatus}</p>
+						: null
+					}
 				</div>
 			</div>
 			<div className="profilePong
