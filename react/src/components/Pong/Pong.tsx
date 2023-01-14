@@ -55,7 +55,7 @@ function DisplayTimer(props: {
     timerstr += ":" + (seconds < 10 ? `0${seconds}` : seconds);
   }
 
-  return <p>{timerstr}</p>;
+  return <div className="flex bg-gray-700 text-gray-400 text-5xl my-2">{timerstr}</div>;
 }
 
 export function Pong(props: { goBack: any, asSpectator: boolean, gameInfos: {theme: string, user1Name: string, user2Name: string} | undefined}) {
@@ -84,7 +84,7 @@ export function Pong(props: { goBack: any, asSpectator: boolean, gameInfos: {the
 
   const [timer, setTimer] = useState(0);
 
-  const [theme, setTheme] = useState<{ballColor: string, paddleColor: string, background: string} | (undefined)>(undefined);
+  const [theme, setTheme] = useState<{ballColor: string, paddleColor: string, background: string}>(themes.classic);
   useEffect( () => {
     switch (props.gameInfos?.theme)
     {
@@ -94,6 +94,7 @@ export function Pong(props: { goBack: any, asSpectator: boolean, gameInfos: {the
       default:
         setTheme(themes.classic);
     }
+    // if (gameInfos?.user1Name.length >)
   }, [])
 
   useEffect(() => {
@@ -162,14 +163,14 @@ export function Pong(props: { goBack: any, asSpectator: boolean, gameInfos: {the
     ctx.stroke();
 
     // score
-    ctx.font = "30px Orbitron";
-    ctx.fillStyle = theme?.paddleColor;
-    ctx.fillText(gameItems.player1Score, ctx.canvas.width / 2 / 2, 100);
-    ctx.fillText(gameItems.player2Score, (ctx.canvas.width / 2) * 1.5, 100);
+    // ctx.font = "30px Orbitron";
+    // ctx.fillStyle = theme?.paddleColor;
+    // ctx.fillText(gameItems.player1Score, ctx.canvas.width / 2 / 2, 100);
+    // ctx.fillText(gameItems.player2Score, (ctx.canvas.width / 2) * 1.5, 100);
 
     // display names
-    ctx.fillText(gameInfos?.user1Name, ctx.canvas.width / 2 / 2 - 30, 40);
-    ctx.fillText(gameInfos?.user2Name, (ctx.canvas.width / 2) * 1.5 - 30, 40);
+    // ctx.fillText(gameInfos?.user1Name, ctx.canvas.width / 2 / 2 - 30, 40);
+    // ctx.fillText(gameInfos?.user2Name, (ctx.canvas.width / 2) * 1.5 - 30, 40);
 
     // paddles
     ctx.fillStyle = theme?.paddleColor;
@@ -222,7 +223,7 @@ export function Pong(props: { goBack: any, asSpectator: boolean, gameInfos: {the
   }
 
   return (
-    <>
+    <div className="flex flex-col items-center w-full">
       <DisplayTimer
         timer={timer}
         years={false}
@@ -230,13 +231,27 @@ export function Pong(props: { goBack: any, asSpectator: boolean, gameInfos: {the
         minutes={true}
         seconds={true}
       />
-      <Canvas
+      <div className="flex flex-row bg-gray-700 my-2 w-full">
+        <div className="flex flex-col h-full w-1/2 text-5xl text-gray-400 border-gray-600 border-2 justify-center">
+        <p className="truncate text-center border-b border-gray-600">{gameInfos?.user1Name}</p>
+        <p className="flex mx-auto">{gameItems.player1Score}</p>
+        </div>
+        <div className="flex flex-col h-full w-1/2 text-5xl text-gray-400 border-gray-600 border-2 justify-center">
+        <p className="truncate text-center border-b border-gray-600">{gameInfos?.user2Name}</p>
+        <p className="flex mx-auto">{gameItems.player2Score}</p>
+        </div>
+        <div className="flex">
+
+        </div>
+      </div>
+      <div className={theme? theme.background + ' flex mx-auto': ''}>
+        <Canvas
         onKeyDown={(e: any) => handleKeyDown(e)}
         onKeyUp={(e: any) => handleKeyUp(e)}
         tabIndex={0}
         draw={drawGame}
-        bg={theme? theme.background : ''}
-      ></Canvas>
+        />
+      </div>
       {showEndScreen ? (
         <EndScreen
           winner={endScreen.winner}
@@ -248,7 +263,7 @@ export function Pong(props: { goBack: any, asSpectator: boolean, gameInfos: {the
         <></>
       )}
       <button onClick={goBack}>Go Back</button>
-    </>
+    </div>
   );
 }
 
@@ -270,7 +285,7 @@ export function EndScreen(props: {
   }
 
   return (
-    <div>
+    <div className="flex">
       <h2>{title}</h2>
       <p>{content}</p>
       <p>{reason}</p>

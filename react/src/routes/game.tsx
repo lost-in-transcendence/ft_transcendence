@@ -99,7 +99,7 @@ export function Game()
 
 		socket?.on('startGame', () =>
 		{
-			setError('starting game');
+			// setError('starting game');
 			setAsSpectator(false);
 			setStatus('ongoingGame');
 			masterSocket?.emit('changeGameStatus', {gameStatus: GameStatus.INGAME})
@@ -107,7 +107,7 @@ export function Game()
 
 		socket?.on('startGameAsSpectator', () =>
 		{
-			setError('starting game as spectator');
+			// setError('starting game as spectator');
 			setAsSpectator(true);
 			setStatus('ongoingGame');
 			masterSocket?.emit('changeGameStatus', {gameStatus: GameStatus.INGAME})
