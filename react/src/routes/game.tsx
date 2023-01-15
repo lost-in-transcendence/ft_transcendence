@@ -90,11 +90,9 @@ export function Game()
 			const {roomId, user1Name, user2Name, theme, launchTime} = payload;
 			console.log('roomReady received  payload:', payload);
 			setStatus('matchFound');
-			// console.log('roomReady received  room:', roomId);
 			setRoomState(roomId);
 			setGameInfos({theme, user1Name, user2Name, launchTime});
 			masterSocket?.off('invitationDeclined');
-			// masterSocket?.emit('changeGameStatus', {gameStatus: GameStatus.INGAME})
 		});
 
 		socket?.on('startGame', () =>
@@ -107,7 +105,6 @@ export function Game()
 
 		socket?.on('startGameAsSpectator', (payload: any) =>
 		{
-			// setError('starting game as spectator');
 			const {user1Name, user2Name, theme, launchTime} = payload;
 			console.log(payload);
 			setAsSpectator(true);
