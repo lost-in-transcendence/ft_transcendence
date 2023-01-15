@@ -165,7 +165,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 	async sendMessage(@ConnectedSocket() client: Socket, @GetUserWs() user: User)
 	{
 		const banned = this.channelMemberService.getBannedFromChannels({userId: user.id});
-		this.logger.debug({banned});
 	}
 
 	@SubscribeMessage('toChannel')
