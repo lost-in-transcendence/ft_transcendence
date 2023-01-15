@@ -15,18 +15,18 @@ export function ChatContextComponent(props: any)
 	const [loading, setLoading] = useState(true);
 
 	const socket = useSocket(`${backURL}/chat`,
-	{
-		reconnectionAttempts: 5,
-		reconnectionDelay: 5000,
-		autoConnect: false,
-		extraHeaders: { "Authorization": "Bearer " + getCookie('jwt') },
-	});
+		{
+			reconnectionAttempts: 5,
+			reconnectionDelay: 5000,
+			autoConnect: false,
+			extraHeaders: { "Authorization": "Bearer " + getCookie('jwt') },
+		});
 
 	useEffect(() =>
 	{
 		socket.connect();
 
-		ChatDispatch({type: 'update_socket', payload: socket});
+		ChatDispatch({ type: 'update_socket', payload: socket });
 
 		setupListeners();
 
@@ -40,7 +40,7 @@ export function ChatContextComponent(props: any)
 	{
 		socket.on('handshake', (payload: PartialChannel[]) =>
 		{
-			ChatDispatch({type: 'update_channels', payload});
+			ChatDispatch({ type: 'update_channels', payload });
 			setLoading(false);
 		});
 
@@ -48,23 +48,21 @@ export function ChatContextComponent(props: any)
 		{
 			if (payload)
 			{
-				ChatDispatch({type: 'update_channels', payload});
+				ChatDispatch({ type: 'update_channels', payload });
 			}
 		});
 
 		socket.on(events.NEW_CHANNEL, (payload: Channel) =>
 		{
-			ChatDispatch({type: 'new_channel', payload});
+			ChatDispatch({ type: 'new_channel', payload });
 		})
 
 		socket.on(events.UPDATE_ACTIVE_CHAN, (payload: Channel) =>
 		{
-			console.log("in update active chan, pre", {activeChannel: ChatState.activeChannel})
-			ChatDispatch({type: 'update_active', payload});
-			console.log("in update active chan, post", {activeChannel: ChatState.activeChannel})
+			ChatDispatch({ type: 'update_active', payload });
 		})
 
-		socket.on(events.ALERT, (payload: {event: string, args: any}) =>
+		socket.on(events.ALERT, (payload: { event: string, args: any }) =>
 		{
 			if (payload.event === events.USERS && !payload.args)
 				socket.emit(payload.event, { channelId: ChatState.activeChannel?.id })
@@ -88,7 +86,7 @@ export function ChatContextComponent(props: any)
 		);
 
 	return (
-		<ChatContextProvider value={{ChatState, ChatDispatch}}>
+		<ChatContextProvider value={{ ChatState, ChatDispatch }}>
 			{children}
 		</ChatContextProvider>
 	)

@@ -17,7 +17,7 @@ export function MatchHistoryCard(props: { player1: any, player2: any })
 		p1ScoreColor = p2ScoreColor = 'text-yellow-700'
 
 	return (
-		<div className="flex flex-col justify-around items-center rounded shadow p-2 m-2 bg-gray-600">
+		<div className="flex flex-col justify-around items-center rounded shadow p-2 m-2 bg-gray-700">
 			<div>
 				{player1.userName} vs {player2.userName}
 			</div>

@@ -11,9 +11,7 @@ export class UserInterceptor implements NestInterceptor
 	async intercept(context: ExecutionContext, next: CallHandler): Promise<Observable<any>>
 	{
 		const wsClient = context.switchToWs().getClient();
-		// console.log('ininterceptor', wsClient.data);
 		const wsUser: User = wsClient.data.user;
-		// console.log(wsUser);
 		const dbUser = await this.prisma.user.findUnique({
 			where:
 			{

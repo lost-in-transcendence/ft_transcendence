@@ -9,6 +9,7 @@ import { getCookie } from "../requests";
 import { addFriend, removeFriend } from "../requests/http/friends.requests";
 import SocketContext from "../components/Socket/socket-context";
 import { MatchHistoryCard } from "../components/MatchHistoryCard/MatchHistoryCard";
+import { StatTable } from "../components/PlayStats/StatTable";
 
 export async function loader({ params }: any)
 {
@@ -30,7 +31,6 @@ export function ProfileView()
 	const masterSocket = useContext(SocketContext).SocketState.socket;
 	const user = useContext(SocketContext).SocketState.user;
 	// const [isFriends, setIsFriends] = useState(user?.friends?.find((e: any) => e.id === profile.id) ? true : false)
-	// console.log(user.friends);
 	const isFriends = user?.friends?.find((e: any) => e.id === profile.id) ? true : false;
 
 	async function handleFriend()
@@ -74,41 +74,15 @@ export function ProfileView()
 			<div className="profilePong
 		flex flex-col justify-evenly items-center gap-4
 		md:flex-row md:items-start md:justify-evenly md:gap-0
-		bg-zinc-500 w-11/12 md:max-h-96 p-2
-		rounded">
-				<div className="profileStatsContainer w-full h-max p-1">
-					<table className="w-full">
-						<thead><tr><th colSpan={2}>Stats</th></tr></thead>
-						<tbody>
-							<tr>
-								<td>Wins</td>
-								<td>{playerStats.wins}</td>
-							</tr>
-							<tr>
-								<td>Losses</td>
-								<td>{playerStats.losses}</td>
-							</tr>
-							<tr>
-								<td>Rank</td>
-								<td>{playerStats.rank}</td>
-							</tr>
-							<tr>
-								<td>Points Scored</td>
-								<td>{playerStats.points}</td>
-							</tr>
-							<tr>
-								<td>Achievement points</td>
-								<td>{playerStats.achievement_points}</td>
-							</tr>
-						</tbody>
-
-					</table>
+		bg-gray-600 w-11/12 md:max-h-96 py-1
+		rounded-lg shadow">
+				<div className="profileStatsContainer w-full p-1">
+					<StatTable playerStats={playerStats} />
 				</div>
-				<div className="profileHistoryContainer w-full h-full p-1">
-					<h2 className="text-center font-bold" >
+				<div className="profileHistoryContainer w-full h-full">
+					<h2 className="text-center font-bold text-3xl" >
 						Match History
 					</h2>
-					<br />
 					<div className=" w-full md:h-[90%] overflow-y-auto">
 						{
 							matchHistory.length !== 0 ?
@@ -116,7 +90,6 @@ export function ProfileView()
 									<ul className="flex flex-col justify-center items-center">
 										{matchHistory.map((v: any) =>
 										{
-											console.log({ v })
 											if (!v || !v.player1 || !v.player2)
 												return;
 											return (

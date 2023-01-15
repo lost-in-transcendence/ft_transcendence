@@ -3,12 +3,14 @@
 
 import {useLoaderData, useNavigate } from "react-router-dom";
 import { useContext } from "react";
+import { BsPencilFill } from "react-icons/bs";
 
 import { backURL } from "../requests/constants";
 import { getMyMatchHistory, getUserMeFull } from "../requests";
 import SocketContext from "../components/Socket/socket-context";
 import { MatchHistoryCard } from "../components/MatchHistoryCard/MatchHistoryCard";
 import { User } from "../dto/users.dto";
+import { StatTable } from "../components/PlayStats/StatTable";
 
 export async function loader()
 {
@@ -51,41 +53,15 @@ export function Profile()
 			<div className="profilePong
 								flex flex-col justify-evenly items-center gap-4
 								md:flex-row md:items-start md:justify-evenly md:gap-0
-								bg-zinc-500 w-11/12 md:max-h-96 p-2
-								rounded">
+								bg-gray-600 w-11/12 md:max-h-96 py-1
+								rounded-lg shadow">
 				<div className="profileStatsContainer w-full h-max p-1">
-					<table className="w-full">
-						<thead><tr><th colSpan={2}>Stats</th></tr></thead>
-						<tbody>
-							<tr>
-								<td>Wins</td>
-								<td>{playerStats.wins}</td>
-							</tr>
-							<tr>
-								<td>Losses</td>
-								<td>{playerStats.losses}</td>
-							</tr>
-							<tr>
-								<td>Rank</td>
-								<td>{playerStats.rank}</td>
-							</tr>
-							<tr>
-								<td>Points Scored</td>
-								<td>{playerStats.points}</td>
-							</tr>
-							<tr>
-								<td>Achievement points</td>
-								<td>{playerStats.achievement_points}</td>
-							</tr>
-						</tbody>
-
-					</table>
+					<StatTable playerStats={playerStats} />
 				</div>
-				<div className="profileHistoryContainer w-full h-full p-1">
-					<h2 className="text-center font-bold" >
+				<div className="profileHistoryContainer w-full h-full">
+					<h2 className="text-center font-bold text-3xl" >
 						Match History
 					</h2>
-					<br/>
 					<div className=" w-full md:h-[90%] overflow-y-auto">
 						{
 							user.matchHistory !== 0 ?
@@ -109,7 +85,15 @@ export function Profile()
 				</div>
 				<div className="flex-break"></div>
 			</div>
-			<button onClick={() => { navigate("/profile/edit"); }}>Edit Profile</button>
+			<button
+				className="bg-indigo-500 rounded shadow px-2 text-gray-300 flex items-center gap-1"
+				onClick={() => { navigate("/profile/edit"); }}
+			>
+					<span>
+						<BsPencilFill size={12} />
+					</span>
+					<span>Edit Profile</span>
+			</button>
 		</div>
 	)
 }

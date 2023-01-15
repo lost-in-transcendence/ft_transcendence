@@ -13,14 +13,13 @@ interface IModalProps
 	className?: string
 }
 
-export default function Modal({isOpen, onClose, children, onOpen, className = 'bg-gray-300 rounded'}: IModalProps)
+export default function Modal({ isOpen, onClose, children, onOpen, className = 'bg-gray-300 rounded' }: IModalProps)
 {
 	const [displayChild, setDisplayChild] = useState(false);
 	useEffect(() =>
 	{
 		async function openEvent()
 		{
-			console.log('in openEvent');
 			const ret = await onOpen();
 			if (ret === true)
 				setDisplayChild(true);
@@ -39,7 +38,6 @@ export default function Modal({isOpen, onClose, children, onOpen, className = 'b
 
 	function closeModal()
 	{
-		console.log('in close modal');
 		setDisplayChild(false);
 		onClose();
 	}

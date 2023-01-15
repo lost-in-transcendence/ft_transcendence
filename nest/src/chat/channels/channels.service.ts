@@ -91,7 +91,6 @@ export class ChannelsService
 				if (error.code === 'P2002')
 					throw new ForbiddenException(`Channel ${dto.channelName} already exists`);
 			}
-			console.error(error);
 			throw new ForbiddenException('Unknown error has happened');
 		}
 	}
@@ -112,7 +111,6 @@ export class ChannelsService
 	async banUser(dto: BanMemberDto)
 	{
 		const data: ChannelMemberDto = { userId: dto.userId, channelId: dto.channelId, role: 'BANNED' };
-		console.log("BANUSER UPDATE ROLE", data)
 		await this.channelMember.changeRole(data);
 	}
 	async unbanUser(userId: string, channelId: string)

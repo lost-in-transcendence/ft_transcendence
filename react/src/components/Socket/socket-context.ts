@@ -37,7 +37,7 @@ export const defaultSocketContextState: ISocketContextState =
 
 export type TSocketContextActions = 'update_socket' | 'update_user' | 'update_friend'
 
-export type TSocketContextPayload =  Socket | PartialUser | PartialOtherUser;
+export type TSocketContextPayload = Socket | PartialUser | PartialOtherUser;
 
 export interface ISocketContextActions
 {
@@ -54,10 +54,10 @@ function updateUser(user: User, payload: PartialUser)
 
 function updateFriends(user: User, payload: PartialOtherUser)
 {
-	const {id, ...data} = payload;
-	const updatedUser = {...user}
-	const {friends} = updatedUser;
-	
+	const { id, ...data } = payload;
+	const updatedUser = { ...user }
+	const { friends } = updatedUser;
+
 	const index = updatedUser.friends?.findIndex((v) =>
 	{
 		return v.id === id;
@@ -66,32 +66,30 @@ function updateFriends(user: User, payload: PartialOtherUser)
 		return user;
 	updatedUser.friends = updatedUser.friends?.map((v: OtherUser, i: number) =>
 	{
-        if (i !== index)
+		if (i !== index)
 			return v;
-        const updatedFriend = { ...v };
-        Object.assign(updatedFriend, data);
-        return updatedFriend;
-    });
+		const updatedFriend = { ...v };
+		Object.assign(updatedFriend, data);
+		return updatedFriend;
+	});
 	return updatedUser;
 }
 
 export function SocketReducer(state: ISocketContextState, action: ISocketContextActions)
 {
-	// console.info(`Message Received - Action: ${action.type} - Payload `, action.payload)
-
 	switch (action.type)
 	{
 		case 'update_socket':
-			return {...state, socket: action.payload as Socket};
+			return { ...state, socket: action.payload as Socket };
 		case 'update_user':
 			{
 				const newUser = updateUser(state.user, action.payload);
-				return {...state, user: newUser as User};
+				return { ...state, user: newUser as User };
 			}
 		case 'update_friend':
 			{
 				const updatedFriendsUser = updateFriends(state.user, action.payload);
-				return {...state, user: updatedFriendsUser as User};
+				return { ...state, user: updatedFriendsUser as User };
 			}
 		default:
 			return { ...state };
@@ -107,7 +105,7 @@ export interface ISocketContextProps
 const SocketContext = createContext<ISocketContextProps>(
 	{
 		SocketState: defaultSocketContextState,
-		SocketDispatch: () => {}
+		SocketDispatch: () => { }
 	}
 );
 

@@ -1,10 +1,10 @@
 // import './styles/profile.css'
 
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { Form, redirect, useActionData, useLoaderData, useNavigate } from "react-router-dom";
-import { Navigate } from "react-router-dom";
+import { FaFileUpload as UploadIcon } from 'react-icons/fa'
+import { BsPencilFill, BsCheckLg } from 'react-icons/bs'
 
-import { AuthContext } from "../auth/AuthContext";
 import { getCookie } from "../requests/cookies"
 import { generateTwoFa, toggleTwoFa } from "../requests"
 import { backURL, frontURL } from "../requests/constants";
@@ -21,34 +21,36 @@ export async function loader()
 	return (res);
 }
 
-export async function action({request}: any)
+export async function action({ request }: any)
 {
 	const formData = await request.formData();
 	const updates = Object.fromEntries(formData);
-	if (!updates?.userName || !updates?.email)
+
+	if (!updates?.userName && !updates?.email)
 	{
-		return {status: "empty field"};
+		return { status: "empty field" };
 	}
 	else if (updates?.userName?.length > 32)
 	{
-		return {status: "name too long"};
+		return { status: "name too long" };
 	}
 	const res = await updateUser(updates);
 	if (!res.ok)
 	{
 		throw res;
 	}
-	let ret: any = {status: "updated"};
+	let ret: any = { status: "updated" };
 	if (updates?.userName)
 	{
-		ret = {...ret, userName: updates.userName}
+		ret = { ...ret, userName: updates.userName }
 	}
 	return ret;
 }
 
 async function handleToggleTwoFa()
 {
-	try {
+	try
+	{
 		const res = await toggleTwoFa();
 		return res;
 	}
@@ -69,22 +71,26 @@ export function ProfileEdit()
 	const [twoFa, setTwoFa] = useState<boolean>(user.twoFaEnabled);
 	const [error, setError] = useState<string | null>(null);
 	const [edit, setEdit] = useState(false);
-    const [file, setFile] = useState(null);
-    const [upload, setUpload] = useState('idle');
-    const [fileError, setFileError] = useState('ok');
-    const action: any = useActionData();
+	const [userNameEdit, setUserNameEdit] = useState(false);
+	const [emailEdit, setEmailEdit] = useState(false);
+	const [file, setFile] = useState(null);
+	const [upload, setUpload] = useState('idle');
+	const [fileError, setFileError] = useState('ok');
+	const action: any = useActionData();
 	const masterSocket = useContext(SocketContext).SocketState.socket;
+
+	const uploadRef = useRef<HTMLInputElement>(null);
 
 	const [isModalOpen, setIsModalOpen] = useState(false);
 
 	async function onModalOpen()
 	{
 		const res = await generateTwoFa();
-        if (res.status !== 200)
-        {
+		if (res.status !== 200)
+		{
 			setError("Error generating OTP");
-        }
-        return res.ok;
+		}
+		return res.ok;
 	}
 
 	async function enableTwoFa()
@@ -100,7 +106,7 @@ export function ProfileEdit()
 			await handleToggleTwoFa()
 			setTwoFa(false);
 		}
-		catch(err: any)
+		catch (err: any)
 		{
 			setError(err.message);
 			setStatus('error');
@@ -122,34 +128,35 @@ export function ProfileEdit()
 	useEffect(() =>
 	{
 		if (status === 'success')
+		{
+			setStatus('waiting');
+			try
 			{
-				setStatus('waiting');
-				try
-				{
-					handleToggleTwoFa();
-					setTwoFa(true);
-
-				}
-				catch(err: any)
-				{
-					setError(err.message);
-					setStatus('error');
-				}
+				handleToggleTwoFa();
+				setTwoFa(true);
 
 			}
-		return (() => {})
+			catch (err: any)
+			{
+				setError(err.message);
+				setStatus('error');
+			}
+
+		}
+		return (() => { })
 	}, [status]);
 
 	useEffect(() =>
 	{
 		if (action?.status === "updated" && action?.userName)
 		{
-			masterSocket?.emit("changeUserName", {userName: action.userName});
+			masterSocket?.emit("changeUserName", { userName: action.userName });
 			action.userName = undefined;
 		}
-		if (action?.status === "updated" && edit === true)
+		if (action?.status === "updated" && (userNameEdit === true || emailEdit === true))
 		{
-			setEdit(false);
+			setUserNameEdit(false);
+			setEmailEdit(false);
 			action.status = "pending";
 		}
 	});
@@ -160,9 +167,9 @@ export function ProfileEdit()
 		{
 			setUpload('idle');
 		}
-	},[upload]);
+	}, [upload]);
 
-	async function uploadFile(file : any)
+	async function uploadFile(file: any)
 	{
 		if (file)
 		{
@@ -183,7 +190,8 @@ export function ProfileEdit()
 			setFile(e.target.files[0]);
 			setFileError('ok');
 		}
-		else {
+		else
+		{
 			setFileError('too large');
 			e.target.value = "";
 		}
@@ -193,79 +201,149 @@ export function ProfileEdit()
 	{
 		e.preventDefault();
 
-		setUpload(()=>'fetching')
+		setUpload(() => 'fetching')
 		let res = await uploadFile(file);
 		setUpload(() => 'fetched');
 	}
 
 	return (
-		<div>
-			<div className="profileEditPage">
-				<div className="profileTitle">
-					<div className="profileImg">
-						<img src={`${backURL}/users/avatars/${user.userName}?time=${Date.now()}`} />
-						<form id="userAvatarForm" encType="multipart/form-data" method='post' onSubmit={handleSubmit}>
+		<div className="profileEditPage flex flex-col justify-start gap-2 items-start text-gray-300 h-full">
+			<div className="profileImg bg-gray-700 w-fit min-w-[320px] m-1 p-1 rounded shadow">
+				<h2 className="text-3xl font-semibold w-fit min-w-[320px]">Change avatar</h2>
+				<div className="flex justify-start items-end m-2 p-2">
+					<img
+						src={`${backURL}/users/avatars/${user.userName}?time=${Date.now()}`}
+						className='rounded-full w-24 h-24'
+					/>
+					<form
+						id="userAvatarForm"
+						encType="multipart/form-data"
+						method='post'
+						onSubmit={handleSubmit}
+						className='flex gap-2 items-center'
+					>
+						<label>
 							<input
+								ref={uploadRef}
 								id="avatar"
 								name="avatar"
 								aria-label="userIcon"
 								type="file"
 								accept="image/*"
 								onChange={handleOnChange}
+								className='hidden'
 							/>
-							<button type="submit">Upload</button>
-							{fileError === 'too large' ? (<><br/><p><b>File must not exceed 1Mb</b></p></>) : (<></>)}
-						</form>
-					</div>
-					<div className="profileInfo">
-						{
-							edit == true ?
-								(<Form id="userInfosForm" method="post" action="/profile/edit">
-									<input
-										id="userName"
-										name="userName"
-										aria-label={user.userName}
-										placeholder={user.userName}
-										type="text"
-										defaultValue={user.userName}
-									/>
-									<br />
-									<input
-										id="email"
-										name="email"
-										aria-label={user.email}
-										placeholder={user.email}
-										type="text"
-										defaultValue={user.email}
-									/>
-									<br />
-									<button	type="submit">Submit</button>
-									{action?.status === 'empty field' ? (<><br/><p><b>Fields must not be empty</b></p></>) : (<></>)}
-									{action?.status === 'name too long' ? (<><br/><p><b>You cannot have a name that is longer than 32 characters</b></p></>) : (<></>)}
-
-								</Form>) :
-								(
-									<>
-										<h3>{user.userName}</h3>
-										<p>{user.email}</p>
-										<button onClick={() => {setEdit(true);}}>Edit</button>
-									</>
-								)
-						}
-
-					</div>
+							<UploadIcon className="cursor-pointer" />
+						</label>
+						<p className="underline overflow-hidden truncate" >
+							{
+								uploadRef.current?.value ?
+									uploadRef.current.value
+									:
+									'No file chosen'
+							}
+						</p>
+						<button type="submit" className="bg-indigo-500 rounded shadow px-1">Upload</button>
+						{fileError === 'too large' ? (<><br /><p><b>File must not exceed 1Mb</b></p></>) : (<></>)}
+					</form>
 				</div>
 			</div>
-			<>
-				<button onClick={handleOnClick} disabled={status === 'loading'}>{twoFa === true ? ('Disable') : ('Enable')} 2fa</button>
-				<Modal isOpen={isModalOpen} onOpen={onModalOpen} onClose={() => {setIsModalOpen(false); setStatus(prevEvent => {if (prevEvent === 'loading') {return 'waiting'} return prevEvent;})}}>
-					<TwoFa onSuccess={() => {setIsModalOpen(false); setStatus('success')}} />
-				</Modal>
-				<p>status = {status}</p>
-				<p>twoFa = {twoFa === true ? 'true' : 'false'}</p>
-				<p>user.twoFaEnabled = {user.twoFaEnabled === true ? 'true' : 'false'}</p>
-				<p>error = {error}</p>
-			</>
+
+			<div className="userNameEdit bg-gray-700 w-fit min-w-[320px] m-1 p-1 rounded shadow">
+				<h2 className="text-3xl font-semibold w-fit min-w-[320px] mb-2">User name</h2>
+				{
+					userNameEdit === true ?
+						<Form
+							id="userInfosForm"
+							method="post"
+							action="/profile/edit"
+						>
+							<div className="flex justify-between items-center mx-1 gap-10">
+								<input
+									id="userName"
+									name="userName"
+									aria-label={user.userName}
+									placeholder={user.userName}
+									type="text"
+									defaultValue={user.userName}
+									className='rounded px-1 text-gray-800'
+								/>
+								<button type="submit" className="bg-indigo-500 rounded shadow p-1" >
+									<BsCheckLg size={12} />
+								</button>
+							</div>
+							{action?.status === 'empty field' ? (<><br /><p><b>Fields must not be empty</b></p></>) : (<></>)}
+							{action?.status === 'name too long' ? (<><br /><p><b>You cannot have a name that is longer than 32 characters</b></p></>) : (<></>)}
+
+						</Form>
+						:
+						<div className="flex justify-between items-center mx-1 gap-10">
+							<h3>{user.userName}</h3>
+							<div
+								onClick={() => { setUserNameEdit(true); }}
+								className='cursor-pointer bg-indigo-500 rounded shadow p-1'
+							>
+								<BsPencilFill size={12} />
+							</div>
+						</div>
+				}
+
+			</div>
+			<div className="emailEdit bg-gray-700 w-fit min-w-[320px] m-1 p-1 rounded shadow">
+				<h2 className="text-3xl font-semibold w-fit min-w-[320px] mb-2">Email</h2>
+				{
+					emailEdit ?
+
+						<Form id="userInfosForm" method="post" action="/profile/edit">
+							<div className="flex justify-between items-center mx-1 gap-10">
+								<input
+									id="email"
+									name="email"
+									aria-label={user.email}
+									placeholder={user.email}
+									type="text"
+									defaultValue={user.email}
+									className='rounded px-1 text-gray-800'
+								/>
+								<button type="submit" className="bg-indigo-500 rounded shadow p-1" >
+									<BsCheckLg size={12} />
+								</button>
+							</div>
+							{action?.status === 'empty field' ? (<><br /><p><b>Fields must not be empty</b></p></>) : (<></>)}
+						</Form>
+						:
+						<div className="flex justify-between items-center mx-1 gap-10">
+							<h3>{user.email}</h3>
+							<div
+								onClick={() => { if (twoFa) return; setEmailEdit(true); }}
+								className={`cursor-pointer rounded shadow p-1 peer ${twoFa ? 'bg-gray-500' : 'bg-indigo-500'}`}
+							>
+										<BsPencilFill size={12} />
+							</div>
+						</div>
+				}
+			</div>
+			<div className="twoFA bg-gray-700 w-fit min-w-[320px] m-1 p-1 rounded shadow">
+				<h2 className="text-3xl font-semibold w-fit min-w-[320px] mb-2">Toggle 2FA</h2>
+				<div className="flex justify-between items-center mx-1 mb-1 gap-10">
+					<span className="">{twoFa ? 'Enabled' : 'Disabled'}</span>
+					<label className="relative inline-flex items-center cursor-pointer">
+						<input
+							type="checkbox"
+							checked={twoFa}
+							onChange={() => { }} value={''}
+							className="sr-only peer"
+							onClick={handleOnClick}
+
+						/>
+						<Modal isOpen={isModalOpen} onOpen={onModalOpen} onClose={() => { setIsModalOpen(false); setStatus(prevEvent => { if (prevEvent === 'loading') { return 'waiting' } return prevEvent; }) }}>
+							<TwoFa onSuccess={() => { setIsModalOpen(false); setStatus('success') }} />
+						</Modal>
+						<div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
+					</label>
+				</div>
+
+			</div>
 		</div>
 	)
 }

@@ -8,9 +8,9 @@ export function OwnerBox({ onClose, channel }: { onClose: any, channel: Channel 
 {
 	const [data, setData] = useState<{ channelId: string, channelName?: string; mode?: string; password?: string; }>({ channelId: channel.id });
 	const [bannedUsers, setbannedUsers] = useState<Member[]>([]);
-    
+
 	const ctx = useContext(ChatContext);
-	const {socket} = ctx.ChatState;
+	const { socket } = ctx.ChatState;
 
 	function updateChannel(e: any)
 	{
@@ -18,11 +18,6 @@ export function OwnerBox({ onClose, channel }: { onClose: any, channel: Channel 
 		ctx.ChatState.socket?.emit(events.UPDATE_CHANNEL_INFO, data);
 		// onClose();
 	}
-
-	useEffect(() =>
-	{
-		console.log({ bannedUsers });
-	})
 
 	useEffect(() =>
 	{
