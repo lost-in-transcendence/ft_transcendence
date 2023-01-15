@@ -1,6 +1,6 @@
 import { useContext } from "react";
 import { Navigate, redirect, useLoaderData, useRouteLoaderData } from "react-router-dom"
-import { AuthContext } from "../auth/AuthContext";
+import { Spinner } from "../components/Spinner/Spinner";
 import { login } from "../requests";
 
 export async function loader()
@@ -36,10 +36,12 @@ export function Callback()
 		window.opener.postMessage('success', '*');
 		window.close();
 	}
-    return (
-        <>
-		</>
 
-    )
+	return (
+		<div className="flex flex-col justify-center items-center h-screen w-screen bg-gray-900">
+			<h1 className="text-indigo-300 mb-2 text-3xl">Loading ...</h1>
+			<Spinner />
+		</div>
+	)
 }
 

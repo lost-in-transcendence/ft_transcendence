@@ -76,14 +76,14 @@ export function ChatSidebar({ user }: any)
 				>
 					<PlusIcon size="20" className="ml-3" />
 					New
-					<ChatModal isOpen={isOpen} onClose={() => setIsOpen(false)}>
+					<Modal isOpen={isOpen} onClose={() => setIsOpen(false)}>
 						<CreateChannelForm
 							onClose={() =>
 							{
 								setIsOpen(false);
 							}}
 						/>
-					</ChatModal>
+					</Modal>
 				</button>
 				<hr className="border-gray-600 mb-2 w-11/12 m-auto" />
 				{privMsgs.length > 0 && (
