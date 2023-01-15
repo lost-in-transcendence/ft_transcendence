@@ -8,7 +8,7 @@ import { Channel } from "../../../dto/channels.dto";
 
 export function BanBox({ onClose, channel, target, action }: { onClose: any, channel: Channel, target: PartialUser, action: 'BAN' | 'MUTE' })
 {
-	const {socket} = useContext(ChatContext).ChatState;
+	const { socket } = useContext(ChatContext).ChatState;
 
 	const setContextMenu = useContext(ContextMenuContext).ContextMenuSetter;
 
@@ -16,7 +16,6 @@ export function BanBox({ onClose, channel, target, action }: { onClose: any, cha
 
 	function submitForm(e: FormEvent)
 	{
-		console.log({ data });
 		e.preventDefault();
 		let finalTime = data.time;
 
@@ -42,7 +41,7 @@ export function BanBox({ onClose, channel, target, action }: { onClose: any, cha
 		setContextMenu(undefined);
 		onClose();
 	}
-    
+
 	return (
 		<>
 			<h1 className="text-center mb-3" >{action === 'BAN' ? "Ban" : "Mute"} {target.userName}</h1>
@@ -52,7 +51,7 @@ export function BanBox({ onClose, channel, target, action }: { onClose: any, cha
 					<div className='basis-full flex flex-col items-center justify-center'>
 						<p>{data.time}</p>
 						<input
-						className="w-11/12"
+							className="w-11/12"
 							type={"range"}
 							min={1}
 							max={60}

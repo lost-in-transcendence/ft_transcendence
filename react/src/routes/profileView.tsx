@@ -31,7 +31,6 @@ export function ProfileView()
 	const masterSocket = useContext(SocketContext).SocketState.socket;
 	const user = useContext(SocketContext).SocketState.user;
 	// const [isFriends, setIsFriends] = useState(user?.friends?.find((e: any) => e.id === profile.id) ? true : false)
-	// console.log(user.friends);
 	const isFriends = user?.friends?.find((e: any) => e.id === profile.id) ? true : false;
 
 	async function handleFriend()

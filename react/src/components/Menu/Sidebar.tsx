@@ -2,23 +2,24 @@ import { BsPersonFill as ProfileIcon } from 'react-icons/bs'
 import { GiPingPongBat as PongIcon, GiStarsStack as LeaderBoardIcon } from 'react-icons/gi'
 import { AiOutlineHome as HomeIcon, AiOutlinePoweroff as LogoutIcon } from 'react-icons/ai'
 import { IoChatbubbleEllipsesSharp as ChatIcon } from 'react-icons/io5'
-import {  NavLink} from 'react-router-dom'
-import { UserAvatarStatus} from '../Avatar/UserAvatarStatus'
+import { NavLink } from 'react-router-dom'
+import { UserAvatarStatus } from '../Avatar/UserAvatarStatus'
 import { ReactNode, useContext, useEffect, useState } from 'react'
 import SocketContext from '../Socket/socket-context'
 import { SideBarAvatarMenu } from "./SideBarAvatarMenu"
 
 export function SideBar()
 {
-	const {user} = useContext(SocketContext).SocketState;
+	const { user } = useContext(SocketContext).SocketState;
 	const [dropdownDisplay, setDropdownDisplay] = useState(false);
 
 	useEffect(() =>
 	{
 		const handleClick = () => setDropdownDisplay(false);
 		window.addEventListener('click', handleClick)
-		
-		return () => {
+
+		return () =>
+		{
 			window.removeEventListener("click", handleClick);
 		}
 	}, [])
@@ -53,19 +54,19 @@ export function SideBar()
 			<hr className='self-center w-12 border-gray-700 pb-3' />
 			<div className='basis-1/10'>
 
-				<div 
-				className={`cursor-pointer text-center group flex relative py-2 hover:bg-gray-800 transition-all duration-300 ease-linear`} 
-				onClick={(e) => {e.preventDefault(); e.stopPropagation(); setDropdownDisplay(true)}} >
-						<UserAvatarStatus userName={user.userName} status={user.status} size={'12'} border={'border-gray-900'} className={''}/>				</div>
+				<div
+					className={`cursor-pointer text-center group flex relative py-2 hover:bg-gray-800 transition-all duration-300 ease-linear`}
+					onClick={(e) => { e.preventDefault(); e.stopPropagation(); setDropdownDisplay(true) }} >
+					<UserAvatarStatus userName={user.userName} status={user.status} size={'12'} border={'border-gray-900'} className={''} />				</div>
 				<div className="relative">
-					{ dropdownDisplay ? <SideBarAvatarMenu close={() => {setDropdownDisplay(false); console.log("close fired")}}/> : <></>}
+					{dropdownDisplay ? <SideBarAvatarMenu close={() => { setDropdownDisplay(false) }} /> : <></>}
 				</div>
 			</div>
 		</div>
 	)
 }
 
-function SideBarIcon({ icon, tooltip = 'tooltip' }: {icon: ReactNode, tooltip: string})
+function SideBarIcon({ icon, tooltip = 'tooltip' }: { icon: ReactNode, tooltip: string })
 {
 	return (
 		<div className='sidebar-icon group'>

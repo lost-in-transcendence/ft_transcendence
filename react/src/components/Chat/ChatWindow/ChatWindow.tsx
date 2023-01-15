@@ -67,8 +67,6 @@ export function ChatWindow({ className, }: { className?: string, })
 			events.NOTIFY,
 			(payload: { channelId: string; content: string }) =>
 			{
-				// console.clear();
-				console.log({ payload });
 				if (payload.channelId === channel.id)
 				{
 					flushSync(() =>

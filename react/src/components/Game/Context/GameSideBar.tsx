@@ -25,7 +25,6 @@ export function GameSideBar(props : {socket: any, status: any, setCustomGame: an
 		});
 		socket?.on('ongoingGames', (payload: any) =>
 		{
-			console.log({payload});
 			setOngoingGames(payload.ongoingGames);
 		});
 		socket?.emit('games');
@@ -77,7 +76,6 @@ export function GameSideBar(props : {socket: any, status: any, setCustomGame: an
 				{
 					waitingRooms.map( (room:any) =>
 					{
-						console.log(room);
 						if (room.invitation === false && room.user1 !== me.userName)
 							return (
 								<div className="flex flex-col bg-gray-600 mb-2 w-11/12 m-auto

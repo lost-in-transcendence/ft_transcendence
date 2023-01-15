@@ -6,9 +6,8 @@ export class UserSocketStore
 	private static readonly logger = new Logger(UserSocketStore.name);
 	static userSockets = new Map()
 
-	static setUserSockets(id: string, socket: Socket) 
+	static setUserSockets(id: string, socket: Socket)
 	{
-		this.logger.debug("hellooo");
 		let tmp: Socket[] = this.getUserSockets(id);
 		if (!tmp)
 			this.userSockets.set(id, [socket])
