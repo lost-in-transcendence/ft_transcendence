@@ -1,4 +1,4 @@
-import { FaUserFriends as FriendsIcon } from "react-icons/fa";
+import { FaUsers } from "react-icons/fa";
 import { AiOutlinePlus as PlusIcon } from "react-icons/ai";
 import { useContext, useEffect, useRef, useState } from "react";
 import ReactDOM from "react-dom";
@@ -64,7 +64,7 @@ export function ChatSidebar({ user }: any)
 							focus:bg-gray-500 focus:text-white focus:shadow-gray-900 focus:shadow-sm"
 					onClick={setFriends}
 				>
-					<FriendsIcon size="20" className="ml-3" />
+					<FaUsers size="20" className="ml-3" />
 					Friends
 				</button>
 				<button

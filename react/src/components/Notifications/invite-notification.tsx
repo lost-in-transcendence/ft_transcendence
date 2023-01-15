@@ -10,9 +10,7 @@ export function displayInviteNotification(inviter: string, inviterId: string, ga
     <InviteNotification inviter={inviter} inviterId={inviterId} gameId={gameId} socket={socket}/>, 
     {
         className: "bg-gray-300",
-        // bodyClassName: "bg-gray-400",
         toastId: '1',
-        // autoClose: false,
         draggable: false
     })
 }

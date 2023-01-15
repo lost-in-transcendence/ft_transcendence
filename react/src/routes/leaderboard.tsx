@@ -61,7 +61,7 @@ export function LeaderBoard()
 			<div className="text-center text-white text-xl">
 				<h2>Next ranking in...</h2>
 				{nextRanking && nextRanking.getTime() > Date.now() ? 
-					<CountDownTimer deadline={nextRanking} className={"flex justify-center"}/>
+					<CountDownTimer deadline={nextRanking}/>
 				:
 					<p>Incoming!</p>
 				}

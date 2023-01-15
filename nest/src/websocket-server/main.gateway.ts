@@ -192,7 +192,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	{
 		const { gameId, invitedUser } = body;
 		const sockets = this.socketStore.getUserSockets(invitedUser);
-		if (!sockets)
+		if (sockets.length === 0)
 		{
 			this.server.to(client.id).emit('userOffline');
 			return;

@@ -6,7 +6,7 @@ import { ChatSidebar } from "../components/Menu/ChatSideBar";
 import { ChatDisplay } from "../components/Chat/ChatDisplay/ChatDisplay";
 import ContextMenuContext from "../components/Chat/ContextMenu/context-menu-context";
 import { ContextMenu } from "../components/Chat/ContextMenu/ContextMenu";
-import { ChatFriendList } from "../components/Chat/ChatFriendList/ChatFriendList";
+import { ChatUserList } from "../components/Chat/ChatUserList/ChatUserList";
 
 export async function loader()
 {
@@ -48,8 +48,8 @@ export function Chat()
 						<ChatDisplay currentUser={user}/>
 						:
 						<>
-						<h1 className="text-5xl text-center">Friends</h1>
-						<ChatFriendList />
+				
+						<ChatUserList />
 						</>
 					}
 				</div>

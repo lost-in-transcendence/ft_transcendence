@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-export function CountDownTimer({deadline, className = "flex justify-center"} : {deadline: Date, className: string})
+export function CountDownTimer({deadline, className = "flex justify-center"} : {deadline: Date, className?: string})
 {
 //   const [days, setDays] = useState(0);
   const [hours, setHours] = useState(0);
