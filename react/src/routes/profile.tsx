@@ -1,7 +1,7 @@
 
 // import './styles/profile.css'
 
-import {useLoaderData, useNavigate } from "react-router-dom";
+import { useLoaderData, useNavigate } from "react-router-dom";
 import { useContext } from "react";
 import { BsPencilFill } from "react-icons/bs";
 
@@ -12,17 +12,15 @@ import { MatchHistoryCard } from "../components/MatchHistoryCard/MatchHistoryCar
 import { User } from "../dto/users.dto";
 import { StatTable } from "../components/PlayStats/StatTable";
 
-export async function loader()
-{
+export async function loader() {
 	const res = await getUserMeFull();
 	const matchHistory = await getMyMatchHistory();
-	return ({user: await res.json(), matchHistory: await matchHistory.json()});
+	return ({ user: await res.json(), matchHistory: await matchHistory.json() });
 }
 
-export function Profile()
-{
+export function Profile() {
 	const data: any = useLoaderData();
-	const {user, matchHistory} = data;
+	const { user, matchHistory } = data;
 	const playerStats = user.playStats;
 	const navigate = useNavigate();
 	const { status } = useContext(SocketContext).SocketState.user;
@@ -45,8 +43,8 @@ export function Profile()
 					<p className="text-center">{status}</p>
 					{
 						user.gameStatus !== 'NONE' ?
-						<p className="text-center">{user.gameStatus}</p>
-						: null
+							<p className="text-center">{user.gameStatus}</p>
+							: null
 					}
 				</div>
 			</div>
@@ -67,14 +65,13 @@ export function Profile()
 							user.matchHistory !== 0 ?
 								(
 									<ul className="flex flex-col justify-center items-center">
-										{ matchHistory.map((v: any) =>
-										{
+										{matchHistory.map((v: any) => {
 											if (!v || !v.player1 || !v.player2)
 												return;
 											return (
-											<li className="w-full" key={v.gameId}>
-												<MatchHistoryCard player1={v.player1} player2={v.player2} />
-											</li>)
+												<li className="w-full" key={v.gameId}>
+													<MatchHistoryCard player1={v.player1} player2={v.player2} />
+												</li>)
 										})}
 									</ul>
 								)
@@ -89,10 +86,10 @@ export function Profile()
 				className="bg-indigo-500 rounded shadow px-2 text-gray-300 flex items-center gap-1"
 				onClick={() => { navigate("/profile/edit"); }}
 			>
-					<span>
-						<BsPencilFill size={12} />
-					</span>
-					<span>Edit Profile</span>
+				<span>
+					<BsPencilFill size={12} />
+				</span>
+				<span>Edit Profile</span>
 			</button>
 		</div>
 	)

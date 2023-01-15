@@ -11,8 +11,7 @@ import SocketContext from "../components/Socket/socket-context";
 import { MatchHistoryCard } from "../components/MatchHistoryCard/MatchHistoryCard";
 import { StatTable } from "../components/PlayStats/StatTable";
 
-export async function loader({ params }: any)
-{
+export async function loader({ params }: any) {
 	// let res = await getUserMeModal(new URLSearchParams({'friends': 'true'}));
 	// const user = await res.json()
 	const res = await getUserModal(params.userName, new URLSearchParams({ 'playStats': 'true', 'matchHistory': 'true' }));
@@ -22,8 +21,7 @@ export async function loader({ params }: any)
 	return ({ profile, matchHistory });
 }
 
-export function ProfileView()
-{
+export function ProfileView() {
 	const data: any = useLoaderData();
 	const { profile, matchHistory } = data;
 	// const matchHistory = profile.matchHistory;
@@ -33,14 +31,11 @@ export function ProfileView()
 	// const [isFriends, setIsFriends] = useState(user?.friends?.find((e: any) => e.id === profile.id) ? true : false)
 	const isFriends = user?.friends?.find((e: any) => e.id === profile.id) ? true : false;
 
-	async function handleFriend()
-	{
-		if (isFriends)
-		{
+	async function handleFriend() {
+		if (isFriends) {
 			const res = await removeFriend(profile.id);
 		}
-		else
-		{
+		else {
 			const res = await addFriend(profile.id);
 		}
 		masterSocket?.emit('changeFriends')
@@ -88,8 +83,7 @@ export function ProfileView()
 							matchHistory.length !== 0 ?
 								(
 									<ul className="flex flex-col justify-center items-center">
-										{matchHistory.map((v: any) =>
-										{
+										{matchHistory.map((v: any) => {
 											if (!v || !v.player1 || !v.player2)
 												return;
 											return (
