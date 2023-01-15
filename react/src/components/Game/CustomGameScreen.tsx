@@ -1,11 +1,21 @@
 import { useContext, useEffect, useState } from "react";
+import { IoReturnDownBackSharp } from 'react-icons/io5'
+
 import { getAllUsersSelect } from "../../requests";
 import { Objective } from "../../routes/game";
 import { PartialUser } from "../Chat/dto";
+import { BackButton } from "../commons/BackButton";
+import Modal from "../Modal/modal";
 import SocketContext from "../Socket/socket-context";
 import GameSocketContext from "./Context/game-socket-context";
 
-export function CustomGameScreen({ goBack, params }: { goBack: Function, params: URLSearchParams })
+interface IUsersList
+{
+	userName: string
+	id: string
+}
+
+export function CustomGameScreen({ goBack, params }: { goBack: () => void, params: URLSearchParams })
 {
 	// const {goBack, params} = props;
 	const { socket } = useContext(GameSocketContext).GameSocketState;
@@ -22,14 +32,15 @@ export function CustomGameScreen({ goBack, params }: { goBack: Function, params:
 	const [gameVisibility, setGameVisibility] = useState('public');
 
 	const [userSearchFilter, setUserSearchFilter] = useState("");
-	const [userToInvite, setUserToInvite] = useState<undefined | { userName: string, id: string }>(undefined);
+	const [userToInvite, setUserToInvite] = useState<undefined | IUsersList>(undefined);
 	const [userList, setUserList] = useState<PartialUser[]>([]);
-	let filteredList = userList.filter((user: any) =>
+
+	const [modalIsOpen, setModalIsOpen] = useState(false);
+
+	let filteredList = userList.filter((user: IUsersList) =>
 	{
 		return user.userName.includes(userSearchFilter) && user.id !== me.id;
 	});
-
-	const [showList, setShowList] = useState(false);
 
 	useEffect(() =>
 	{
@@ -85,123 +96,146 @@ export function CustomGameScreen({ goBack, params }: { goBack: Function, params:
 		socket?.emit('createCustomGame', { ...payload });
 	}
 	return (
-		<div className="flex flex-row gap-4 mx-auto w-full">
-			<form className="flex flex-col"
-			onSubmit={customGameSubmit}>
-				<div className="flex flex-row gap-4 items-center mx-auto w-full">
-					<p className="flex flex-col text-gray-100 text-xl bg-gray-800">Theme</p>
-					<select className="flex flex-col text-gray-100 bg-gray-700 text-xl"
-					value={customGameInfo.theme}
-					onChange={(e) => 
-					{
-						setCustomGameInfo({...customGameInfo, theme: e.target.value})
-					}}
-					>
-						<option value='classic'>Classic</option>
-						<option value='camouflage'>Camouflage</option>
-						<option value='rolandGarros'>Roland Garros</option>
-					</select>
-				</div>
-				<div className="flex flex-row gap-4 items-center mx-auto w-full">
-					<p className="flex flex-col text-gray-100 text-xl bg-gray-800">Objective Type</p>
-					<select className="flex flex-col text-gray-100 bg-gray-700 text-xl"
-						value={customGameInfo.objective === Objective.SCORE ? 'score' : 'time'} onChange={(e) =>
-						{
-							let val = Objective.SCORE;
-							if (e.target.value === 'score')
-								val = Objective.SCORE;
-							else if (e.target.value === 'time')
-								val = Objective.TIME;
-							setCustomGameInfo({ ...customGameInfo, objective: val })
-						}}>
-						<option value='score'>Score</option>
-						<option value='time'>Time</option>
-					</select>
-				</div>
-
-				<div className="flex flex-row gap-4 items-center mx-auto w-full">
-					<p className="flex flex-col text-gray-100 text-xl bg-gray-800">Objective ({customGameInfo.objective === Objective.SCORE ? 'points' : 'minutes'})</p>
-					<select className="flex flex-col text-gray-100 bg-gray-700 text-xl"
-						value={customGameInfo.goal} onChange={(e) =>
-						{
-							setCustomGameInfo({ ...customGameInfo, goal: Number(e.target.value) })
-						}}>
-						<option value='3'>3</option>
-						<option value='5'>5</option>
-						<option value='10'>10</option>
-					</select>
-				</div>
-
-				<div className="flex flex-row gap-4 items-center mx-auto w-full">
-					<p className="flex flex-col text-gray-100 text-xl bg-gray-800">Game Visibility</p>
-					<select className="flex flex-col text-gray-100 bg-gray-700 text-xl"
-						value={gameVisibility} onChange={(e) => { setGameVisibility(e.target.value); setUserToInvite(undefined); setShowList(false); }}>
-						<option value="public">Public</option>
-						<option value="invite">Invite-only</option>
-					</select>
-				</div>
-
-				{
-					gameVisibility === 'invite' ?
-						<div className="flex flex-row gap-4 items-center mx-auto w-full">
-							{
-								userToInvite?.userName ?
-									<p className="flex flex-col text-gray-100 text-xl bg-gray-800">{`${userToInvite.userName} is set to be invited`}</p>
-									:
-									<></>
-							}
-							<button className="flex flex-row gap-4 items-center mt-2 h-12 w-auto
-						text-xl text-gray-400 cursor-pointer rounded bg-gray-600
-						hover:bg-gray-500 hover:text-white hover:shadow-gray-900 hover:shadow-sm
-						focus:bg-gray-500 focus:text-white focus:shadow-gray-900 focus:shadow-sm"
-								onClick={(e) => { setShowList(true); e.preventDefault(); e.stopPropagation(); }}
+		<div className="w-full text-gray-300 bg-inherit">
+			<form
+				className=""
+				onSubmit={customGameSubmit}
+			>
+				<div className="flex flex-col items-center p-2 w-96 gap-2 text-2xl bg-gray-700 rounded-lg shadow m-3">
+					<h1 className="text-3xl">Game Options</h1>
+					<hr className="border-gray-600 w-full" />
+					<div className="flex flex-col py-2 px-1 w-full gap-10 items-start justify-start bg-gray-700">
+						<div className="flex justify-between w-full items-center gap-2">
+							<p className="">Theme</p>
+							<select className="rounded shadow bg-gray-600 text-lg p-1 cursor-pointer"
+								value={customGameInfo.theme}
+								onChange={(e) =>
+								{
+									setCustomGameInfo({ ...customGameInfo, theme: e.target.value })
+								}}
 							>
-								Choose a player to invite
-							</button>
+								<option value='classic'>Classic</option>
+								<option value='camouflage'>Camouflage</option>
+								<option value='rolandGarros'>Roland Garros</option>
+							</select>
 						</div>
-						: <></>
-				}
+						<div className="flex justify-between w-full items-center gap-2">
+							<p className="">Objective</p>
+							<select className="rounded shadow bg-gray-600 text-lg p-1 cursor-pointer"
+								value={customGameInfo.objective === Objective.SCORE ? 'score' : 'time'} onChange={(e) =>
+								{
+									let val = Objective.SCORE;
+									if (e.target.value === 'score')
+										val = Objective.SCORE;
+									else if (e.target.value === 'time')
+										val = Objective.TIME;
+									setCustomGameInfo({ ...customGameInfo, objective: val })
+								}}>
+								<option value='score'>Score</option>
+								<option value='time'>Time</option>
+							</select>
+						</div>
 
-				{
-					gameVisibility === 'invite' ?
-						showList ?
-							<div className="flex flex-row gap-10 items-center mx-auto w-full">
-								<input className="flex flex-row text-gray-100 text-xl my-12 bg-gray-800 border-2 border-white" type="text" placeholder="Search..." value={userSearchFilter} onChange={(e) => setUserSearchFilter(e.target.value)} />
-								<ul className="flex flex-row max-height-40 gap-2">
-									{
-										filteredList.map((user: any) =>
+						<div className="flex justify-between w-full items-center gap-2">
+							<p className="">{customGameInfo.objective === Objective.SCORE ? 'Points' : 'Time (min)'}</p>
+							<select className="rounded shadow bg-gray-600 text-lg p-1 cursor-pointer"
+								value={customGameInfo.goal} onChange={(e) =>
+								{
+									setCustomGameInfo({ ...customGameInfo, goal: Number(e.target.value) })
+								}}>
+								<option value='3'>3</option>
+								<option value='5'>5</option>
+								<option value='10'>10</option>
+							</select>
+						</div>
+
+						<div className="flex justify-between w-full items-center gap-2">
+							<p className="text-xl">
+								Matchmaking
+							</p>
+							<select className="rounded w-fit shadow bg-gray-600 text-lg p-1 cursor-pointer"
+								value={gameVisibility} onChange={(e) => { setGameVisibility(e.target.value); setUserToInvite(undefined); }}>
+								<option value="public">Random</option>
+								<option value="invite">Challenge a Player</option>
+							</select>
+						</div>
+						{
+							gameVisibility === 'invite' && userToInvite !== undefined ?
+								<div className="flex justify-between w-full items-center gap-2">
+									<p className="text-xl">
+										Opponnent
+									</p>
+									<p className="rounded w-fit shadow bg-gray-600 text-lg px-2 py-1 truncate">
+										{userToInvite.userName}
+									</p>
+								</div>
+								:
+								null
+						}
+						{
+							gameVisibility === 'invite' ?
+								<div className="flex w-full justify-center">
+									<Modal onClose={() => setModalIsOpen(false)} isOpen={modalIsOpen}>
+										<div className="flex flex-col justify-center items-center w-full gap-2 p-1 m-1">
+											<h2 className="text-xl">Select player</h2>
+											<input
+												className="rounded px-1 w-72"
+												type="text" placeholder="Search..."
+												value={userSearchFilter}
+												onChange={(e) => setUserSearchFilter(e.target.value)}
+											/>
+											<ul className="w-72 max-h-96 overflow-auto bg-gray-400 rounded shadow flex flex-col gap-2 items-center py-1">
+												{
+													filteredList.length > 0 ?
+														filteredList.map((user: IUsersList) =>
+														{
+															return (
+																<li className="hover:bg-slate-700 w-64 px-1 hover:text-gray-100 text-center cursor-pointer rounded"
+																	key={user.id} onClick={() => { setModalIsOpen(false); setUserToInvite({ userName: user.userName, id: user.id }); }}>{user.userName}</li>
+															)
+														})
+														:
+														<li className="text-indigo-700">
+															Cannot find player
+														</li>
+												}
+											</ul>
+										</div>
+									</Modal>
+									<button className="bg-indigo-500 rounded shadow p-1 text-lg"
+										onClick={(e) => { e.preventDefault(); e.stopPropagation(); setModalIsOpen(true) }}
+									>
 										{
-											return (
-												<li className="flex flex-row gap-4 items-center mx-auto h-12 w-auto justify-items-center
-											text-xl text-gray-400 cursor-pointer rounded bg-gray-600
-											hover:bg-gray-500 hover:text-white hover:shadow-gray-900 hover:shadow-sm
-											focus:bg-gray-500 focus:text-white focus:shadow-gray-900 focus:shadow-sm"
-													key={user.id} onClick={() => { setUserToInvite({ userName: user.userName, id: user.id }); setShowList(false) }}>{user.userName}</li>
-											)
-										})
-									}
-								</ul>
-							</div>
-							: <></>
-						: <></>
-				}
-				<input className="flex flex-row gap-4 items-center mt-2 mx-auto h-12 w-auto
-				text-xl text-gray-400 cursor-pointer rounded bg-gray-600 border-2 border-green-600
-				hover:bg-gray-500 hover:text-white hover:shadow-gray-900 hover:shadow-sm
-				focus:bg-gray-500 focus:text-white focus:shadow-gray-900 focus:shadow-sm"
-					type="submit" value="Submit" disabled={gameVisibility !== 'invite' ?
-						false :
-						userToInvite === undefined ?
-							true :
-							userToInvite.userName === '' ?
-								true :
-								false}
-				/>
-				<button className="flex flex-row gap-4 items-center mt-2 mx-auto h-12 w-auto
-						text-xl text-gray-400 cursor-pointer rounded bg-gray-600 border-2 border-red-600
-						hover:bg-gray-500 hover:text-white hover:shadow-gray-900 hover:shadow-sm
-						focus:bg-gray-500 focus:text-white focus:shadow-gray-900 focus:shadow-sm"
-					onClick={() => goBack()}>Go Back!</button>
+											gameVisibility === 'invite' && userToInvite !== undefined ?
+												'Change '
+												:
+												'Choose your '
+										}
+										opponent !
+									</button>
+								</div>
+								: <></>
+						}
+					</div>
+					<div className="flex justify-between w-full">
+						<BackButton goBack={goBack} />
+						<input
+							className={` rounded shadow px-2  ${gameVisibility === 'invite' && !userToInvite ? 'bg-gray-500 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-500 cursor-pointer'}`}
+							type="submit"
+							value="Play !"
+							disabled=
+							{
+								gameVisibility !== 'invite' ?
+									false :
+									userToInvite === undefined ?
+										true :
+										userToInvite.userName === '' ?
+											true :
+											false
+							}
+						/>
+					</div>
+				</div>
 			</form>
 		</div>
 	)
