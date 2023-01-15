@@ -124,16 +124,16 @@ export function Game()
 
 		socket?.on('matchDeclined', () =>
 		{
-			setStatus('waiting');
-			setError('You declined the match');
+			setStatus('declinedByMe');
+			// setError('You declined the match');
 			setRoomState('');
 			masterSocket?.emit('changeGameStatus', { gameStatus: GameStatus.NONE })
 		});
 
 		socket?.on('matchDeclinedByOpponent', () =>
 		{
-			setStatus('waiting');
-			setError('Your opponent declined the match');
+			setStatus('declinedByOpponent');
+			// setError('Your opponent declined the match');
 			setRoomState('');
 			masterSocket?.emit('changeGameStatus', { gameStatus: GameStatus.NONE })
 		});
@@ -214,7 +214,7 @@ export function Game()
 	function leaveGame()
 	{
 		setStatus('waiting');
-		setError('');
+		setError(null);
 		if (asSpectator === false)
 		{
 			socket?.emit('leaveGame');
@@ -250,6 +250,22 @@ export function Game()
 			case 'customGame':
 				return (
 					<CustomGameScreen goBack={goBack} params={params} />
+				)
+			case 'declinedByMe':
+				return (
+					<div className="flex flex-col gap-4 w-full ">
+						<div className="flex flex-col items-center m-auto text-xl text-gray-400 bg-gray-700 ">
+							<p>You declined the match</p>
+						</div>
+					</div>
+				)
+			case 'declinedByOpponent':
+				return (
+					<div className="flex flex-col gap-4 w-full ">
+						<div className="flex flex-col items-center m-auto text-xl text-gray-400 bg-gray-700 ">
+							<p>Your opponent declined the match</p>
+						</div>
+					</div>
 				)
 			default:
 				return (
