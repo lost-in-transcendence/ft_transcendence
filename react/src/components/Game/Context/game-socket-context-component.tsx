@@ -3,29 +3,30 @@ import { useSocket } from "../../../hooks/use-socket";
 import { getCookie } from "../../../requests";
 
 import { defaultSocketContextState, SocketReducer } from "../../Socket/socket-context";
+import { Spinner } from "../../Spinner/Spinner";
 import { GameSocketContextProvider } from "./game-socket-context";
 
 export default function GameSocketContextComponent(props: any)
 {
-	const {children} = props;
+	const { children } = props;
 
 	const [GameSocketState, GameSocketDispatch] = useReducer(SocketReducer, defaultSocketContextState);
 	const [loading, setLoading] = useState(true);
 
 
 	const socket = useSocket("http://localhost:3333/game",
-	{
-		reconnectionAttempts: 5,
-		reconnectionDelay: 5000,
-		autoConnect: false,
-		extraHeaders: { "Authorization": "Bearer " + getCookie('jwt') },
-	})
+		{
+			reconnectionAttempts: 5,
+			reconnectionDelay: 5000,
+			autoConnect: false,
+			extraHeaders: { "Authorization": "Bearer " + getCookie('jwt') },
+		})
 
 	useEffect(() =>
 	{
 		socket.connect();
 
-		GameSocketDispatch({type: 'update_socket', payload: socket});
+		GameSocketDispatch({ type: 'update_socket', payload: socket });
 
 		StartListeners();
 
@@ -39,17 +40,17 @@ export default function GameSocketContextComponent(props: any)
 	function StartListeners()
 	{
 		/* Reconnect events */
-		socket.io.on('reconnect', (attempt : number) =>
+		socket.io.on('reconnect', (attempt: number) =>
 		{
 			console.info(`Reconnected on attempt ${attempt}`);
 		});
 
-		socket.io.on('reconnect_attempt', (attempt : number) =>
+		socket.io.on('reconnect_attempt', (attempt: number) =>
 		{
 			console.info(`Reconnection attempt ${attempt}`);
 		});
 
-		socket.io.on('reconnect_error', (err : any) =>
+		socket.io.on('reconnect_error', (err: any) =>
 		{
 			console.info(`Reconnection error: ${err}`);
 		});
@@ -71,10 +72,15 @@ export default function GameSocketContextComponent(props: any)
 	}
 
 	if (loading)
-		return <p>Loading Socket IO...</p>
+		return (
+			<div className="flex flex-col justify-center items-center h-full w-full">
+				<h1 className="text-indigo-300 mb-2 text-3xl">Loading SocketIO ...</h1>
+				<Spinner />
+			</div>
+		)
 
 	return (
-		<GameSocketContextProvider value={{ GameSocketState, GameSocketDispatch}}>
+		<GameSocketContextProvider value={{ GameSocketState, GameSocketDispatch }}>
 			{children}
 		</GameSocketContextProvider>
 	)
