@@ -47,6 +47,7 @@ export function Login()
 			case 'error':
 			case 'success':
 			case 'next':
+			case 'newUser':
 				{
 					done = true;
 					break;
@@ -56,6 +57,7 @@ export function Login()
 		{
 			window.removeEventListener('message', onMessage);
 		}
+		console.log("message", event.data)
 		setStatus(event.data);
 	}
 
@@ -122,6 +124,10 @@ export function Login()
 			{
 				status === 'success' &&
 				<Navigate to={"/"} />
+			}
+			{
+				status === 'newUser' &&
+				<Navigate to={"/profile/edit"} />
 			}
 			<div className="bg-gray-700 text-gray-300 rounded-lg shadow-lg w-1/2 gap-1
 							flex flex-col items-center justify-start min-w-[700px]

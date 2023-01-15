@@ -20,12 +20,13 @@ export function SideBarAvatarMenu(props: { close: any })
 	const [playStats, setPlayStats] = useState<any>(undefined);
 	const { userName, status } = user;
 	const ref: any = useRef(null)
-	let scrollHeight: number = -345;
+	const [scrollHeight, setScrollHeight] = useState(0);
 	const { close } = props;
+
 
 	useEffect(() =>
 	{
-		scrollHeight = ref.current.scrollHeight * -1;
+		setScrollHeight(ref.current.scrollHeight * -1);
 		async function loadPlayStats()
 		{
 			const res = await getUserMeSelect(new URLSearchParams({ 'playStats': 'true' }));
@@ -34,6 +35,11 @@ export function SideBarAvatarMenu(props: { close: any })
 		}
 		loadPlayStats();
 	}, []);
+
+	useEffect(() =>
+	{
+		setScrollHeight(ref.current.scrollHeight * -1);
+	}, [ref])
 
 	return (
 		<div ref={ref} className="card absolute left-[56px]" style={{ top: `${scrollHeight}` + "px" }}
@@ -58,7 +64,7 @@ export function SideBarAvatarMenu(props: { close: any })
 				</div>
 			</div>
 			<div className="card-content">
-				<div className="username pl-[5px]">{userName}</div>
+				<div className="username pl-[5px] break-all">{userName}</div>
 				<hr />
 				<div className="about-me pl-[5px]">
 					<div className="category-title">About Me</div>

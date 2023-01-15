@@ -31,6 +31,11 @@ export function Callback()
 		window.opener.postMessage('next', '*')
 		window.close();
 	}
+	else if (something.newUser === true)
+	{
+		window.opener.postMessage('newUser', '*')
+		window.close();
+	}
 	else
 	{
 		window.opener.postMessage('success', '*');

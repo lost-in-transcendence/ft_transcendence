@@ -17,8 +17,11 @@ export class AuthService
 
 	async login(profile42: any)
 	{
-		const { id42, isGuest, userName, email, image } = profile42;
+		const { id42, userName, email, image } = profile42;
 		const avatarURL = image.link;
+		let token: string = '';
+		let twoFaEnabled: boolean = false;
+		let newUser: boolean = false;
 		let user: User = await this.usersService.user({ id42: id42.toString() });
 		if (!user)
 		{
@@ -37,10 +40,12 @@ export class AuthService
 				where: { id : user.id },
 				data
 			});
+			newUser = true;
 		}
 
-		const token = await this.signToken({ id: user.id })
-		return { token, twoFaEnabled: user.twoFaEnabled };
+		token = await this.signToken({ id: user.id })
+		twoFaEnabled = user.twoFaEnabled;
+		return { token, twoFaEnabled, newUser };
 	}
 
 	async fakeLogin(fakeInfos: {id42: string, userName: string, email: string, avatarPath: string })

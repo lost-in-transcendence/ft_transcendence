@@ -16,11 +16,12 @@ export class AuthController
 	@HttpCode(200)
 	async login(@Req() req, @Res({ passthrough: true }) res)
 	{
-		const { token, twoFaEnabled } = await this.authService.login(req.user);
+		const { token, twoFaEnabled, newUser } = await this.authService.login(req.user);
 		await this.authService.setJwtCookies(res, token);
 		res.send(
 			{
 				twoFaEnabled,
+				newUser
 			}
 		)
 	}
