@@ -1,5 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { ImATeapotException, Injectable, Logger, NotAcceptableException, NotFoundException, PreconditionFailedException } from '@nestjs/common';
 import { PlayStats, Prisma, User } from '@prisma/client';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 import { create } from 'domain';
 import { PrismaService } from 'src/prisma/prisma.service';
 
@@ -14,6 +15,8 @@ import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class UsersService {
+
+	private readonly logger = new Logger(UsersService.name);
 
 	constructor(private readonly prisma: PrismaService) {
 
@@ -112,11 +115,26 @@ export class UsersService {
 		data: Prisma.UserUpdateInput;
 	}): Promise<User> {
 		const { data, where } = params;
-		return this.prisma.user.update(
+		try
+		{
+			const ret = await this.prisma.user.update(
+				{
+					data,
+					where
+				});
+			return ret;
+		}
+		catch (err)
+		{
+			if (err instanceof PrismaClientKnownRequestError)
 			{
-				data,
-				where
-			});
+				if (err.code === 'P2025')
+					throw new PreconditionFailedException('Record not found');
+				else if (err.code === 'P2002')
+					throw new NotAcceptableException('Unique field not avalaible');
+			}
+			throw new ImATeapotException('Something unexpected happened');
+		}
 	}
 
 	async deleteUser(where: Prisma.UserWhereUniqueInput)

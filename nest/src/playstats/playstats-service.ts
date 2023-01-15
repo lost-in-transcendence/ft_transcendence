@@ -1,5 +1,6 @@
-import { Injectable } from "@nestjs/common";
+import { ImATeapotException, Injectable, PreconditionFailedException } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 import { PrismaService } from "src/prisma/prisma.service";
 
 @Injectable()
@@ -29,7 +30,18 @@ export class PlayStatsService
 
 	async update(params: Prisma.PlayStatsUpdateArgs)
 	{
-		return await this.prisma.playStats.update(params);
+		try {
+			return await this.prisma.playStats.update(params);
+		}
+		catch (err)
+		{
+			if (err instanceof PrismaClientKnownRequestError)
+			{
+				if (err.code === 'P2025')
+					throw new PreconditionFailedException('Record not found');
+			}
+			throw new ImATeapotException('Something unexpected happened');
+		}
 	}
 
 	async updateMany(params: Prisma.PlayStatsUpdateManyArgs)
@@ -39,6 +51,17 @@ export class PlayStatsService
 
 	async remove(params: Prisma.PlayStatsDeleteArgs)
 	{
-		return await this.prisma.playStats.delete(params);
+		try {
+			return await this.prisma.playStats.delete(params);
+		}
+		catch (err)
+		{
+			if (err instanceof PrismaClientKnownRequestError)
+			{
+				if (err.code === 'P2025')
+					throw new PreconditionFailedException('Record not found');
+			}
+			throw new ImATeapotException('Something unexpected happened');
+		}
 	}
 }

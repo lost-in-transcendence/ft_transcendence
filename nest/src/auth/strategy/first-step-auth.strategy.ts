@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PassportStrategy } from "@nestjs/passport";
 import { User } from "@prisma/client";
@@ -26,6 +26,9 @@ export class FirstStepAuthStrategy extends PassportStrategy(Strategy, 'first-ste
 					id: payload.id
 				},
 			});
+			if (!user) {
+                throw new UnauthorizedException()
+            }
 			return user;
 		}
 }

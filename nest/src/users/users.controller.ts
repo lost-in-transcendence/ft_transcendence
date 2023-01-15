@@ -104,7 +104,7 @@ export class UsersController {
 			where: { id },
 			data
 		});
-		// error handling
+		this.logger.log(res);
 		return res;
 	}
 
