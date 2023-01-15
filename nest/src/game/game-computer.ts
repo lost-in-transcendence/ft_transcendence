@@ -391,7 +391,7 @@ export class GameComputer
 			{
 				winner: winner.userName,
 				loser: loser.userName,
-				reason: game.disconnectedSocket ? `${loserName.length > 15 ? loserName.slice(0,15) + '...' : loserName} disconnected.` : ''
+				reason: game.disconnectedSocket ? `${loser.userName.length > 15 ? loser.userName.slice(0,15) + '...' : loser.userName} disconnected.` : ''
 			})
 		this.playStatsService.update({
 			where: { userId: winner.id },
