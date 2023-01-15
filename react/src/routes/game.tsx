@@ -41,6 +41,7 @@ export function Game()
 	const [asSpectator, setAsSpectator] = useState(false);
 
 	const [roomState, setRoomState] = useState('');
+	const [gameInfos, setGameInfos] = useState<{theme: string, user1Name: string, user2Name: string, launchTime: number} | undefined>(undefined);
 
 	const [params, setParams] = useSearchParams();
 
@@ -86,29 +87,33 @@ export function Game()
 
 		socket?.on('roomReady', (payload: any) =>
 		{
-			const { room } = payload;
-			setError(null);
+			const {roomId, user1Name, user2Name, theme, launchTime} = payload;
+			console.log('roomReady received  payload:', payload);
 			setStatus('matchFound');
-			setRoomState(room);
+			// console.log('roomReady received  room:', roomId);
+			setRoomState(roomId);
+			setGameInfos({theme, user1Name, user2Name, launchTime});
 			masterSocket?.off('invitationDeclined');
 			// masterSocket?.emit('changeGameStatus', {gameStatus: GameStatus.INGAME})
 		});
 
 		socket?.on('startGame', () =>
 		{
-			// setError('starting game');
 			setError(null);
 			setAsSpectator(false);
 			setStatus('ongoingGame');
 			masterSocket?.emit('changeGameStatus', { gameStatus: GameStatus.INGAME })
 		});
 
-		socket?.on('startGameAsSpectator', () =>
+		socket?.on('startGameAsSpectator', (payload: any) =>
 		{
 			// setError('starting game as spectator');
+			const {user1Name, user2Name, theme, launchTime} = payload;
+			console.log(payload);
 			setAsSpectator(true);
 			setStatus('ongoingGame');
-			masterSocket?.emit('changeGameStatus', { gameStatus: GameStatus.INGAME })
+			setGameInfos({theme, user1Name, user2Name, launchTime});
+			masterSocket?.emit('changeGameStatus', {gameStatus: GameStatus.INGAME})
 		});
 
 		socket?.on('matchAccepted', () =>
@@ -222,18 +227,18 @@ export function Game()
 	}
 
 	return (
-		<div className="flex flex-col md:flex-row">
-			{
-				status === 'ongoingGame' ?
-					<>
-						<Pong goBack={leaveGame} asSpectator={asSpectator} />
-					</>
-					: <GameSideBar socket={socket} status={status} setQuickPlay={() => { setStatus('quickplayMenu'); setError(null); }} setCustomGame={() => { setStatus('customGame'); setError(null); }} />
-			}
-			{
-				error ?
-					<div className="flex flex-col gap-4 w-full">
-						<div className="flex flex-col items-center m-auto
+		<div className="flex flex-col md:flex-row w-full">
+		{
+			status === 'ongoingGame' ?
+			<div className="">
+				<Pong goBack={leaveGame} asSpectator={asSpectator} gameInfos={gameInfos}/>
+			</div>
+			: <GameSideBar socket={socket} status={status} setQuickPlay={(e : any) => {setStatus('quickplayMenu'); setError(null);}} setCustomGame={(e: any) => {setStatus('customGame'); setError(null);}}/>
+		}
+		{
+			error ?
+			<div className="flex flex-col gap-4 w-full">
+				<div className="flex flex-col items-center m-auto
 				text-xl text-gray-400 bg-gray-700">
 							<p>{error}</p>
 						</div>

@@ -84,6 +84,8 @@ export function GameSideBar(props : {socket: any, status: any, setCustomGame: an
 									<p><span className="text-gray-400 text-sm">user: </span><span className="text-gray-300 text-base">{room.user1}</span></p>
 									<hr className="border-gray-500" />
 									<p><span className="text-gray-400 text-sm">objective: </span><span className="text-gray-300 text-base">{room.goal} {room.objective === Objective.SCORE ? "points" : "minutes"}</span></p>
+									<hr className="border-gray-500" />
+									<p><span className="text-gray-400 text-sm">theme: </span><span className="text-gray-300 text-base">{room.theme}</span></p>
 									<button className="hover:bg-gray-400 hover:text-white hover:shadow-gray-900 hover:shadow-sm border-2 border-gray-500"
 										onClick={() => socket?.emit('joinCustomGame', {room: room.id})}
 										disabled={me.gameStatus !== 'NONE' && props.status !== 'waiting' ? true : false}
@@ -105,7 +107,7 @@ export function GameSideBar(props : {socket: any, status: any, setCustomGame: an
 							<hr className="border-gray-500" />
 							<p><span className="text-gray-400 text-sm">objective: </span><span className="text-gray-300 text-base">{game.goal} {game.objective === Objective.SCORE ? "points" : "minutes"}</span></p>
 							<hr className="border-gray-500" />
-							<p>time elapsed: coming soon</p>
+							<p><span className="text-gray-400 text-sm">theme: </span><span className="text-gray-300 text-base">{game.theme}</span></p>
 							<button className="hover:bg-gray-400 hover:text-white hover:shadow-gray-900 hover:shadow-sm border-2 border-gray-500"
 								onClick={() => {socket?.emit('joinAsSpectator', {room: game.id});}}
 								disabled={me.gameStatus !== 'NONE' && props.status !== 'waiting' ? true : false}

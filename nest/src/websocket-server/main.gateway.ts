@@ -75,12 +75,12 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	{
 		this.logger.log(`Client ${client.id} disconnected from Main websocket Gateway`);
 		this.socketStore.removeUserSocket(client.data.user.id, client);
-		const ret = await this.userService.user({ id: client.data.user.id });
-		if (ret.isGuest)
-		{
-			await this.userService.deleteUser({ id: ret.id });
-			return;
-		}
+		const ret = await this.userService.user({id: client.data.user.id});
+		// if (ret.isGuest)
+		// {
+		// 	await this.userService.deleteUser({id : ret.id});
+		// 	return;
+		// }
 		if (this.socketStore.getUserSockets(ret.id).length === 0)
 		{
 			this.userService.updateUser({ where: { id: ret.id }, data: { status: StatusType.OFFLINE, gameStatus: GameStatusType.NONE } });

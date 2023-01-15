@@ -32,26 +32,27 @@ export class GameWaitingRoom
 	invitation: boolean;
 	invitedUser?: string;
 
-	objective: Objective;
-	goal: number;
+    objective: Objective;
+    goal: number;
+    theme: string;
 
 	type: GameType;
 
 
-	constructor(params: { id: string, user1: User, user1SocketId: string, invitation: boolean, objective: Objective, goal: number, type: GameType, user2?: User, user2SocketId?: string, invitedUser?: string })
-	{
-		const { id, user1, user1SocketId, user2, user2SocketId, objective, goal, type, invitation, invitedUser } = params;
-		this.id = id;
-		this.user1 = user1;
-		this.user1SocketId = user1SocketId;
-		this.user2 = user2;
-		this.user2SocketId = user2SocketId;
-		this.objective = objective;
-		this.goal = goal;
-		this.type = type;
-		this.invitation = invitation;
-		this.invitedUser = invitedUser;
-	}
+    constructor(params: {id: string, user1: User, user1SocketId: string, invitation: boolean, objective: Objective, goal: number, theme: string, type: GameType, user2?: User, user2SocketId?: string, invitedUser?: string}) {
+        const {id, user1, user1SocketId, user2, user2SocketId, objective, goal, type, invitation, invitedUser, theme} = params;
+        this.id = id;
+        this.user1 = user1;
+        this.user1SocketId = user1SocketId;
+        this.user2 = user2;
+        this.user2SocketId = user2SocketId;
+        this.objective = objective;
+        this.goal = goal;
+        this.type = type;
+        this.invitation = invitation;
+        this.invitedUser = invitedUser;
+        this.theme = theme;
+    }
 }
 
 @UseInterceptors(UserInterceptor)
@@ -148,60 +149,60 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 	}
 
 
-	@SubscribeMessage('quickplay')
-	async quickplay(@ConnectedSocket() client: Socket, @GetUserWs() user: User)
-	{
-		const availableRoom = this.waitingRooms.find((v) => { return (v.user1SocketId !== client.id && v.user1.id !== user.id && !v.user2 && v.invitation === false && v.type === GameType.QUICKPLAY) });
-		if (availableRoom)
-		{
-			availableRoom.user2 = user;
-			availableRoom.user2SocketId = client.id;
-			this.waitingRooms = this.waitingRooms.filter((v) => v.user1SocketId !== availableRoom.user1SocketId);
-			this.emitWaitingRooms();
-			// update game in db
-			const ret = await this.gamesService.update(
-				{
-					where: { id: availableRoom.id },
-					data:
-					{
-						players:
-						{
-							create:
-							{
-								score: 0,
-								player:
-								{
-									connect: { id: availableRoom.user2.id }
-								}
-							}
-						}
-					}
-				});
-			this.gameComputer.newGame(availableRoom);
-			this.server.to(availableRoom.user1SocketId).to(availableRoom.user2SocketId).emit('roomReady', { room: ret.id });
-			this.gameComputer.emitOngoingGames();
-			return;
-		}
-		const ret = await this.gamesService.create({ data: {} });
-		this.waitingRooms.push(new GameWaitingRoom({ id: ret.id, user1: user, user1SocketId: client.id, invitation: false, objective: Objective.SCORE, goal: 5, type: GameType.QUICKPLAY }));
-		await this.gamesService.update({
-			where: { id: ret.id },
-			data: {
-				players:
-				{
-					create:
-					{
-						score: 0,
-						player:
-						{
-							connect: { id: user.id }
-						}
-					}
-				}
-			}
-		})
-		this.server.to(client.id).emit('queueing');
-	}
+    @SubscribeMessage('quickplay')
+    async quickplay(@ConnectedSocket() client: Socket, @GetUserWs() user: User)
+    {
+        const availableRoom = this.waitingRooms.find((v) => {return (v.user1SocketId !== client.id && v.user1.id !== user.id && !v.user2 && v.invitation === false && v.type === GameType.QUICKPLAY)});
+        if (availableRoom)
+        {
+            availableRoom.user2 = user;
+            availableRoom.user2SocketId = client.id;
+            this.waitingRooms = this.waitingRooms.filter((v) => v.user1SocketId !== availableRoom.user1SocketId);
+            this.emitWaitingRooms();
+            // update game in db
+            const ret = await this.gamesService.update(
+                {
+                    where: {id: availableRoom.id},
+                    data:
+                    {
+                        players: 
+                        {
+                            create:
+                            {
+                                score: 0,
+                                player:
+                                {
+                                    connect: {id: availableRoom.user2.id}
+                                }
+                            }    
+                        }
+                    }
+                });
+            const newGame = await this.gameComputer.newGame(availableRoom);
+            this.server.to(availableRoom.user1SocketId).to(availableRoom.user2SocketId).emit('roomReady', {roomId: ret.id, theme: availableRoom.theme, user1Name: availableRoom.user1.userName, user2Name: availableRoom.user2?.userName, launchTime: newGame.launchTime});
+            this.gameComputer.emitOngoingGames();
+            return;
+        }
+        const ret = await this.gamesService.create({data:{}});
+        this.waitingRooms.push(new GameWaitingRoom({id: ret.id, user1: user, user1SocketId: client.id, invitation: false, objective: Objective.SCORE, goal: 5, theme: 'classic', type: GameType.QUICKPLAY}));
+        await this.gamesService.update({
+            where: {id: ret.id},
+            data: {
+                players:
+                {
+                    create:
+                    {
+                        score: 0,
+                        player:
+                        {
+                            connect: {id: user.id}
+                        }
+                    }
+                }
+            }
+        })
+        this.server.to(client.id).emit('queueing');
+    }
 
 	@SubscribeMessage('leaveQueue')
 	async leaveQueue(@ConnectedSocket() client: Socket, @GetUserWs() user: User)
@@ -223,75 +224,75 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 		}
 	}
 
-	@SubscribeMessage('createCustomGame')
-	async createCustomGame(@ConnectedSocket() client: Socket, @GetUserWs() user: User, @MessageBody() payload: CustomGame)
-	{
-		const ret = await this.gamesService.create({ data: {} });
-		const { objective, goal, invitation, invitedUser } = payload;
-		this.waitingRooms.push(new GameWaitingRoom({ id: ret.id, user1: user, user1SocketId: client.id, invitation: invitation, invitedUser: invitedUser, objective: objective, goal: goal, type: GameType.CUSTOM }));
-		await this.gamesService.update({
-			where: { id: ret.id },
-			data: {
-				players:
-				{
-					create:
-					{
-						score: 0,
-						player:
-						{
-							connect: { id: user.id }
-						}
-					}
-				}
-			}
-		})
-		if (invitation === true && invitedUser)
-		{
-			this.server.to(client.id).emit("inviteGameCreated", { gameId: ret.id, invitedUser });
-		}
-		else
-		{
-			this.server.to(client.id).emit('queueing');
-		}
-		this.emitWaitingRooms();
-	}
+    @SubscribeMessage('createCustomGame')
+    async createCustomGame (@ConnectedSocket() client: Socket, @GetUserWs() user: User, @MessageBody() payload: CustomGame)
+    {
+        const ret = await this.gamesService.create({data:{}});
+        const {objective, goal, invitation, invitedUser, theme} = payload;
+        this.waitingRooms.push(new GameWaitingRoom({id: ret.id, user1: user, user1SocketId: client.id, invitation: invitation, invitedUser: invitedUser, objective: objective, goal: goal, theme: theme, type: GameType.CUSTOM}));
+        await this.gamesService.update({
+            where: {id: ret.id},
+            data: {
+                players:
+                {
+                    create:
+                    {
+                        score: 0,
+                        player:
+                        {
+                            connect: {id: user.id}
+                        }
+                    }
+                }
+            }
+        })
+        if (invitation === true && invitedUser)
+        {
+            this.server.to(client.id).emit("inviteGameCreated", {gameId: ret.id, invitedUser});
+        }
+        else
+        {
+            this.server.to(client.id).emit('queueing');
+        }
+        this.emitWaitingRooms();
+    }
 
-	@SubscribeMessage('joinCustomGame')
-	async joinCustomGame(@ConnectedSocket() client: Socket, @GetUserWs() user: User, @MessageBody('room') room: any)
-	{
-		const customGameRoom = this.waitingRooms.find((v) => { return v.id === room });
-		if (!customGameRoom)
-		{
-			throw new WsException({ status: 404, message: "Could not find the requested game" })
-		}
-		customGameRoom.user2 = user;
-		customGameRoom.user2SocketId = client.id;
-		this.waitingRooms = this.waitingRooms.filter((v) => v.user1SocketId !== customGameRoom.user1SocketId);
-		this.emitWaitingRooms();
-		// update game in db
-		const ret = await this.gamesService.update(
-			{
-				where: { id: customGameRoom.id },
-				data:
-				{
-					players:
-					{
-						create:
-						{
-							score: 0,
-							player:
-							{
-								connect: { id: customGameRoom.user2.id }
-							}
-						}
-					}
-				}
-			});
-		this.gameComputer.newGame(customGameRoom);
-		this.server.to(customGameRoom.user1SocketId).to(customGameRoom.user2SocketId).emit('roomReady', { room: ret.id });
-		this.gameComputer.emitOngoingGames();
-		return;
-	}
+    @SubscribeMessage('joinCustomGame')
+    async joinCustomGame(@ConnectedSocket() client: Socket, @GetUserWs() user: User, @MessageBody('room') room: any)
+    {
+        const customGameRoom = this.waitingRooms.find((v) => {return v.id === room});
+        if (!customGameRoom)
+        {
+            throw new WsException({status: 404, message: "Could not find the requested game"})
+        }
+        customGameRoom.user2 = user;
+        customGameRoom.user2SocketId = client.id;
+        this.waitingRooms = this.waitingRooms.filter((v) => v.user1SocketId !== customGameRoom.user1SocketId);
+        this.emitWaitingRooms();
+        // update game in db
+        const ret = await this.gamesService.update(
+            {
+                where: {id: customGameRoom.id},
+                data:
+                {
+                    players: 
+                    {
+                        create:
+                        {
+                            score: 0,
+                            player:
+                            {
+                                connect: {id: customGameRoom.user2.id}
+                            }
+                        }    
+                    }
+                }
+            });
+        const newGame = await this.gameComputer.newGame(customGameRoom);
+        this.server.to(customGameRoom.user1SocketId).to(customGameRoom.user2SocketId).emit('roomReady', {roomId: ret.id, user1Name: customGameRoom.user1.userName, user2Name: customGameRoom.user2.userName, theme: customGameRoom.theme, launchTime: newGame.launchTime});
+        this.gameComputer.emitOngoingGames();
+        return;
+    }
 
 	@SubscribeMessage('acceptMatch')
 	async joinRoom(@ConnectedSocket() client: Socket, @GetUserWs() user: User, @MessageBody('room') room: string)
@@ -323,14 +324,17 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 		this.server.to(client.id).emit('matchDeclined');
 	}
 
-	@SubscribeMessage('joinAsSpectator')
-	async joinAsSpectator(@ConnectedSocket() client: Socket, @GetUserWs() user: User, @MessageBody('room') room: string)
-	{
-		if (!this.gameComputer.userJoin(room, user, client.id))
-			return;
-		client.join(room);
-		this.server.to(client.id).emit('startGameAsSpectator');
-	}
+    @SubscribeMessage('joinAsSpectator')
+    async joinAsSpectator(@ConnectedSocket() client: Socket, @GetUserWs() user: User, @MessageBody('room') room: string)
+    {
+        const gameRoom = await this.gameComputer.findGame(room);
+        if (!gameRoom)
+            return;
+        if (!this.gameComputer.userJoin(room, user, client.id))
+            return;
+        client.join(room);
+        this.server.to(client.id).emit('startGameAsSpectator', {user1Name: gameRoom.user1.userName, user2Name: gameRoom.user2.userName, theme: gameRoom.theme, launchTime: gameRoom.launchTime});
+    }
 
 	@SubscribeMessage('paddleMove')
 	async paddleMove(@ConnectedSocket() client: Socket, @GetUserWs() user: User, @MessageBody('direction', new ParseEnumPipe(PaddleDirection)) direction: PaddleDirection)
@@ -338,28 +342,29 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 		this.gameComputer.paddleMove(client.id, direction);
 	}
 
-	getWaitingRooms()
-	{
-		const waitingRooms = [];
-		for (let room of this.waitingRooms)
-		{
-			if (room.type === GameType.QUICKPLAY)
-			{
-				continue;
-			}
-			waitingRooms.push(
-				{
-					id: room.id,
-					objective: room.objective,
-					goal: room.goal,
-					user1: room.user1.userName,
-					invitation: room.invitation,
-					invitedUser: room.invitedUser
-				}
-			);
-		}
-		return waitingRooms;
-	}
+    getWaitingRooms()
+    {
+        const waitingRooms = [];
+        for ( let room of this.waitingRooms)
+        {
+            if (room.type === GameType.QUICKPLAY)
+            {
+                continue;
+            }
+            waitingRooms.push(
+                {
+                    id : room.id,
+                    objective: room.objective,
+                    goal: room.goal,
+                    theme: room.theme,
+                    user1: room.user1.userName,
+                    invitation: room.invitation,
+                    invitedUser: room.invitedUser
+                }
+            );
+        }
+        return waitingRooms;
+    }
 
 	emitWaitingRooms()
 	{
@@ -376,9 +381,9 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
 interface CustomGame
 {
-	objective: Objective;
-	goal: number;
-	invitation: boolean;
-	invitedUser?: string;
-
+    objective: Objective;
+    goal: number;
+    invitation: boolean;
+    invitedUser?: string;
+    theme: string;
 }

@@ -6,7 +6,7 @@ export function Canvas (props: {draw: Function, tabIndex: number, onKeyUp: any, 
     const {draw, tabIndex, onKeyUp, onKeyDown} = props;
     const canvasRef: any = useCanvas(draw);
 
-    return <canvas onKeyUp={onKeyUp} onKeyDown={onKeyDown} ref={canvasRef} tabIndex={tabIndex} /*width={width} height={height} *//>
+    return <canvas className="" onKeyUp={onKeyUp} onKeyDown={onKeyDown} ref={canvasRef} tabIndex={tabIndex} /*width={width} height={height} *//>
 }
 
 // export function Canvas(props: {draw: Function, height: number, width: number})

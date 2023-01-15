@@ -9,6 +9,12 @@ const gameHeight = 600;
 const paddleSize = 100;
 const ballSize = 25;
 
+const themes = {
+  classic: {ballColor: 'white', paddleColor: 'white', background: 'bg-black' },
+  camouflage: {ballColor: 'green', paddleColor: 'green', background: 'bg-green-600'},
+  rolandGarros: {ballColor: 'yellow', paddleColor: 'white', background: 'bg-rolandGarros bg-cover bg-no-repeat'},
+};
+
 type GameItems = {
   paddle1Pos: number;
   paddle2Pos: number;
@@ -50,11 +56,11 @@ function DisplayTimer(props: {
     timerstr += ":" + (seconds < 10 ? `0${seconds}` : seconds);
   }
 
-  return <p>{timerstr}</p>;
+  return <div className="flex mx-auto bg-gray-700 text-gray-400 text-xl">{timerstr}</div>;
 }
 
-export function Pong(props: { goBack: any; asSpectator: boolean }) {
-  const { goBack, asSpectator } = props;
+export function Pong(props: { goBack: any, asSpectator: boolean, gameInfos: {theme: string, user1Name: string, user2Name: string, launchTime: number} | undefined}) {
+  const { goBack, asSpectator, gameInfos} = props;
   const { socket } = useContext(GameSocketContext).GameSocketState;
   const masterSocket = useContext(SocketContext).SocketState.socket;
   const [showEndScreen, setShowEndScreen] = useState(false);
@@ -78,6 +84,25 @@ export function Pong(props: { goBack: any; asSpectator: boolean }) {
   });
 
   const [timer, setTimer] = useState(0);
+
+  const [theme, setTheme] = useState<{ballColor: string, paddleColor: string, background: string}>(themes.classic);
+  useEffect( () => {
+    switch (props.gameInfos?.theme)
+    {
+      case 'camouflage':
+        setTheme(themes.camouflage);
+        break;
+      case 'rolandGarros':
+        setTheme(themes.rolandGarros);
+        break;
+      default:
+        setTheme(themes.classic);
+    }
+    if (gameInfos?.launchTime)
+    {
+      setTimer(Math.round((Date.now() - gameInfos.launchTime) / 1000));
+    }
+  }, [])
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -124,14 +149,17 @@ export function Pong(props: { goBack: any; asSpectator: boolean }) {
   function drawGame(ctx: any) {
     const heightRatio = ctx.canvas.height / 600;
     const widthRatio = ctx.canvas.width / 800;
-    // background
+    
+
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-    ctx.fillStyle = "#242424";
-    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+    // background
+    // ctx.fillStyle = "#242424";
+    // ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
     // outline
-    ctx.strokeStyle = "#fff";
-    ctx.strokeRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    // ctx.strokeStyle = "#fff";
+    // ctx.strokeRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
     // middle line
     ctx.strokeStyle = "#fff";
@@ -142,17 +170,17 @@ export function Pong(props: { goBack: any; asSpectator: boolean }) {
     ctx.stroke();
 
     // score
-    ctx.font = "30px Orbitron";
-    ctx.fillStyle = "#888";
-    ctx.fillText(gameItems.player1Score, gameWidth / 2 / 2, 100);
-    ctx.fillText(gameItems.player2Score, (gameWidth / 2) * 1.5, 100);
+    // ctx.font = "30px Orbitron";
+    // ctx.fillStyle = theme?.paddleColor;
+    // ctx.fillText(gameItems.player1Score, ctx.canvas.width / 2 / 2, 100);
+    // ctx.fillText(gameItems.player2Score, (ctx.canvas.width / 2) * 1.5, 100);
 
     // display names
-    ctx.fillText("player 1", gameWidth / 2 / 2 - 30, 40);
-    ctx.fillText("player 2", (gameWidth / 2) * 1.5 - 30, 40);
+    // ctx.fillText(gameInfos?.user1Name, ctx.canvas.width / 2 / 2 - 30, 40);
+    // ctx.fillText(gameInfos?.user2Name, (ctx.canvas.width / 2) * 1.5 - 30, 40);
 
     // paddles
-    ctx.fillStyle = "#fff";
+    ctx.fillStyle = theme?.paddleColor;
     ctx.fillRect(
       1,
       gameItems.paddle1Pos * heightRatio,
@@ -167,6 +195,7 @@ export function Pong(props: { goBack: any; asSpectator: boolean }) {
     );
 
     // ball
+    ctx.fillStyle = theme?.ballColor;
     ctx.beginPath();
     ctx.arc(
       gameItems.ballPos.x * widthRatio,
@@ -201,32 +230,60 @@ export function Pong(props: { goBack: any; asSpectator: boolean }) {
   }
 
   return (
-    <>
-      <DisplayTimer
-        timer={timer}
+    <div className="flex flex-col items-center w-full">
+
+      <div className="flex flex-row bg-gray-700 my-2 w-full h-[20%]">
+
+        <div className="flex flex-col h-full w-[30%] text-xl text-gray-400 border-gray-600 border-2 justify-center">
+          <p className="truncate text-center border-b border-gray-600">{gameInfos?.user1Name}</p>
+        </div>
+        <div className="flex flex-col h-full w-[10%] text-xl text-gray-400 border-gray-600 border-2 justify-center">
+          <p className="flex mx-auto">{gameItems.player1Score}</p>
+        </div>
+
+        <DisplayTimer timer={timer}
         years={false}
         hours={false}
         minutes={true}
         seconds={true}
-      />
-      <Canvas
+        />
+
+        <div className="flex flex-col h-full w-[10%] text-xl text-gray-400 border-gray-600 border-2 justify-center">
+          <p className="flex mx-auto">{gameItems.player2Score}</p>
+        </div>
+        <div className="flex flex-col h-full w-[30%] text-xl text-gray-400 border-gray-600 border-2 justify-center">
+          <p className="truncate text-center border-b border-gray-600">{gameInfos?.user2Name}</p>
+        </div>
+
+      </div> 
+
+
+      <div className={theme? theme.background + ' mx-auto relative': 'mx-auto relative'}>
+        <Canvas
         onKeyDown={(e: any) => handleKeyDown(e)}
         onKeyUp={(e: any) => handleKeyUp(e)}
         tabIndex={0}
         draw={drawGame}
-      ></Canvas>
-      {showEndScreen ? (
-        <EndScreen
-          winner={endScreen.winner}
-          loser={endScreen.loser}
-          draw={endScreen.draw}
-          reason={endScreen.reason}
         />
-      ) : (
-        <></>
-      )}
-      <button onClick={goBack}>Go Back</button>
-    </>
+      {
+        showEndScreen ? 
+        <EndScreen
+        winner={endScreen.winner}
+        loser={endScreen.loser}
+        draw={endScreen.draw}
+        reason={endScreen.reason}
+        />
+        :
+        <>
+      </>
+      }
+      </div>
+      <button className="flex flex-row gap-4 items-center mt-10 mx-auto h-12 w-auto justify-items-center
+						text-xl text-gray-400 cursor-pointer rounded bg-gray-600
+						hover:bg-gray-500 hover:text-white hover:shadow-gray-900 hover:shadow-sm
+						focus:bg-gray-500 focus:text-white focus:shadow-gray-900 focus:shadow-sm"
+            onClick={goBack}>Go Back</button>
+    </div>
   );
 }
 
@@ -241,17 +298,23 @@ export function EndScreen(props: {
   let title, content;
   if (draw) {
     title = "Draw";
-    content = "You both suck lol";
+    content = "What a game!";
   } else {
-    title = `${winner} wins!`;
-    content = `${loser} sucks lol`;
+    title = `${winner.length > 15? winner.slice(0,15) + '...' : winner} wins!`;
+    content = `${loser.length > 15 ? loser.slice(0,15) + '...': loser} could have done better`;
   }
 
   return (
-    <div>
-      <h2>{title}</h2>
-      <p>{content}</p>
-      <p>{reason}</p>
+    <div className="absolute inset-1/3">
+      <div className="flex flex-col bg-gray-700">
+        <h2 className="flex text-xl text-gray-400 mx-auto">{title}</h2>
+        {
+          reason ?
+            <p className="flex text-xl text-gray-400 mx-auto">{reason}</p>
+          :
+            <p className="flex text-xl text-gray-400 mx-auto">{content}</p>
+        }
+      </div>
     </div>
   );
 }

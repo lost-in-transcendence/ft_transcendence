@@ -15,6 +15,7 @@ export function CustomGameScreen({ goBack, params }: { goBack: Function, params:
 	const [customGameInfo, setCustomGameInfo] = useState({
 		objective: Objective.SCORE,
 		goal: 5,
+		theme: 'classic',
 		invitation: false,
 		invitedUser: ''
 	})
@@ -86,7 +87,21 @@ export function CustomGameScreen({ goBack, params }: { goBack: Function, params:
 	return (
 		<div className="flex flex-row gap-4 mx-auto w-full">
 			<form className="flex flex-col"
-				onSubmit={customGameSubmit}>
+			onSubmit={customGameSubmit}>
+				<div className="flex flex-row gap-4 items-center mx-auto w-full">
+					<p className="flex flex-col text-gray-100 text-xl bg-gray-800">Theme</p>
+					<select className="flex flex-col text-gray-100 bg-gray-700 text-xl"
+					value={customGameInfo.theme}
+					onChange={(e) => 
+					{
+						setCustomGameInfo({...customGameInfo, theme: e.target.value})
+					}}
+					>
+						<option value='classic'>Classic</option>
+						<option value='camouflage'>Camouflage</option>
+						<option value='rolandGarros'>Roland Garros</option>
+					</select>
+				</div>
 				<div className="flex flex-row gap-4 items-center mx-auto w-full">
 					<p className="flex flex-col text-gray-100 text-xl bg-gray-800">Objective Type</p>
 					<select className="flex flex-col text-gray-100 bg-gray-700 text-xl"
