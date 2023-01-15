@@ -11,6 +11,10 @@ import { SharedGameStatusDto } from "../../shared/dtos";
 import { Spinner } from "../components/Spinner/Spinner";
 import { PartialUser } from "../dto/users.dto";
 import { CustomGameScreen } from "../components/Game/CustomGameScreen";
+import { Queuing } from "../components/Game/Queuing";
+import { QuickPlayMenu } from "../components/Game/QuickPlayMenu";
+import { MatchAccepted } from "../components/Game/MatchAccepted";
+import { MatchFound } from "../components/Game/MatchFound";
 
 export async function loader()
 {
@@ -41,7 +45,7 @@ export function Game()
 	const [asSpectator, setAsSpectator] = useState(false);
 
 	const [roomState, setRoomState] = useState('');
-	const [gameInfos, setGameInfos] = useState<{theme: string, user1Name: string, user2Name: string, launchTime: number} | undefined>(undefined);
+	const [gameInfos, setGameInfos] = useState<{ theme: string, user1Name: string, user2Name: string, launchTime: number } | undefined>(undefined);
 
 	const [params, setParams] = useSearchParams();
 
@@ -87,12 +91,12 @@ export function Game()
 
 		socket?.on('roomReady', (payload: any) =>
 		{
-			const {roomId, user1Name, user2Name, theme, launchTime} = payload;
+			const { roomId, user1Name, user2Name, theme, launchTime } = payload;
 			console.log('roomReady received  payload:', payload);
 			setStatus('matchFound');
 			// console.log('roomReady received  room:', roomId);
 			setRoomState(roomId);
-			setGameInfos({theme, user1Name, user2Name, launchTime});
+			setGameInfos({ theme, user1Name, user2Name, launchTime });
 			masterSocket?.off('invitationDeclined');
 			// masterSocket?.emit('changeGameStatus', {gameStatus: GameStatus.INGAME})
 		});
@@ -108,12 +112,12 @@ export function Game()
 		socket?.on('startGameAsSpectator', (payload: any) =>
 		{
 			// setError('starting game as spectator');
-			const {user1Name, user2Name, theme, launchTime} = payload;
+			const { user1Name, user2Name, theme, launchTime } = payload;
 			console.log(payload);
 			setAsSpectator(true);
 			setStatus('ongoingGame');
-			setGameInfos({theme, user1Name, user2Name, launchTime});
-			masterSocket?.emit('changeGameStatus', {gameStatus: GameStatus.INGAME})
+			setGameInfos({ theme, user1Name, user2Name, launchTime });
+			masterSocket?.emit('changeGameStatus', { gameStatus: GameStatus.INGAME })
 		});
 
 		socket?.on('matchAccepted', () =>
@@ -226,32 +230,69 @@ export function Game()
 
 	}
 
-	return (
-		<div className="flex flex-col md:flex-row w-full">
+	function whatToRender(status: string): JSX.Element
+	{
+		switch (status)
 		{
-			status === 'ongoingGame' ?
-			<div className="">
-				<Pong goBack={leaveGame} asSpectator={asSpectator} gameInfos={gameInfos}/>
-			</div>
-			: <GameSideBar socket={socket} status={status} setQuickPlay={(e : any) => {setStatus('quickplayMenu'); setError(null);}} setCustomGame={(e: any) => {setStatus('customGame'); setError(null);}}/>
+			case 'quickplayMenu':
+				return (
+					<QuickPlayMenu />
+				)
+			case 'matchAccepted':
+				return (
+					<MatchAccepted />
+				)
+			case 'matchFound':
+				return (
+					<MatchFound roomState={roomState} />
+				)
+			case 'queueing':
+				return (
+					<Queuing setStatus={setStatus} />
+				)
+			case 'customGame':
+				return (
+					<CustomGameScreen goBack={goBack} params={params} />
+				)
+			default:
+				return (
+					<></>
+				)
 		}
-		{
-			error ?
-			<div className="flex flex-col gap-4 w-full">
-				<div className="flex flex-col items-center m-auto
-				text-xl text-gray-400 bg-gray-700">
+	}
+
+
+	return (
+		<div className="flex flex-col md:flex-row w-full ">
+			{
+				status === 'ongoingGame' ?
+					<div className="">
+						<Pong goBack={leaveGame} asSpectator={asSpectator} gameInfos={gameInfos} />
+					</div>
+					:
+					<GameSideBar socket={socket} status={status} setQuickPlay={(e: any) => { setStatus('quickplayMenu'); setError(null); }} setCustomGame={(e: any) => { setStatus('customGame'); setError(null); }} />
+			}
+			{
+				error ?
+					<div className="flex flex-col gap-4 w-full ">
+						<div className="flex flex-col items-center m-auto text-xl text-gray-400 bg-gray-700 ">
 							<p>{error}</p>
 						</div>
 					</div>
-					: status === 'quickplayMenu' ?
-						<div className="flex flex-col gap-4 w-full">
+					:
+					whatToRender(status)
+			}
+
+			{/* status === 'quickplayMenu' ?
+						<div className="flex flex-col gap-4 w-full ">
 							<Accordeon title={'Rules And Instructions'} bgColor={'bg-gray-600'} width='bg-gray-600 w-auto mx-auto text-xl text-gray-400'>
-								<p className="flex flex-row" >blabladfsdfsdfsdfsdfsdddddddddddddddddddddddddsfsdfsdfsd sdfsdfsdf sdf sdf sdfsd  fsd fsdfsdfsdf sdf sd fsd fsd fsdf sdsdf sdfhsdh srth srtt hsrth aer yhrthad gojahdkg hakjdg jg hakjhgjha guhk ghakdg kajd g kg</p>
+								<p className=" flex flex-row" >Rule Set</p>
 							</Accordeon>
-							<button className="flex flex-row gap-4 items-center mt-10 mx-auto h-12 w-auto justify-items-center
-						text-xl text-gray-400 cursor-pointer rounded bg-gray-600
-						hover:bg-gray-500 hover:text-white hover:shadow-gray-900 hover:shadow-sm
-						focus:bg-gray-500 focus:text-white focus:shadow-gray-900 focus:shadow-sm"
+							<button className="
+												 flex flex-row gap-4 items-center mt-10 mx-auto h-12 w-auto justify-items-center
+												text-xl text-gray-400 cursor-pointer rounded bg-gray-600
+												hover:bg-gray-500 hover:text-white hover:shadow-gray-900 hover:shadow-sm
+												focus:bg-gray-500 focus:text-white focus:shadow-gray-900 focus:shadow-sm"
 								onClick={() => { socket?.emit('quickplay') }}
 								disabled={gameStatus !== 'NONE' ? true : false}
 							>
@@ -260,9 +301,8 @@ export function Game()
 						</div>
 
 						: status === 'matchAccepted' ?
-							<div className="flex flex-col gap-4 w-full">
-								<div className="flex flex-col items-center m-auto
-				text-xl text-gray-400 bg-gray-700">
+							<div className="flex flex-col gap-4 w-full ">
+								<div className="flex flex-col items-center m-auto text-xl text-gray-400 bg-gray-700">
 									<p>Waiting for the other player</p>
 									<Spinner />
 								</div>
@@ -270,11 +310,9 @@ export function Game()
 
 							: status === 'matchFound' ?
 								<div className="flex flex-col gap-4 w-full">
-									<div className="flex flex-col items-center m-auto
-				text-xl text-gray-400 bg-gray-700">
+									<div className="flex flex-col items-center m-auto text-xl text-gray-400 bg-gray-700">
 										<p>Match Found!!!!!!!!!!</p>
-										<div className="flex flex-row items-center m-auto gap-1
-					text-xl text-gray-100 bg-black">
+										<div className="flex flex-row items-center m-auto gap-1 text-xl text-gray-100 bg-black">
 											<button className="border-2 border-green-600"
 												onClick={() => socket?.emit('acceptMatch', { room: roomState })}>
 												Accept
@@ -289,15 +327,11 @@ export function Game()
 								</div>
 
 								: status === 'queueing' ?
-									<div className="flex flex-col gap-4 w-full">
-										<div className="flex flex-col items-center m-auto gap-2
-				text-xl text-gray-400 bg-gray-700">
-											<p>In Queue</p>
-											<Spinner />
-											<div className="flex flex-row items-center mx-auto mt-2 gap-1
-					text-xl text-gray-100 bg-black">
-												<button onClick={() => { setStatus('waiting'); socket?.emit("leaveQueue"); }}>Stop Queue</button>
-											</div>
+									<div className="m-auto text-xl text-gray-400 bg-gray-700">
+										<p>In Queue</p>
+										<Spinner />
+										<div className="mx-auto mt-2 text-xl text-gray-100 bg-black">
+											<button onClick={() => { setStatus('waiting'); socket?.emit("leaveQueue"); }}>Stop Queue</button>
 										</div>
 									</div>
 
@@ -306,8 +340,7 @@ export function Game()
 
 										:
 										<></>
-
-			}
+		</div> */}
 		</div>
 	)
 }

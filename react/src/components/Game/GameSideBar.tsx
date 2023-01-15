@@ -40,7 +40,7 @@ export function GameSideBar(props : {socket: any, status: any, setCustomGame: an
 		<div className="bg-gray-700 w-full h-screen rounded drop-shadow-lg
 			md:w-52 md:min-w-[13rem]
 			text-gray-300 overflow-auto">
-			<button className="flex flex-row gap-4 m-2 items-center h-12 w-11/12
+			<button className="flex flex-row gap-4 m-2 justify-start p-2 items-center h-12 w-11/12
 						text-xl cursor-pointer rounded
 						hover:bg-gray-500 hover:text-white hover:shadow-gray-900 hover:shadow-sm
 						focus:bg-gray-500 focus:text-white focus:shadow-gray-900 focus:shadow-sm"
@@ -49,8 +49,7 @@ export function GameSideBar(props : {socket: any, status: any, setCustomGame: an
 						>
 				Quickplay
 			</button>
-			<hr className="border-gray-600 mb-2 w-11/12 m-auto" />
-			<button className="flex flex-row gap-4 m-2 items-center h-12 w-11/12
+			<button className="flex flex-row gap-4 m-2 p-2 items-center h-12 w-11/12
 						text-xl cursor-pointer rounded
 						hover:bg-gray-500 hover:text-white hover:shadow-gray-900 hover:shadow-sm
 						focus:bg-gray-500 focus:text-white focus:shadow-gray-900 focus:shadow-sm"
