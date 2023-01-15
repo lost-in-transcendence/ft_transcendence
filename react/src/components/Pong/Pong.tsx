@@ -313,15 +313,17 @@ export function EndScreen(props: {
   }
 
   return (
-    <div ref={ref} className="absolute" style={{top: `calc(50% - ${height/2}px)`, left:`calc(50% - ${width/2}px)`}} >
-      <div className="flex flex-col bg-gray-700 w-auto">
-        <h2 className="flex text-xl text-gray-400 mx-auto">{title}</h2>
-        {
-          reason ?
+    <div className="absolute w-full h-full top-0 left-0" style={{backgroundColor: 'rgba(0, 0, 0, 0.5)'}}>
+      <div ref={ref} className="absolute" style={{top: `calc(50% - ${height/2}px)`, left:`calc(50% - ${width/2}px)`}} >
+        <div className="flex flex-col bg-gray-700 w-auto">
+          <h2 className="flex text-xl text-gray-400 mx-auto">{title}</h2>
+          {
+            reason ?
             <p className="flex text-xl text-gray-400 mx-auto">{reason}</p>
-          :
+            :
             <p className="flex text-xl text-gray-400 mx-auto">{content}</p>
-        }
+          }
+        </div>
       </div>
     </div>
   );
