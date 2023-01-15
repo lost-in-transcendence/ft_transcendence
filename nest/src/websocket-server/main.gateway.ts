@@ -40,6 +40,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		const intervalId = setInterval(async () =>
 		{
 			this.nextRanking = new Date(Date.now() + this.rankInterval)
+			// console.log(this.nextRanking);
 			this.server.emit("nextRanking", { nextRanking: this.nextRanking });
 			const usersByPoints = await this.playStatsService.findMany(
 				{
