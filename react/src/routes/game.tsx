@@ -261,7 +261,6 @@ export function Game()
 		}
 	}
 
-
 	return (
 		<div className="flex flex-col md:flex-row w-full ">
 			{
