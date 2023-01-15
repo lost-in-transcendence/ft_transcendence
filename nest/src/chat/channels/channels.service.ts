@@ -169,8 +169,20 @@ export class ChannelsService
 
 	async update(where: Prisma.ChannelWhereUniqueInput, data: Prisma.ChannelUpdateInput): Promise<Channel>
 	{
-		const updatedChannel = await this.prisma.channel.update({ data, where })
-		return (updatedChannel);
+		try {
+
+			const updatedChannel = await this.prisma.channel.update({ data, where })
+			return (updatedChannel);
+		}
+		catch (err)
+		{
+			if (err instanceof PrismaClientKnownRequestError)
+			{
+				if (err.code === 'P2025')
+					throw new PreconditionFailedException('Record not found');
+			}
+			throw new ImATeapotException('Something unexpected happened');
+		}
 	}
 
 	async remove(id: string)

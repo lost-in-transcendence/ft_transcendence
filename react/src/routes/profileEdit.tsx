@@ -12,6 +12,7 @@ import { getUserMeFull, updateUser, updateAvatar } from "../requests";
 import Modal from "../components/Modal/modal";
 import { TwoFa } from "../components/TwoFa/twofa";
 import SocketContext from "../components/Socket/socket-context";
+import { GiCondorEmblem } from "react-icons/gi";
 
 export async function loader()
 {
@@ -34,9 +35,22 @@ export async function action({ request }: any)
 	{
 		return { status: "name too long" };
 	}
-	const res = await updateUser(updates);
-	if (!res.ok)
+	let res = undefined;
+	try {
+		res = await updateUser(updates);	
+		// if (!res.ok)
+		// {
+		// 	if (res.status === 406)
+		// 		return { status: "Unavalaible field name" };
+		// 	throw res;
+		// }
+	}
+	catch (err: any) 
 	{
+		if (err.status === 406)
+		{
+			return { status: "unavalaible input" };
+		}
 		throw res;
 	}
 	let ret: any = { status: "updated" };
@@ -274,13 +288,14 @@ export function ProfileEdit()
 							</div>
 							{action?.status === 'empty field' ? (<><br /><p><b>Fields must not be empty</b></p></>) : (<></>)}
 							{action?.status === 'name too long' ? (<><br /><p><b>You cannot have a name that is longer than 32 characters</b></p></>) : (<></>)}
+							{action?.status === 'unavalaible input' ? (<><br /><p><b>This name is already taken by somebody else</b></p></>) : (<></>)}
 
 						</Form>
 						:
 						<div className="flex justify-between items-center mx-1 gap-10">
 							<h3>{user.userName}</h3>
 							<div
-								onClick={() => { setUserNameEdit(true); }}
+								onClick={() => { if (emailEdit === true) return;setUserNameEdit(true); }}
 								className='cursor-pointer bg-indigo-500 rounded shadow p-1'
 							>
 								<BsPencilFill size={12} />
@@ -305,17 +320,18 @@ export function ProfileEdit()
 									defaultValue={user.email}
 									className='rounded px-1 text-gray-800'
 								/>
-								<button type="submit" className="bg-indigo-500 rounded shadow p-1" >
+								<button type="submit" className="bg-indigo-500 rounded shadow p-1">
 									<BsCheckLg size={12} />
 								</button>
 							</div>
 							{action?.status === 'empty field' ? (<><br /><p><b>Fields must not be empty</b></p></>) : (<></>)}
+							{action?.status === 'unavalaible input' ? (<><br /><p><b>This email is already used</b></p></>) : (<></>)}
 						</Form>
 						:
 						<div className="flex justify-between items-center mx-1 gap-10">
 							<h3>{user.email}</h3>
 							<div
-								onClick={() => { if (twoFa) return; setEmailEdit(true); }}
+								onClick={() => { if (twoFa || userNameEdit === true) return; setEmailEdit(true); }}
 								className={`cursor-pointer rounded shadow p-1 peer ${twoFa ? 'bg-gray-500' : 'bg-indigo-500'}`}
 							>
 										<BsPencilFill size={12} />

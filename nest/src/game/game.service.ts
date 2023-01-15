@@ -1,5 +1,6 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { ImATeapotException, Injectable, Logger, PreconditionFailedException } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 import { PrismaService } from "src/prisma/prisma.service";
 
 @Injectable()
@@ -41,6 +42,17 @@ export class GamesService
 
 	async remove(params: Prisma.GameDeleteArgs)
 	{
-		return await this.prisma.game.delete(params);
+		try{
+			return await this.prisma.game.delete(params);
+		}
+		catch (err)
+		{
+			if (err instanceof PrismaClientKnownRequestError)
+			{
+				if (err.code === 'P2025')
+					throw new PreconditionFailedException('Record not found');
+			}
+			throw new ImATeapotException('Something unexpected happened');
+		}
 	}
 }
