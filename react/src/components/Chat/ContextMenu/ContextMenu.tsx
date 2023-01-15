@@ -101,6 +101,9 @@ export function ContextMenu({ x, y, channel, target }: ContextMenuData) {
 	}
 
 	async function toggleFriend(id: string, isInFriendList: boolean) {
+		if (isInBlacklist)
+			mainSocket?.emit(events.UNBLOCK_USER, { userId: targetId });
+
 		let toggleFunc: Function = isInFriendList ? removeFriend : addFriend;
 		if (await toggleFunc(id) === true)
 			mainSocket?.emit("changeFriends");
