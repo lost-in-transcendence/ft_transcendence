@@ -8,7 +8,7 @@ import { Chat, loader as chatLoader } from './routes/chat'
 import { ErrorPage } from './routes/error'
 import { Game, loader as gameLoader } from './routes/game'
 import { HomePage, loader as homepageLoader } from './routes/home'
-import { LeaderBoard, loader as leaderboardLoader} from './routes/leaderboard'
+import { LeaderBoard} from './routes/leaderboard'
 import { Login } from './routes/login'
 import { Profile, loader as profileLoader} from './routes/profile'
 import { ProfileEdit, loader as profileEditLoader, action as profileEditAction} from './routes/profileEdit'
@@ -73,7 +73,6 @@ const router = createBrowserRouter(
 				{
 					path: '/leaderboard',
 					element: <LeaderBoard />,
-					loader: leaderboardLoader,
 				}
 			]
 		}
