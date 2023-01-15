@@ -1,9 +1,9 @@
 import { useContext, useEffect, useState } from "react";
-import { User } from "../../../dto/users.dto";
-import { Objective } from "../../../routes/game";
-import { Accordeon } from "../../Menu/Accordeon";
-import SocketContext from "../../Socket/socket-context";
-import GameSocketContext from "./game-socket-context";
+import { User } from "../../dto/users.dto";
+import { Objective } from "../../routes/game";
+import { Accordeon } from "../Menu/Accordeon";
+import SocketContext from "../Socket/socket-context";
+import GameSocketContext from "./Context/game-socket-context";
 
 export function GameSideBar(props : {socket: any, status: any, setCustomGame: any, setQuickPlay: any})
 {
