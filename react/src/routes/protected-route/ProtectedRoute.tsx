@@ -21,7 +21,7 @@ export function ProtectedRoute()
 	return (
 		isAuth ? (
 		<>
-			<ToastContainer />
+			<ToastContainer style={{width: "260px"}}/>
 			<SocketContextComponent>
 				<Core />
 			</SocketContextComponent>

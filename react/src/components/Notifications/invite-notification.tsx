@@ -2,10 +2,19 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Socket } from "socket.io-client";
+import { backURL } from "../../requests";
 
 export function displayInviteNotification(inviter: string, inviterId: string, gameId: string, socket?: Socket)
 {
-    toast(<InviteNotification inviter={inviter} inviterId={inviterId} gameId={gameId} socket={socket}/>, {theme: "dark", toastId: '1'})
+    toast(
+    <InviteNotification inviter={inviter} inviterId={inviterId} gameId={gameId} socket={socket}/>, 
+    {
+        className: "bg-gray-300",
+        // bodyClassName: "bg-gray-400",
+        toastId: '1',
+        // autoClose: false,
+        draggable: false
+    })
 }
 
 export function InviteNotification(props: {inviter: string, inviterId: string, gameId: string, socket?: Socket, closeToast?: any, toastProps?: any})
@@ -37,9 +46,15 @@ export function InviteNotification(props: {inviter: string, inviterId: string, g
 
     return (
         <>
-            <p>You have been invited by {inviter}</p>
-            <button onClick={accept}>Accept</button>
-            <button onClick={decline}>Decline</button>
+        <div className="text-center text-black">
+            <p>Game invite by</p>
+            <div className="flex items-center gap-4 justify-center my-[5px]">
+                <img className="w-[50px] h-[50px] rounded-full" src={`${backURL}/users/avatars/${inviter}`} />
+                <p className="text-xl">{inviter}</p>
+            </div>
+            <button className="bg-indigo-300 shadow border rounded self-center p-1 mx-[5px]" onClick={accept}>Accept</button>
+            <button className="bg-indigo-300 shadow border rounded self-center p-1 mx-[5px]" onClick={decline}>Decline</button>
+        </div>
         </>
     )
 }
