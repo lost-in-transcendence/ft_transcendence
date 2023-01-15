@@ -68,15 +68,27 @@ export class ChannelMemberService
 		const bannedUser = await this.prisma.channelMember.findUnique({where: {userId_channelId: {userId: dto.userId, channelId: dto.channelId}}});
 		if (bannedUser.role === 'OWNER')
 			throw new ForbiddenException(`Cannot ban the owner of a channel`);
-		const ret = await this.prisma.channelMember.update({
-			where: {
-				userId_channelId: { userId: dto.userId, channelId: dto.channelId }
-			},
-			data: {
-				banExpires: new Date(Date.now() + dto.banTime),
-				role: 'BANNED'
+		try {
+
+			const ret = await this.prisma.channelMember.update({
+				where: {
+					userId_channelId: { userId: dto.userId, channelId: dto.channelId }
+				},
+				data: {
+					banExpires: new Date(Date.now() + dto.banTime),
+					role: 'BANNED'
+				}
+			})
+		}
+		catch (err)
+		{
+			if (err instanceof PrismaClientKnownRequestError)
+			{
+				if (err.code === 'P2025')
+					throw new PreconditionFailedException('Record not found');
 			}
-		})
+			throw new ImATeapotException('Something unexpected happened');
+		}
 	}
 
 	async muteUser(dto: BanMemberDto)
@@ -84,16 +96,28 @@ export class ChannelMemberService
 		const mutedUser = await this.prisma.channelMember.findUnique({where: {userId_channelId: {userId: dto.userId, channelId: dto.channelId}}});
 		if (mutedUser.role === 'OWNER')
 			throw new ForbiddenException(`Cannot mute the owner of a channel`);
-		const ret = await this.prisma.channelMember.update({
-			where: {
-				userId_channelId: { userId: dto.userId, channelId: dto.channelId }
-			},
-			data: {
-				muteExpires: new Date(Date.now() + dto.banTime),
-				role: 'MUTED'
+		try {
+
+			const ret = await this.prisma.channelMember.update({
+				where: {
+					userId_channelId: { userId: dto.userId, channelId: dto.channelId }
+				},
+				data: {
+					muteExpires: new Date(Date.now() + dto.banTime),
+					role: 'MUTED'
+				}
+			});
+			return (ret);
+		}
+		catch (err)
+		{
+			if (err instanceof PrismaClientKnownRequestError)
+			{
+				if (err.code === 'P2025')
+					throw new PreconditionFailedException('Record not found');
 			}
-		});
-		return (ret);
+			throw new ImATeapotException('Something unexpected happened');
+		}
 	}
 
 	async changeRole(dto: ChannelMemberDto)
@@ -129,7 +153,7 @@ export class ChannelMemberService
 				if (error.code === 'P2025')
 					throw new PreconditionFailedException('Record to update not found');
 			}
-			this.logger.error({error});
+			this.logger.error(error.code);
 		}
 	}
 
