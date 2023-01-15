@@ -2,7 +2,7 @@ import { Logger, ParseEnumPipe, ParseUUIDPipe, UseFilters, UseInterceptors, UseP
 import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer, WsException } from "@nestjs/websockets";
 import { Socket, Server, Namespace } from 'socket.io';
 import { env } from "process";
-import { StatusType, GameStatusType, User, RoleType } from "@prisma/client";
+import { StatusType, GameStatusType, User, RoleType, PlayStats } from "@prisma/client";
 
 import { UsersService } from "src/users/users.service";
 import { CustomWsFilter } from "./filters";
@@ -15,6 +15,7 @@ import { type } from "os";
 import { SocketStore } from "./socket-store";
 import { IsNotEmpty, IsUUID } from "class-validator";
 import { ChannelsService } from "src/chat/channels/channels.service";
+import { PlayStatsService } from "src/playstats/playstats-service";
 
 @UseInterceptors(UserInterceptor)
 @UseFilters(new CustomWsFilter())
@@ -24,8 +25,10 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 {
 	private readonly logger = new Logger(MainGateway.name);
 	private readonly socketStore = new SocketStore();
+	private nextRanking: Date;
+	private rankInterval: number = 1000 * 60;
 
-	constructor(private readonly userService: UsersService, private readonly channelService: ChannelsService) {}
+	constructor(private readonly userService: UsersService, private readonly playStatsService: PlayStatsService, private readonly channelService: ChannelsService) { }
 
 	@WebSocketServer()
 	server: Server;
@@ -33,6 +36,32 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	afterInit(server: Server)
 	{
 		this.logger.log('Main Gateway initialized');
+
+		const intervalId = setInterval(async () =>
+		{
+			this.nextRanking = new Date(Date.now() + this.rankInterval)
+			this.server.emit("nextRanking", { nextRanking: this.nextRanking });
+			const usersByPoints = await this.playStatsService.findMany(
+				{
+					orderBy:
+					{
+						points: 'desc',
+					},
+					include:
+					{
+						user: true,
+					}
+				});
+			usersByPoints.forEach((v: PlayStats, i: number) =>
+			{
+				const { userId } = v;
+				this.playStatsService.update(
+					{
+						where: { userId },
+						data: { rank: { set: i + 1 } },
+					})
+			});
+		}, this.rankInterval)
 	}
 
 	handleConnection(client: Socket)
@@ -46,16 +75,27 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	{
 		this.logger.log(`Client ${client.id} disconnected from Main websocket Gateway`);
 		this.socketStore.removeUserSocket(client.data.user.id, client);
-		const ret = await this.userService.user({id: client.data.user.id});
+		const ret = await this.userService.user({ id: client.data.user.id });
+		if (ret.isGuest)
+		{
+			await this.userService.deleteUser({ id: ret.id });
+			return;
+		}
 		if (this.socketStore.getUserSockets(ret.id).length === 0)
 		{
-			this.userService.updateUser({ where: { id:ret.id }, data: { status: StatusType.OFFLINE, gameStatus: GameStatusType.NONE } });
-			this.updateUser(client, ret, {status: StatusType.OFFLINE, gameStatus: GameStatusType.NONE});
+			this.userService.updateUser({ where: { id: ret.id }, data: { status: StatusType.OFFLINE, gameStatus: GameStatusType.NONE } });
+			this.updateUser(client, ret, { status: StatusType.OFFLINE, gameStatus: GameStatusType.NONE });
 		}
 		else if (ret.gameStatus === 'NONE')
 		{
-			this.updateUser(client, ret, {gameStatus: GameStatusType.NONE});
+			this.updateUser(client, ret, { gameStatus: GameStatusType.NONE });
 		}
+	}
+
+	@SubscribeMessage('nextRanking')
+	async sendNextRanking(@ConnectedSocket() client: Socket)
+	{
+		this.server.to(client.id).emit("nextRanking", { nextRanking: this.nextRanking });
 	}
 
 	@SubscribeMessage(events.CHANGE_STATUS)
@@ -69,13 +109,12 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		{
 			this.server.to(v.id).emit(events.UPDATE_USER, { status: updatedUser.status });
 		})
-		this.updateUser(client, user, {status: updatedUser.status});
+		this.updateUser(client, user, { status: updatedUser.status });
 	}
 
 	@SubscribeMessage('changeGameStatus')
 	async changeGameStatus(@ConnectedSocket() client: Socket, @GetUserWs() user: User, @MessageBody('gameStatus', new ParseEnumPipe(GameStatusType)) gameStatus: GameStatusType)
 	{
-		this.logger.debug("changing status:", user.userName, "to:", gameStatus);
 		const updatedUser = await this.userService.updateUser({
 			where: { id: user.id },
 			data: { gameStatus }
@@ -84,7 +123,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		{
 			this.server.to(v.id).emit(events.UPDATE_USER, { gameStatus: updatedUser.gameStatus });
 		})
-		this.updateUser(client, user, {gameStatus: updatedUser.gameStatus});
+		this.updateUser(client, user, { gameStatus: updatedUser.gameStatus });
 	}
 
 	@SubscribeMessage('changeUserName')
@@ -94,7 +133,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		{
 			this.server.to(v.id).emit(events.UPDATE_USER, { userName });
 		})
-		this.updateUser(client, user, {userName});
+		this.updateUser(client, user, { userName });
 	}
 
 	async updateUser(client: Socket, user: User, payload: any)
@@ -104,19 +143,19 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			{
 				where:
 				{
-					AND: {members: {some: {userId: user.id}}},
-					NOT: {members: {some: {userId: user.id, role: RoleType.BANNED}}},	
+					AND: { members: { some: { userId: user.id } } },
+					NOT: { members: { some: { userId: user.id, role: RoleType.BANNED } } },
 				},
-				select: {id: true}
+				select: { id: true }
 			}
 		);
 		const chanIds = joinedChans.map((v) => v.id);
 		//get friendlist
 		const friendList = await this.userService.userSelect(
-			{id: user.id},
-			{friendTo: {select: {id: true}}}
+			{ id: user.id },
+			{ friendTo: { select: { id: true } } }
 		)
-		const friendSockets = friendList.friendTo.map((v) => 
+		const friendSockets = friendList.friendTo.map((v) =>
 		{
 			const sockets = this.socketStore.getUserSockets(v.id);
 			if (!sockets)
@@ -126,9 +165,19 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		const flatSockets = friendSockets.flat(1);
 
 		if (chanIds)
-			this.server.of('/chat').to(chanIds).emit("updateUser", {id: user.id, data: payload})
+			this.server.of('/chat').to(chanIds).emit("updateUser", { id: user.id, data: payload })
 		if (flatSockets)
-			this.server.to(flatSockets).emit("updateFriend", {id: user.id, data:payload});
+			this.server.to(flatSockets).emit("updateFriend", { id: user.id, data: payload });
+	}
+
+	@SubscribeMessage(events.GET_FRIENDLIST)
+	async getFriendList(@MessageBody("userId", ParseUUIDPipe) userId: string, @ConnectedSocket() client: Socket)
+	{
+		const friendList = await this.userService.userSelect(
+			{ id: userId },
+			{ friends: { select: { id: true, userName: true } } }
+		).then((c) => c.friends);
+		this.server.to(client.id).emit(events.GET_FRIENDLIST, friendList);
 	}
 
 	@SubscribeMessage('test')
@@ -142,8 +191,6 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	{
 		const { gameId, invitedUser } = body;
 		const sockets = this.socketStore.getUserSockets(invitedUser);
-		this.logger.debug("invite:", invitedUser);
-		this.logger.debug(sockets.length);
 		if (!sockets)
 		{
 			this.server.to(client.id).emit('userOffline');
@@ -151,7 +198,6 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		}
 		sockets.forEach((v) =>
 		{
-			// console.log("in here");
 			this.server.to(v.id).emit('notification', { type: 'invite', inviter: user.userName, inviterId: user.id, gameId });
 		})
 		// find uid corresponding socket(s)
@@ -162,10 +208,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	@SubscribeMessage('declineInvite')
 	async declineInvite(@ConnectedSocket() client: Socket, @MessageBody('inviterId', new ParseUUIDPipe) inviterId: string)
 	{
-		console.log('declineInvite');
 		const sockets = this.socketStore.getUserSockets(inviterId);
-		this.logger.debug("declining invite from", inviterId)
-		this.logger.debug(sockets.length);
 		sockets.forEach((v) =>
 		{
 			this.server.to(v.id).emit('invitationDeclined');
@@ -230,15 +273,4 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			this.server.to(v.id).emit(chatEvents.NOTIFY, { content: `You have unblocked ${blockedName}` })
 		});
 	}
-}
-
-export class InviteNotificationDto
-{
-	@IsUUID()
-	@IsNotEmpty()
-	gameId: string;
-
-	@IsUUID()
-	@IsNotEmpty()
-	invitedUser: string;
 }

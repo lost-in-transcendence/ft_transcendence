@@ -12,9 +12,10 @@ import { MainGateway } from './websocket-server/main.gateway';
 import { WebsocketModule } from './websocket-server/websocket.module';
 import { GameModule } from './game/game.module';
 import { MatchHistoryModule } from './matchHistory/match-history.module';
+import { PlayStatsModule } from './playstats/playstats-module';
 
 @Module({
-  imports: [PrismaModule, UsersModule, ChannelsModule, AuthModule, ChatModule, TwofaModule, WebsocketModule, GameModule, ChannelMemberModule, MatchHistoryModule/*, ConfigModule.fobbrRoot({isGlobal: true}) */],
+  imports: [PrismaModule, UsersModule, ChannelsModule, AuthModule, ChatModule, TwofaModule, WebsocketModule, GameModule, ChannelMemberModule, MatchHistoryModule, PlayStatsModule/*, ConfigModule.fobbrRoot({isGlobal: true}) */],
   controllers: [AppController],
   providers: [AppService],
 })

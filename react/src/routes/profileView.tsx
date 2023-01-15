@@ -1,30 +1,36 @@
 // import './styles/profile.css'
 
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useLoaderData } from "react-router-dom";
 
 import { backURL } from "../requests/constants";
-import { getUserMeModal, getUserModal } from "../requests";
+import { getUserMatchHistory, getUserMeModal, getUserModal } from "../requests";
 import { getCookie } from "../requests";
 import { addFriend, removeFriend } from "../requests/http/friends.requests";
 import SocketContext from "../components/Socket/socket-context";
+import { MatchHistoryCard } from "../components/MatchHistoryCard/MatchHistoryCard";
+import { StatTable } from "../components/PlayStats/StatTable";
 
-export async function loader({params} : any) {
+export async function loader({ params }: any)
+{
 	// let res = await getUserMeModal(new URLSearchParams({'friends': 'true'}));
 	// const user = await res.json()
-	const res = await getUserModal(params.userName, new URLSearchParams({'playStats': 'true', 'matchHistory': 'true'}));
+	const res = await getUserModal(params.userName, new URLSearchParams({ 'playStats': 'true', 'matchHistory': 'true' }));
 	const profile = await res.json();
-	return ({profile});
+	const lol = await getUserMatchHistory(profile.id);
+	const matchHistory = await lol.json()
+	return ({ profile, matchHistory });
 }
 
-export function ProfileView() {
+export function ProfileView()
+{
 	const data: any = useLoaderData();
-	const {profile} = data;
+	const { profile, matchHistory } = data;
+	// const matchHistory = profile.matchHistory;
 	const playerStats = profile.playStats;
 	const masterSocket = useContext(SocketContext).SocketState.socket;
 	const user = useContext(SocketContext).SocketState.user;
 	// const [isFriends, setIsFriends] = useState(user?.friends?.find((e: any) => e.id === profile.id) ? true : false)
-	// console.log(user.friends);
 	const isFriends = user?.friends?.find((e: any) => e.id === profile.id) ? true : false;
 
 	async function handleFriend()
@@ -42,57 +48,70 @@ export function ProfileView() {
 	}
 
 	return (
-		<div>
-			<div className="profilePage">
-				<div className="profileTitle">
-					<div className="profileImg">
-						<img src={`${backURL}/users/avatars/${profile.userName}?time=${Date.now()}`} />
-					</div>
-					<div className="profileInfo">
-						<h3>{profile.userName}</h3>
-						<p>{profile.status}</p>
-						<p>{profile.gameStatus}</p>
-					</div>
+		<div className="profilePage
+	flex flex-col items-center gap-6
+	text-gray-200 bg-gray-700
+	h-full">
+			<div className="profileTitle
+		flex flex-col items-center justify-around
+		md:flex-row
+		w-full mt-10 p-2
+		bg-gray-800 shadow-md">
+				<div className="profileImg">
+					<img className='rounded-full h-24 w-24' src={`${backURL}/users/avatars/${profile.userName}?time=${Date.now()}`} />
 				</div>
-				<div className="profilePong">
-					<div className="profileStatsContainer">
-						<h2>Stats</h2>
-						<div className="profileStats">
-							{
-								playerStats ?
-									<>
-										<p>Wins : {playerStats.wins}</p>
-										<p>Losses : {playerStats.losses}</p>
-										<p>Rank : {playerStats.rank}</p>
-										<p>Points Scored : {playerStats.points}</p>
-										<p>Achievement points : {playerStats.achievement_points}</p>
-									</>
-									:
-									<p>Something went wrong ! <br /> Check with the owner of this awesome webapp</p>
-							}
-						</div>
-					</div>
-					<div className="profileHistoryContainer">
-						<h2>Match History</h2>
+				<div className="profileInfo">
+					<h3 className="font-bold text-5xl">{profile.userName}</h3>
+					<p className="text-center">{profile.email}</p>
+					<p className="text-center">{profile.status}</p>
+					{
+						profile.gameStatus !== 'NONE' ?
+							<p className="text-center">{profile.gameStatus}</p>
+							: null
+					}
+				</div>
+			</div>
+			<div className="profilePong
+		flex flex-col justify-evenly items-center gap-4
+		md:flex-row md:items-start md:justify-evenly md:gap-0
+		bg-gray-600 w-11/12 md:max-h-96 py-1
+		rounded-lg shadow">
+				<div className="profileStatsContainer w-full p-1">
+					<StatTable playerStats={playerStats} />
+				</div>
+				<div className="profileHistoryContainer w-full h-full">
+					<h2 className="text-center font-bold text-3xl" >
+						Match History
+					</h2>
+					<div className=" w-full md:h-[90%] overflow-y-auto">
 						{
-							profile.matchHistory > 0 ?
+							matchHistory.length !== 0 ?
 								(
-									<ul>
-										<li>There is a match history</li>
+									<ul className="flex flex-col justify-center items-center">
+										{matchHistory.map((v: any) =>
+										{
+											if (!v || !v.player1 || !v.player2)
+												return;
+											return (
+												<li className="w-full" key={v.gameId}>
+													<MatchHistoryCard player1={v.player1} player2={v.player2} />
+												</li>)
+										})}
 									</ul>
 								)
 								:
-								<h3>No match played yet !</h3>
+								<h3 className="text-center">No match played yet !</h3>
 						}
 					</div>
 				</div>
-				{
-					user.id !== profile.id ?
-					<button className={`${isFriends ? "remove" : "add"}-friend`}onClick={handleFriend}>{isFriends ? "Remove" : "Add"} Friend</button>
+				<div className="flex-break"></div>
+			</div>
+			{
+				user.id !== profile.id ?
+					<button className={`${isFriends ? "remove" : "add"}-friend`} onClick={handleFriend}>{isFriends ? "Remove" : "Add"} Friend</button>
 					:
 					<></>
-				}
-			</div>
+			}
 		</div>
 	)
 }

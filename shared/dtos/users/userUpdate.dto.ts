@@ -4,16 +4,14 @@ export class SharedUpdateUserDto
 {
     readonly userName?: string
 
-    readonly email?: string
+	readonly email?: string
 }
 
-export interface SharedUpdateFriendsDto
-{
-    readonly userId: string
+export interface SharedUpdateFriendsDto {
+	readonly userId: string
 }
 
-export enum SharedUserStatus
-{
+export enum SharedUserStatus {
 	ONLINE = 'ONLINE',
 	OFFLINE = 'OFFLINE',
 	BUSY = 'BUSY',
@@ -24,20 +22,22 @@ export enum SharedUserStatus
 
 export interface SharedPlayStatsDto
 {
-	wins: number;
-	losses: number;
-	rank: number;
-	points: number;
-	achievement_points: number;
+    user: SharedPartialUserDto,
+	userId: string,
+	wins: number,
+	losses: number,
+	points: number,
+	rank: number,
+	achievement_points: number,
 }
 
-export interface SharedOtherUserDto
-{
+export interface SharedOtherUserDto {
 	id: string;
-	id42: number;
+	id42: string;
 	userName: string;
 	email: string;
 	avatarPath?: string;
+	isGuest: boolean;
 	status: SharedUserStatus;
 	gameStatus: SharedGameStatusDto;
 	playStats: SharedPlayStatsDto;
@@ -46,31 +46,36 @@ export interface SharedOtherUserDto
 export interface SharedPartialOtherUserDto
 {
 	id?: string;
-	id42?: number;
+	id42?: string;
 	userName?: string;
 	email?: string;
 	avatarPath?: string;
+	isGuest?: boolean;
 	status?: SharedUserStatus;
 	gameStatus?: SharedGameStatusDto;
 	playStats?: SharedPlayStatsDto;
 }
 
-export enum SharedChannelMode
-{
+export interface SharedBanUserDto {
+	userId: string;
+	channelId: string;
+	banTime: number;
+	userName: string;
+}
+
+export enum SharedChannelMode {
 	PUBLIC = 'PUBLIC',
 	PRIVATE = 'PRIVATE',
 	PROTECTED = 'PROTECTED',
 	PRIVMSG = 'PRIVMSG'
 }
 
-interface SharedChannelDto2
-{
+interface SharedChannelDto2 {
 	channelName: string;
 	mode: SharedChannelMode;
 }
 
-export enum SharedChannelRole
-{
+export enum SharedChannelRole {
 	OWNER = 'OWNER',
 	ADMIN = 'ADMIN',
 	MEMBER = 'MEMBER',
@@ -79,8 +84,7 @@ export enum SharedChannelRole
 }
 
 
-export interface SharedJoinedChannelsDto
-{
+export interface SharedJoinedChannelsDto {
 	channelId: string;
 	role: SharedChannelRole;
 	banExpires?: Date;
@@ -88,13 +92,14 @@ export interface SharedJoinedChannelsDto
 	channel: SharedChannelDto2;
 }
 
-export interface SharedFullUserDto
-{
+export interface SharedFullUserDto {
 	id: string;
-	id42: number;
+	id42: string;
 	userName: string;
 	email: string;
 	avatarPath?: string;
+
+	isGuest: boolean;
 
 	twoFaEnabled : boolean;
 
@@ -102,18 +107,20 @@ export interface SharedFullUserDto
 	blacklist?: SharedOtherUserDto[];
 
 	status: SharedUserStatus;
+	gameStatus: SharedGameStatusDto;
 	// matchHistory: ???;
 	playStats?: SharedPlayStatsDto;
 	channels: SharedJoinedChannelsDto[];
 }
 
-export interface SharedPartialUserDto
-{
+export interface SharedPartialUserDto {
 	id?: string;
-	id42?: number;
+	id42?: string;
 	userName?: string;
 	email?: string;
 	avatarPath?: string;
+	
+	isGuest?: boolean;
 
 	twoFaEnabled? : boolean;
 
@@ -121,6 +128,7 @@ export interface SharedPartialUserDto
 	blacklist?: SharedOtherUserDto[];
 
 	status?: SharedUserStatus;
+	gameStatus?: SharedGameStatusDto;
 	// matchHistory: ???;
 	playStats?: SharedPlayStatsDto;
 	channels?: SharedJoinedChannelsDto[];

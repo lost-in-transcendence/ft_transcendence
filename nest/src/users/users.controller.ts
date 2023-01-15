@@ -79,6 +79,15 @@ export class UsersController {
 		return res;
 	}
 
+	@UseGuards(FullAuthGuard)
+	@Get('/me/select')
+	@HttpCode(200)
+	async getMeSelectProfile(@GetUser('id') id: string, @Query() select: UserIncludeQueryDto)
+	{
+		const res = await this.userService.userSelect({id}, select)
+		return res;
+	}
+
 
 	@UseGuards(FullAuthGuard)
 	@Post()
@@ -126,9 +135,7 @@ export class UsersController {
 	async getAvatar(@Param('userName') userName, @Res() res: Response) {
 		const user = await this.userService.user({userName})
 		if (user?.avatarPath)
-		{
 			res.sendFile(user.avatarPath, { root: './' });
-		}
 	}
 
 	@UseGuards(FullAuthGuard)

@@ -3,12 +3,14 @@
 
 import {useLoaderData, useNavigate } from "react-router-dom";
 import { useContext } from "react";
+import { BsPencilFill } from "react-icons/bs";
 
 import { backURL } from "../requests/constants";
 import { getMyMatchHistory, getUserMeFull } from "../requests";
-import { UserCard } from "../components/UserCard/UserCard";
 import SocketContext from "../components/Socket/socket-context";
 import { MatchHistoryCard } from "../components/MatchHistoryCard/MatchHistoryCard";
+import { User } from "../dto/users.dto";
+import { StatTable } from "../components/PlayStats/StatTable";
 
 export async function loader()
 {
@@ -21,8 +23,6 @@ export function Profile()
 {
 	const data: any = useLoaderData();
 	const {user, matchHistory} = data;
-	// console.log({ user });
-	// console.log({matchHistory});
 	const playerStats = user.playStats;
 	const navigate = useNavigate();
 	const { status } = useContext(SocketContext).SocketState.user;
@@ -43,55 +43,36 @@ export function Profile()
 					<h3 className="font-bold text-5xl">{user.userName}</h3>
 					<p className="text-center">{user.email}</p>
 					<p className="text-center">{status}</p>
-					<p className="text-center">{user.gameStatus}</p>
+					{
+						user.gameStatus !== 'NONE' ?
+						<p className="text-center">{user.gameStatus}</p>
+						: null
+					}
 				</div>
 			</div>
 			<div className="profilePong
 								flex flex-col justify-evenly items-center gap-4
 								md:flex-row md:items-start md:justify-evenly md:gap-0
-								bg-zinc-500 w-11/12 md:max-h-96
-								rounded">
+								bg-gray-600 w-11/12 md:max-h-96 py-1
+								rounded-lg shadow">
 				<div className="profileStatsContainer w-full h-max p-1">
-					<table className="w-full">
-						<thead><tr><th colSpan={2}>Stats</th></tr></thead>
-						<tbody>
-							<tr>
-								<td>Wins</td>
-								<td>{playerStats.wins}</td>
-							</tr>
-							<tr>
-								<td>Losses</td>
-								<td>{playerStats.losses}</td>
-							</tr>
-							<tr>
-								<td>Rank</td>
-								<td>{playerStats.rank}</td>
-							</tr>
-							<tr>
-								<td>Points Scored</td>
-								<td>{playerStats.points}</td>
-							</tr>
-							<tr>
-								<td>Achievement points</td>
-								<td>{playerStats.achievement_points}</td>
-							</tr>
-						</tbody>
-
-					</table>
+					<StatTable playerStats={playerStats} />
 				</div>
-				<div className="profileHistoryContainer w-full h-full p-1">
-					<h2 className="text-center font-bold" >Match History</h2>
+				<div className="profileHistoryContainer w-full h-full">
+					<h2 className="text-center font-bold text-3xl" >
+						Match History
+					</h2>
 					<div className=" w-full md:h-[90%] overflow-y-auto">
 						{
 							user.matchHistory !== 0 ?
 								(
-									<ul className="">
+									<ul className="flex flex-col justify-center items-center">
 										{ matchHistory.map((v: any) =>
 										{
 											if (!v || !v.player1 || !v.player2)
 												return;
 											return (
-											<li key={v.gameId}>
+											<li className="w-full" key={v.gameId}>
 												<MatchHistoryCard player1={v.player1} player2={v.player2} />
 											</li>)
 										})}
@@ -104,25 +85,15 @@ export function Profile()
 				</div>
 				<div className="flex-break"></div>
 			</div>
-			<div className="friendListContainer  w-11/12 md:w-1/2 bg-zinc-500 text-center rounded">
-				<h2>Friends</h2>
-				{
-					user.friends.length > 0 ?
-						(
-							<div className="overflow-y-auto">
-								<ul>
-									{user.friends.map((f: any) =>
-									{
-										return <UserCard user={f}></UserCard>
-									})}
-								</ul>
-							</div>
-						)
-						:
-						<h3>You have no friends :(</h3>
-				}
-			</div>
-			<button onClick={() => { navigate("/profile/edit"); }}>Edit Profile</button>
+			<button
+				className="bg-indigo-500 rounded shadow px-2 text-gray-300 flex items-center gap-1"
+				onClick={() => { navigate("/profile/edit"); }}
+			>
+					<span>
+						<BsPencilFill size={12} />
+					</span>
+					<span>Edit Profile</span>
+			</button>
 		</div>
 	)
 }

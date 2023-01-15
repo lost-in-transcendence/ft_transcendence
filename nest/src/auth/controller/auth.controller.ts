@@ -55,9 +55,12 @@ export class AuthController
 	}
 
 	@Post('dev-signup')
-	devAuth(@Body() fakeInfos: {id42: number, userName: string, email: string, avatarPath: any})
+	@HttpCode(200)
+	async devAuth(@Body() fakeInfos: {id42: string, userName: string, email: string, avatarPath: any, isGuest: Boolean }, @Res({ passthrough: true }) res )
 	{
 		fakeInfos.avatarPath = FAKE_IMG_URL;
-		return (this.authService.fakeLogin(fakeInfos));
+		fakeInfos.isGuest = true;
+		const {token} = await this.authService.fakeLogin(fakeInfos);
+		await this.authService.setJwtCookies(res, token);
 	}
 }

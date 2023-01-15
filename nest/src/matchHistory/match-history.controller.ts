@@ -24,7 +24,7 @@ export class MatchHistoryController
     }
 
     @UseGuards(FullAuthGuard)
-    @Get("/:userId")
+    @Get("/get/:userId")
     @HttpCode(200)
     async getMatchHistory(@Param('userId', new ParseUUIDPipe) userId: string)
     {

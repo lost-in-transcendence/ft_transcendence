@@ -1,14 +1,15 @@
-import { ImATeapotException, Injectable, Logger, PreconditionFailedException } from '@nestjs/common';
+import { ForbiddenException, ImATeapotException, Injectable, Logger, PreconditionFailedException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { joinChannelDto } from '../dto';
-import { ChannelMemberDto } from './dto';
+
+import { BanMemberDto, ChannelMemberDto } from './dto';
 
 @Injectable()
-export class ChannelMemberService 
+export class ChannelMemberService
 {
-	constructor(private readonly prisma: PrismaService) {}
+	constructor(private readonly prisma: PrismaService) { }
 	private readonly logger = new Logger(ChannelMemberService.name);
 
 	async create(dto: joinChannelDto)
@@ -46,8 +47,8 @@ export class ChannelMemberService
 					throw new PreconditionFailedException('Record not found');
 				if (error.code === 'P2002')
 					throw new PreconditionFailedException('User already in channel');
-				}
-			this.logger.error({error});
+			}
+			this.logger.error({ error });
 			throw new ImATeapotException('something unexpected happened');
 		}
 	}
@@ -62,23 +63,80 @@ export class ChannelMemberService
 		}))
 	}
 
-	async changeRole(dto: ChannelMemberDto)
+	async banUser(dto: BanMemberDto)
 	{
+		const bannedUser = await this.prisma.channelMember.findUnique({where: {userId_channelId: {userId: dto.userId, channelId: dto.channelId}}});
+		if (bannedUser.role === 'OWNER')
+			throw new ForbiddenException(`Cannot ban the owner of a channel`);
 		const ret = await this.prisma.channelMember.update({
 			where: {
-				userId_channelId: {userId: dto.userId, channelId: dto.channelId}
+				userId_channelId: { userId: dto.userId, channelId: dto.channelId }
 			},
 			data: {
-				role: dto.role
+				banExpires: new Date(Date.now() + dto.banTime),
+				role: 'BANNED'
 			}
 		})
-		console.log({ret});
+	}
+
+	async muteUser(dto: BanMemberDto)
+	{
+		const mutedUser = await this.prisma.channelMember.findUnique({where: {userId_channelId: {userId: dto.userId, channelId: dto.channelId}}});
+		if (mutedUser.role === 'OWNER')
+			throw new ForbiddenException(`Cannot mute the owner of a channel`);
+		const ret = await this.prisma.channelMember.update({
+			where: {
+				userId_channelId: { userId: dto.userId, channelId: dto.channelId }
+			},
+			data: {
+				muteExpires: new Date(Date.now() + dto.banTime),
+				role: 'MUTED'
+			}
+		});
+		return (ret);
+	}
+
+	async changeRole(dto: ChannelMemberDto)
+	{
+		try{
+			const ret = await this.prisma.channelMember.update({
+				where: {
+				userId_channelId: { userId: dto.userId, channelId: dto.channelId }
+				},
+				data: {
+					role: dto.role
+				},
+				include:
+				{
+					channel:
+					{
+						select:
+						{
+							id: true,
+							channelName: true,
+							mode: true,
+							members: true
+						}
+					}
+				}
+			})
+			return (ret)
+		}
+		catch(error)
+		{
+			if (error instanceof PrismaClientKnownRequestError)
+			{
+				if (error.code === 'P2025')
+					throw new PreconditionFailedException('Record to update not found');
+			}
+			this.logger.error({error});
+		}
 	}
 
 	async getOne(dto: ChannelMemberDto)
 	{
 		return (await this.prisma.channelMember.findUnique({
-			where: {userId_channelId: {userId:  dto.userId, channelId:  dto.channelId}}
+			where: { userId_channelId: { userId: dto.userId, channelId: dto.channelId } }
 		}))
 	}
 
@@ -87,20 +145,123 @@ export class ChannelMemberService
 		if (dto.channelId === null)
 		{
 			return (await this.prisma.channelMember.findMany({
-				where: {userId: dto.userId}
+				where: { userId: dto.userId }
 			}))
 		}
 		return (await this.prisma.channelMember.findMany({
-			where: {channelId: dto.channelId}
+			where: { channelId: dto.channelId }
 		}))
+	}
+
+	async findMany(params: Prisma.ChannelMemberFindManyArgs)
+	{
+		return await this.prisma.channelMember.findMany(params);
 	}
 
 	async usersFromChannel(params: Prisma.ChannelMemberFindManyArgs)
 	{
-		const {where, select} = params;
+		const { where, select } = params;
 		return this.prisma.channelMember.findMany({
 			where,
 			select
 		})
+	}
+
+	async getBannedFromChannels(userId: Prisma.ChannelMemberWhereInput)
+	{
+		const bannedFromList = await this.prisma.channelMember.findMany({
+			where:
+			{
+				AND:
+					[
+						userId,
+						{ role: 'BANNED' }
+					]
+			}
+		});
+		return (bannedFromList);
+	}
+
+	async amINaughty(userId: Prisma.ChannelMemberWhereInput)
+	{
+		const naughtyList = await this.prisma.channelMember.findMany({
+			where:
+			{
+				AND:
+					[
+						userId,
+						{
+							OR:
+								[
+									{ role: 'BANNED' },
+									{ role: 'MUTED' }
+								]
+						}
+					]
+			}
+		});
+		return (naughtyList);
+	}
+
+	async getBanList(channelId: Prisma.ChannelMemberWhereInput)
+	{
+		const banList = await this.prisma.channelMember.findMany({
+			where:
+			{
+				AND:
+					[
+						channelId,
+						{ role: 'BANNED' }
+					]
+			},
+			select:
+			{
+				role: true,
+				timeJoined: true,
+				user:
+				{
+					select:
+					{
+						id: true,
+						userName: true,
+						status: true,
+						gameStatus: true,
+						avatarPath: true
+					}
+				}
+			}
+		});
+		return (banList);
+	}
+	
+	async getMuteList(channelId: Prisma.ChannelMemberWhereInput)
+	{
+		const muteList = await this.prisma.channelMember.findMany({
+			where:
+			{
+				AND:
+					[
+						channelId,
+						{ role: 'MUTED' }
+					]
+			},
+			select:
+			{
+				role: true,
+				timeJoined: true,
+				user:
+				{
+					select:
+					{
+						id: true,
+						userName: true,
+						status: true,
+						gameStatus: true,
+						avatarPath: true
+					}
+				}
+			}
+		});
+		return (muteList);
 	}
 }

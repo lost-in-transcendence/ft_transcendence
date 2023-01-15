@@ -4,47 +4,54 @@ import { ReactNode, useEffect, useState } from 'react'
 import ReactDOM from 'react-dom';
 import { ImCross as CloseButton } from 'react-icons/im'
 
-export default function Modal(props: { isOpen: boolean, onOpen?: any, onClose: any, children: any })
+interface IModalProps
+{
+	isOpen: boolean
+	onClose: any
+	children: any
+	onOpen?: any
+	className?: string
+}
+
+export default function Modal({ isOpen, onClose, children, onOpen, className = 'bg-gray-300 rounded' }: IModalProps)
 {
 	const [displayChild, setDisplayChild] = useState(false);
 	useEffect(() =>
 	{
 		async function openEvent()
 		{
-			console.log('in openEvent');
-			const ret = await props.onOpen();
+			const ret = await onOpen();
 			if (ret === true)
 				setDisplayChild(true);
 		}
-		if (props.isOpen === true && !props.onOpen)
+		if (isOpen === true && !onOpen)
 		{
 			setDisplayChild(true);
 		}
-		else if (props.onOpen && props.isOpen === true)
+		else if (onOpen && isOpen === true)
 		{
 			openEvent();
 		}
-		if (props.isOpen === false)
+		if (isOpen === false)
 			setDisplayChild(false);
-	}, [props.isOpen])
+	}, [isOpen])
 
 	function closeModal()
 	{
-		console.log('in close modal');
 		setDisplayChild(false);
-		props.onClose();
+		onClose();
 	}
 
 	return ReactDOM.createPortal(
 
-		<div className={`modal-overlay z-20 ${props.isOpen ? 'modal-open' : ''}`} onClick={(e) => { e.stopPropagation(); closeModal() }}>
-			<div className="modal-content bg-gray-300 rounded" onClick={e => e.stopPropagation()}>
+		<div className={`modal-overlay z-[9999] ${isOpen ? 'modal-open' : ''}`} onClick={(e) => { e.stopPropagation(); closeModal() }}>
+			<div className={`modal-content ${className}`} onClick={e => e.stopPropagation()}>
 				<div className="modal-body">
-					{displayChild ? props.children : null}
+					{displayChild ? children : null}
 				</div>
 				<button
 					onClick={closeModal}
-					className="absolute right-2 top-1.5 text-red-700"
+					className="absolute right-1 top-1 text-red-700"
 				>
 					<CloseButton size={'12'} />
 				</button>

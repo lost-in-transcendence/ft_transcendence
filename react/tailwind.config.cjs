@@ -12,6 +12,7 @@ module.exports = {
 				'spin-slow': 'spin 10s linear infinite',
 			}
 		},
+		
 	},
 	plugins: [],
 }
