@@ -8,6 +8,7 @@ import { changeStatus } from "../../requests/ws/users.messages";
 import { SharedUserStatus } from "../../../shared/dtos";
 import { toast } from "react-toastify";
 import { displayInviteNotification } from "../Notifications/invite-notification";
+import { Spinner } from "../Spinner/Spinner";
 
 export default function SocketContextComponent(props: any)
 {
@@ -99,7 +100,12 @@ export default function SocketContextComponent(props: any)
 	}
 
 	if (loading)
-		return <p>Loading Socket IO...</p>
+		return (
+			<div className="flex flex-col justify-center items-center h-full w-full">
+				<h1 className="text-indigo-300 mb-2 text-3xl">Loading SocketIO ...</h1>
+				<Spinner />
+			</div>
+		)
 
 	return (
 		<SocketContextProvider value={{ SocketState, SocketDispatch }}>

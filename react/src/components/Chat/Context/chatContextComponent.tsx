@@ -82,7 +82,10 @@ export function ChatContextComponent(props: any)
 
 	if (loading)
 		return (
-			<Spinner />
+			<div className="flex flex-col justify-center items-center h-full w-full">
+				<h1 className="text-indigo-300 mb-2 text-3xl">Loading SocketIO ...</h1>
+				<Spinner />
+			</div>
 		);
 
 	return (
