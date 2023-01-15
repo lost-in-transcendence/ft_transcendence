@@ -108,16 +108,18 @@ class OngoingGame
 	score1: number = 0;
 	score2: number = 0;
 
-	// scoreObjective: number;
-	timer?: number;
-	goal: number;
+    // scoreObjective: number;
+    timer?: number;
+    goal: number;
+    objective: Objective;
+    theme: string;
 
-	objective: Objective;
+    paddle1: Paddle;
+    paddle2: Paddle;
+    
+    launchTime: number;
 
-	paddle1: Paddle;
-	paddle2: Paddle;
-
-	ball: any;
+    ball: any;
 
 	winner: number;
 
@@ -126,25 +128,27 @@ class OngoingGame
 	disconnectedSocket: string;
 	spectators: Spectator[] = [];
 
-	constructor(params: { id: string, user1: User, user2: User, user1SocketId: string, user2SocketId: string, objective: Objective, goal: number; })
-	{
-		const { id, user1, user2, user1SocketId, user2SocketId, objective, goal } = params;
-		this.id = id;
-		this.user1 = user1;
-		this.user2 = user2;
-		this.user1SocketId = user1SocketId;
-		this.user2SocketId = user2SocketId;
-		this.paddle1 = new Paddle(Math.round((height / 2) - 50), 100);
-		this.paddle2 = new Paddle(Math.round((height / 2) - 50), 100);
-		this.ball = new Ball({ x: width / 2, y: height / 2 }, { x: 1, y: 1 }, 25);
-		this.objective = objective;
-		this.goal = goal;
-		this.winner = 0;
-		if (this.objective === Objective.TIME)
-		{
-			this.timer = this.goal * 1000 * 60;
-		}
-	}
+    constructor(params: {id: string, user1: User, user2: User, user1SocketId: string, user2SocketId: string, objective: Objective, goal: number, theme: string})
+    {
+        const {id, user1, user2, user1SocketId, user2SocketId, objective, goal, theme} = params;
+        this.id = id;
+        this.user1 = user1;
+        this.user2 = user2;
+        this.user1SocketId = user1SocketId;
+        this.user2SocketId = user2SocketId;
+        this.paddle1 = new Paddle(Math.round((height / 2) - 50), 100);
+        this.paddle2 = new Paddle(Math.round((height / 2) - 50), 100);
+        this.ball = new Ball({x: width / 2, y:height / 2}, {x: 1, y:1}, 25);
+        this.objective = objective;
+        this.goal = goal;
+        this.theme = theme;
+        this.winner = 0;
+        this.launchTime = 0;
+        if (this.objective === Objective.TIME)
+        {
+            this.timer = this.goal * 1000 * 60;
+        }
+    }
 }
 
 @Injectable()
@@ -162,23 +166,24 @@ export class GameComputer
 		this.server = server;
 	}
 
-	async newGame(waitingRoom: GameWaitingRoom)
-	{
-		const { id, user1, user2, objective, goal, user1SocketId, user2SocketId } = waitingRoom;
-		const game = new OngoingGame(
-			{
-				id,
-				user1,
-				user2,
-				user1SocketId,
-				user2SocketId,
-				objective,
-				goal,
-			});
-		this.ongoingGames.push(game);
-		this.runGame(game);
-		return game;
-	}
+    async newGame(waitingRoom: GameWaitingRoom)
+    {
+        const {id, user1, user2, objective, goal, theme, user1SocketId, user2SocketId} = waitingRoom;
+        const game = new OngoingGame(
+            {
+                id, 
+                user1,
+                user2,
+                user1SocketId,
+                user2SocketId,
+                objective,
+                goal,
+                theme,
+            });
+        this.ongoingGames.push(game);
+        this.runGame(game);
+        return game;
+    }
 
 	async paddleMove(userSocketId: string, direction: PaddleDirection)
 	{
@@ -386,7 +391,7 @@ export class GameComputer
 			{
 				winner: winner.userName,
 				loser: loser.userName,
-				reason: game.disconnectedSocket ? `${loser.userName} disconnected.` : ''
+				reason: game.disconnectedSocket ? `${loserName.length > 15 ? loserName.slice(0,15) + '...' : loserName} disconnected.` : ''
 			})
 		this.playStatsService.update({
 			where: { userId: winner.id },
@@ -520,6 +525,7 @@ export class GameComputer
 					ongoing: true,
 				}
 			});
+            game.launchTime = Date.now();
 			this.emitOngoingGames();
 		}
 	}
@@ -549,40 +555,36 @@ export class GameComputer
 		game.spectators = game.spectators.filter((v) => v.socketId !== socketId);
 	}
 
-	isAPlayer(game: OngoingGame, userSocketId: string)
-	{
-		const { user1SocketId, user2SocketId } = game;
-		if (user1SocketId === userSocketId)
-			return 1;
-		else if (user2SocketId === userSocketId)
-			return 2;
-		return 0;
-	}
+    isAPlayer(game: OngoingGame, userSocketId: string)
+    {
+        const {user1SocketId, user2SocketId} = game;
+        if (user1SocketId === userSocketId)
+            return 1;
+        else if (user2SocketId === userSocketId)
+            return 2;
+        return 0;
+    }
 
-	async startGame()
-	{
-
-	}
-
-	getOngoingGames()
-	{
-		const ongoingGames = []
-		for (let room of this.ongoingGames)
-		{
-			if (room.status !== GameStatusValue.ONGOING)
-				continue;
-			ongoingGames.push(
-				{
-					id: room.id,
-					objective: room.objective,
-					goal: room.goal,
-					user1: room.user1.userName,
-					user2: room.user2.userName,
-				}
-			);
-		}
-		return ongoingGames;
-	}
+    getOngoingGames()
+    {
+        const ongoingGames = []
+        for ( let room of this.ongoingGames)
+        {
+            if (room.status !== GameStatusValue.ONGOING)
+                continue;
+            ongoingGames.push(
+                {
+                    id : room.id,
+                    objective: room.objective,
+                    goal: room.goal,
+                    user1: room.user1.userName,
+                    user2: room.user2.userName,
+                    theme: room.theme,
+                }
+            );
+        }
+        return ongoingGames;
+    }
 
 	emitOngoingGames()
 	{
