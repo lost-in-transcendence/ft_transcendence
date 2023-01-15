@@ -10,7 +10,6 @@ import { addFriend, removeFriend } from "../requests/http/friends.requests";
 import SocketContext from "../components/Socket/socket-context";
 import { MatchHistoryCard } from "../components/MatchHistoryCard/MatchHistoryCard";
 import { StatTable } from "../components/PlayStats/StatTable";
-import * as events from '../../../shared/constants'
 
 export async function loader({ params }: any) {
 	// let res = await getUserMeModal(new URLSearchParams({'friends': 'true'}));
@@ -23,21 +22,14 @@ export async function loader({ params }: any) {
 }
 
 export function ProfileView() {
-	const mainCtx = useContext(SocketContext)
-	const masterSocket = useContext(SocketContext).SocketState.socket;
-	const user = useContext(SocketContext).SocketState.user;
 	const data: any = useLoaderData();
 	const { profile, matchHistory } = data;
 	// const matchHistory = profile.matchHistory;
 	const playerStats = profile.playStats;
-
+	const masterSocket = useContext(SocketContext).SocketState.socket;
+	const user = useContext(SocketContext).SocketState.user;
 	// const [isFriends, setIsFriends] = useState(user?.friends?.find((e: any) => e.id === profile.id) ? true : false)
-	const blacklist = mainCtx.SocketState.user.blacklist;
-	const friendlist = mainCtx.SocketState.user.friends;
-
-
-	const isInBlacklist: boolean = blacklist?.find((u) => u.id === profile.id) ? true : false;
-	const isFriends: boolean = friendlist?.find((u) => u.id === profile.id) ? true : false;
+	const isFriends = user?.friends?.find((e: any) => e.id === profile.id) ? true : false;
 
 	async function handleFriend() {
 		if (isFriends) {
@@ -48,18 +40,6 @@ export function ProfileView() {
 		}
 		masterSocket?.emit('changeFriends')
 		// setIsFriends(user?.friends?.find((e: any) => e.id === profile.id) ? true : false);
-	}
-
-	async function handleBlock() {
-		if (isInBlacklist) {
-			if (isFriends) {
-				await removeFriend(profile.id)
-				masterSocket?.emit("changeFriends");
-			}
-			masterSocket?.emit(events.BLOCK_USER, { userId: profile.id });
-		}
-		else
-			masterSocket?.emit(events.UNBLOCK_USER, { userId: profile.id });
 	}
 
 	return (
@@ -77,6 +57,7 @@ export function ProfileView() {
 				</div>
 				<div className="profileInfo">
 					<h3 className="font-bold text-5xl">{profile.userName}</h3>
+					<p className="text-center">{profile.email}</p>
 					<p className="text-center">{profile.status}</p>
 					{
 						profile.gameStatus !== 'NONE' ?
@@ -122,12 +103,6 @@ export function ProfileView() {
 			{
 				user.id !== profile.id ?
 					<button className={`${isFriends ? "remove" : "add"}-friend`} onClick={handleFriend}>{isFriends ? "Remove" : "Add"} Friend</button>
-					:
-					<></>
-			}
-			{
-				user.id !== profile.id ?
-					<button onClick={handleBlock}>{isInBlacklist ? "Unblock" : "block"} user</button>
 					:
 					<></>
 			}

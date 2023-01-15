@@ -101,17 +101,14 @@ export function ContextMenu({ x, y, channel, target }: ContextMenuData) {
 	}
 
 	async function toggleFriend(id: string, isInFriendList: boolean) {
-		if (isInBlacklist)
-			mainSocket?.emit(events.UNBLOCK_USER, { userId: targetId });
-
 		let toggleFunc: Function = isInFriendList ? removeFriend : addFriend;
 		if (await toggleFunc(id) === true)
 			mainSocket?.emit("changeFriends");
 	}
 
 
-	const liClassName: string =
-		'hover:bg-indigo-600 cursor-pointer rounded text-white';
+	const clickable: string = 'hover:bg-indigo-600 cursor-pointer rounded text-white';
+	const noneClickable: string = 'rounded text-gray-700';
 
 	return (
 		<ul
@@ -119,7 +116,7 @@ export function ContextMenu({ x, y, channel, target }: ContextMenuData) {
 			style={{ top: `${y}px`, left: `${x}px` }}
 		>
 			<li
-				className={liClassName}
+				className={clickable}
 				onClick={() => {
 					goToProfile(userName);
 				}}
@@ -130,39 +127,67 @@ export function ContextMenu({ x, y, channel, target }: ContextMenuData) {
 				currentUser.id !== targetId &&
 				<>
 					{
-						target.gameStatus === 'NONE' ?
-							<li className={liClassName} onClick={() => inviteToGame()}>Invite to play</li>
-							: <></>
+						isInBlacklist && target.gameStatus === 'NONE' ?
+							<li className={noneClickable}>
+								Invite to play
+							</li>
+							:
+							target.gameStatus === 'NONE' ?
+								<li className={clickable} onClick={() => inviteToGame()}>Invite to play</li>
+								: <></>
 					}
 					{
-						target.gameStatus === 'INGAME' ?
-							<li className={liClassName} onClick={() => spectateGame()}>Spectate game</li>
-							: <></>
+						isInBlacklist && target.gameStatus === 'INGAME' ?
+							<li className={noneClickable}>
+								Spectate game
+							</li>
+							:
+							target.gameStatus === 'INGAME' ?
+								<li className={clickable} onClick={() => spectateGame()}>Spectate game</li>
+								: <></>
 					}
-					<li
-						className={liClassName}
-						onClick={() => toggleFriend(targetId, isInFriendList)}
-					>
-						{isInFriendList ? 'Remove' : 'Add'} Friend
-					</li>
-					<li className={liClassName}>Invite to channel</li>
-					<li
-						className={liClassName}
-						onClick={sendPrivmsg}
-					>
-						Direct Message
-					</li>
 					{
 						isInBlacklist ?
 							<li
-								className={liClassName}
+								className={noneClickable}>
+								Add Friend
+							</li>
+							:
+							<li
+								className={clickable}
+								onClick={() => toggleFriend(targetId, isInFriendList)}
+							>
+								{isInFriendList ? 'Remove' : 'Add'} Friend
+							</li>
+					}
+					{
+						isInBlacklist ?
+							<li className={noneClickable}>Invite to channel</li>
+							:
+							<li className={clickable}>Invite to channel</li>
+					}
+					{
+						isInBlacklist ?
+							<li className={noneClickable}>Direct Message</li>
+							:
+							<li
+								className={clickable}
+								onClick={sendPrivmsg}
+							>
+								Direct Message
+							</li>
+					}
+					{
+						isInBlacklist ?
+							<li
+								className={clickable}
 								onClick={unblockUser}
 							>
 								Unblock
 							</li>
 							:
 							<li
-								className={liClassName}
+								className={clickable}
 								onClick={() => { blockUser(targetId) }}
 							>
 								Block
@@ -178,14 +203,14 @@ export function ContextMenu({ x, y, channel, target }: ContextMenuData) {
 									(
 										targetIsAdmin ?
 											<li
-												className={liClassName}
+												className={clickable}
 												onClick={demoteUser}
 											>
 												Demote
 											</li>
 											:
 											<li
-												className={liClassName}
+												className={clickable}
 												onClick={promoteUser}
 											>
 												Promote
@@ -194,7 +219,7 @@ export function ContextMenu({ x, y, channel, target }: ContextMenuData) {
 								}
 								{
 									isAdmin && !targetIsOwner &&
-									<li className={liClassName}
+									<li className={clickable}
 										onClick={(e) => { e.stopPropagation(); setBanBoxIsOpen(true) }}
 									>
 										<Modal isOpen={banBoxIsOpen} onClose={() => setBanBoxIsOpen(false)}>
@@ -210,7 +235,7 @@ export function ContextMenu({ x, y, channel, target }: ContextMenuData) {
 								}
 								{
 									isAdmin && !targetIsOwner &&
-									<li className={liClassName}
+									<li className={clickable}
 										onClick={(e) => { e.stopPropagation(); setMuteBoxIsOpen(true) }}
 									>
 										<Modal isOpen={mutBoxIsOpen} onClose={() => setMuteBoxIsOpen(false)}>
@@ -230,6 +255,6 @@ export function ContextMenu({ x, y, channel, target }: ContextMenuData) {
 					}
 				</>
 			}
-		</ul>
+		</ul >
 	)
 }
