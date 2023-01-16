@@ -92,7 +92,6 @@ export function Game()
 		socket?.on('roomReady', (payload: any) =>
 		{
 			const { roomId, user1Name, user2Name, theme, launchTime } = payload;
-			console.log('roomReady received  payload:', payload);
 			setStatus('matchFound');
 			setRoomState(roomId);
 			setGameInfos({ theme, user1Name, user2Name, launchTime });
