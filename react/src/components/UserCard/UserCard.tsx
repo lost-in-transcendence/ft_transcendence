@@ -1,4 +1,3 @@
-// import './UserCard.css'
 
 import { NavLink } from "react-router-dom";
 import { backURL } from "../../requests";

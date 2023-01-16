@@ -108,7 +108,6 @@ export interface SharedFullUserDto {
 
 	status: SharedUserStatus;
 	gameStatus: SharedGameStatusDto;
-	// matchHistory: ???;
 	playStats?: SharedPlayStatsDto;
 	channels: SharedJoinedChannelsDto[];
 }
@@ -129,7 +128,6 @@ export interface SharedPartialUserDto {
 
 	status?: SharedUserStatus;
 	gameStatus?: SharedGameStatusDto;
-	// matchHistory: ???;
 	playStats?: SharedPlayStatsDto;
 	channels?: SharedJoinedChannelsDto[];
 }

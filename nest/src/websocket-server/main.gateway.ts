@@ -40,7 +40,6 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		const intervalId = setInterval(async () =>
 		{
 			this.nextRanking = new Date(Date.now() + this.rankInterval)
-			// console.log(this.nextRanking);
 			this.server.emit("nextRanking", { nextRanking: this.nextRanking });
 			const usersByPoints = await this.playStatsService.findMany(
 				{
@@ -67,21 +66,14 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
 	handleConnection(client: Socket)
 	{
-		this.logger.log(`Client ${client.id} connected to Main websocket Gateway`);
 		this.server.to(client.id).emit('handshake', client.data.user);
 		this.socketStore.setUserSockets(client.data.user.id, client);
 	}
 
 	async handleDisconnect(client: Socket)
 	{
-		this.logger.log(`Client ${client.id} disconnected from Main websocket Gateway`);
 		this.socketStore.removeUserSocket(client.data.user.id, client);
 		const ret = await this.userService.user({id: client.data.user.id});
-		// if (ret.isGuest)
-		// {
-		// 	await this.userService.deleteUser({id : ret.id});
-		// 	return;
-		// }
 		if (this.socketStore.getUserSockets(ret.id).length === 0)
 		{
 			this.userService.updateUser({ where: { id: ret.id }, data: { status: StatusType.OFFLINE, gameStatus: GameStatusType.NONE } });

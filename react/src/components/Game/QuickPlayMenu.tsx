@@ -25,15 +25,16 @@ export function QuickPlayMenu()
 				parentClassName='bg-gray-700 mx-auto text-gray-300 text-xl mt-1'
 				childrenClassName='mx-4 my-2 p-2 rounded-lg shadow'
 			>
-				<p className="text-gray-300" >
+				<div className="text-gray-300" >
 					<h2 className="text-2xl">Rules are simple :</h2>
 					<ul>
 						<li>
-							- If the ball passes your oponent's paddle you score a Point
+							- If the ball passes your opponent's paddle you score a Point
 						</li>
 						<li>
 							- Score as many points as you can before the time limit or reach the point limit and victory is yours !
 						</li>
+						
 					</ul>
 					<br />
 					<h2 className="text-2xl">Controls :</h2>
@@ -45,7 +46,23 @@ export function QuickPlayMenu()
 							<span>S</span> : Move paddle DOWN
 						</li>
 					</ul>
-				</p>
+					<br />
+					<h2 className="text-xl">Menus :</h2>
+					<ul>
+						<li>
+							- Quickplay : first to 5 points win!
+						</li>
+						<li>
+							- Custom Game : create a game with custom objective and theme, be able to invite avalaible players
+						</li>
+						<li>
+							- Waiting Rooms : List of custom game rooms with an avalaible player slot
+						</li>
+						<li>
+							- Ongoing Games : List of games currently ongoing
+						</li>
+					</ul>
+				</div>
 			</Accordeon>
 			<button className="
 						 flex flex-row gap-4 items-center mx-auto p-1 justify-items-center

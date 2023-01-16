@@ -4,15 +4,6 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 import { create } from 'domain';
 import { PrismaService } from 'src/prisma/prisma.service';
 
-// type userFindManyParams =
-// 	{
-// 		skip?: number;
-// 		take?: number;
-// 		cursor?: Prisma.UserWhereUniqueInput;
-// 		where?: Prisma.UserWhereInput;
-// 		orderBy?: Prisma.UserOrderByWithRelationInput;
-// 	}
-
 @Injectable()
 export class UsersService {
 
@@ -75,7 +66,6 @@ export class UsersService {
 	** @returns {Promis<User[]]>} Returns a Promise to an array of all Users in database
 	*/
 	async users(params: Prisma.UserFindManyArgs): Promise<User[]> {
-		// const { skip, take, cursor, where, orderBy } = params;
 		return this.prisma.user.findMany(
 			params);
 	}

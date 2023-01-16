@@ -108,7 +108,6 @@ class OngoingGame
 	score1: number = 0;
 	score2: number = 0;
 
-    // scoreObjective: number;
     timer?: number;
     goal: number;
     objective: Objective;
@@ -193,26 +192,10 @@ export class GameComputer
 			const isPlayer = this.isAPlayer(game, userSocketId);
 			if (isPlayer === 1)
 			{
-				// if (game.paddle1.speed === 0)
-				//     game.paddle1.speed = 5;
-				// else
-				//     game.paddle1.speed += 2.5;
-				// if (game.paddle1.speed > 30)
-				//     game.paddle1.speed = 30;
-				// if (direction === PaddleDirection.IDLE)
-				//     game.paddle1.speed = 0;
 				game.paddle1.direction = direction;
 			}
 			else if (isPlayer === 2)
 			{
-				// if (game.paddle2.speed === 0)
-				//     game.paddle2.speed = 5;
-				// else
-				//     game.paddle2.speed += 2.5;
-				// if (game.paddle2.speed > 30)
-				//     game.paddle2.speed = 30;
-				// if (direction === PaddleDirection.IDLE)
-				//     game.paddle2.speed = 0;
 				game.paddle2.direction = direction;
 			}
 		}
@@ -229,18 +212,6 @@ export class GameComputer
 			else
 				game.ball.position.x = width - game.ball.size;
 			game.ball.direction.x *= -1;
-			// if (game.ball.position.y <= paddle.position + paddle.size / 3)
-			// {
-			//     game.ball.direction.y = -1;
-			// }
-			// else if (game.ball.position.y >= paddle.position + paddle.size - paddle.size / 3)
-			// {
-			//     game.ball.direction.y = 1;
-			// }
-			// else
-			// {
-			//     game.ball.direction.y = 0;
-			// }
 			const paddleHalf = paddle.size / 2;
 			const paddleCenter = paddle.position + paddleHalf;
 			const distToPaddle = game.ball.position.y - paddleCenter;

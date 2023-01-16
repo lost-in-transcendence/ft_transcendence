@@ -67,8 +67,8 @@ export function Game()
 			{
 				socket?.emit("leaveQueue");
 				setError('Your invitation was declined');
+				setStatus('waiting');
 				setRoomState('');
-				masterSocket?.emit('changeGameStatus', { gameStatus: GameStatus.NONE })
 			});
 		});
 		masterSocket?.on('userOffline', () =>
@@ -79,7 +79,6 @@ export function Game()
 		});
 		socket?.on("leftQueue", () =>
 		{
-			// setStatus('waiting');
 			masterSocket?.emit('changeGameStatus', { gameStatus: GameStatus.NONE })
 			masterSocket?.off("invitationDeclined");
 		});
@@ -92,7 +91,6 @@ export function Game()
 		socket?.on('roomReady', (payload: any) =>
 		{
 			const { roomId, user1Name, user2Name, theme, launchTime } = payload;
-			console.log('roomReady received  payload:', payload);
 			setStatus('matchFound');
 			setRoomState(roomId);
 			setGameInfos({ theme, user1Name, user2Name, launchTime });
@@ -110,7 +108,6 @@ export function Game()
 		socket?.on('startGameAsSpectator', (payload: any) =>
 		{
 			const {user1Name, user2Name, theme, launchTime} = payload;
-			console.log(payload);
 			setAsSpectator(true);
 			setStatus('ongoingGame');
 			setGameInfos({ theme, user1Name, user2Name, launchTime });
@@ -125,7 +122,6 @@ export function Game()
 		socket?.on('matchDeclined', () =>
 		{
 			setStatus('declinedByMe');
-			// setError('You declined the match');
 			setRoomState('');
 			masterSocket?.emit('changeGameStatus', { gameStatus: GameStatus.NONE })
 		});
@@ -133,7 +129,6 @@ export function Game()
 		socket?.on('matchDeclinedByOpponent', () =>
 		{
 			setStatus('declinedByOpponent');
-			// setError('Your opponent declined the match');
 			setRoomState('');
 			masterSocket?.emit('changeGameStatus', { gameStatus: GameStatus.NONE })
 		});
