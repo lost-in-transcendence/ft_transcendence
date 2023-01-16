@@ -42,12 +42,13 @@ export function BlockedList()
 
 	return (
 		<>
+		<h1 className="text-5xl text-center">Blocked</h1>
 		{ blackList && blackList.length > 0 ?
 		<StatusUserList userList={blackList}>
 				<hr className="bg-gray-700 border-0 h-[1px]"/>
 		</StatusUserList>
 		:
-		<h1>You didn't blocked any user</h1>
+		<h1>You haven't blocked any users</h1>
 		}
 		</>
 	)

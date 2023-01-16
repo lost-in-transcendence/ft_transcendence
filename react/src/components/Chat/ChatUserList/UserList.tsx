@@ -55,14 +55,23 @@ export function UserList()
 
 	return (
 		<>
-		<StatusUserList userList={onlineUser}>
+		<h1 className="text-5xl text-center">Users</h1>
+		{
+			onlineUser && onlineUser.length > 0 ?
+			<StatusUserList userList={onlineUser}>
 				<p className="text-lg ml-[5px]">Online</p>
 				<hr className="bg-gray-700 border-0 h-[1px]"/>
-		</StatusUserList>
-		<StatusUserList userList={offlineUser}>
+			</StatusUserList>
+			: null
+		}
+		{
+			offlineUser && offlineUser.length > 0 ?
+			<StatusUserList userList={offlineUser}>
 				<p className="text-lg ml-[5px]">Offline</p>
 				<hr className="bg-gray-700 border-0 h-[1px]"/>
-		</StatusUserList>
+			</StatusUserList>
+			: null
+		}
 			{/* <h1 className="text-5xl text-center">Friends</h1>
 			{
 			onlineFriends && onlineFriends.length > 0 ?
