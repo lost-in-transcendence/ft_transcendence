@@ -220,6 +220,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 		this.server.to(channelId).emit(events.ALERT, {event: events.USERS, args: {channelId: channelId}})
 	}
 
+	@SubscribeMessage(events.NOTIFY)
+	async notify(@ConnectedSocket() client: Socket, @MessageBody() body: {channelId: string, content: string})
+	{
+		const {channelId, content} = body
+		this.server.to(client.id).emit(events.NOTIFY, { channelId, content })
+	}
+
 	/*************************/
 	/*        TESTING        */
 	/*************************/

@@ -71,7 +71,7 @@ export function ChatWindow({ className, }: { className?: string, })
 				{
 					flushSync(() =>
 					{
-						setVisibles((prev : MessageDto[]) =>
+						setVisibles((prev: MessageDto[]) =>
 						{
 							const newMessage: MessageDto = {
 								channelId: channel.id,
@@ -250,11 +250,12 @@ export function ChatWindow({ className, }: { className?: string, })
 							<li
 								key={i}
 								ref={i === visibleMessages.length - 1 ? selfRef : null}
-								className={`overflow-x-hidden break-words ${m.userId === channel.id && "text-yellow-500 font-bold"
+								className={`${m.userId === channel.id && "text-yellow-500 font-bold"
 									}`}
 							>
 								{
-									displayName && (
+									displayName &&
+									(
 										<div
 											className="hover:bg-slate-600 cursor-pointer rounded px-1 flex items-center"
 											onContextMenu={(e) =>
@@ -283,16 +284,12 @@ export function ChatWindow({ className, }: { className?: string, })
 												<span className="text-red-900 font-semibold">
 													{m.sender.userName}
 												</span>
-												{/* <br /> */}
-												{/* <span className={`${m.userId !== channel?.id && "mb-2"}`}>
-										{m.content} */}
-												{/* </span> */}
 											</div>
 										</div>
 									)
 								}
 								<>
-									<div className="flex">
+									<div className="ml-10 overfow-x-hidden break-words">
 										<div className="min-w-[48px] basis-12"></div>
 										<div>
 											<span
