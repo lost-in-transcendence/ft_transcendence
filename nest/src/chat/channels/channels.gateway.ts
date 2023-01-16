@@ -89,6 +89,9 @@ export class ChannelsGateway implements OnGatewayConnection
 		const currentUserSocketIds = UserSocketStore.getUserSockets(user.id);
 		const targetUserSocketIds = UserSocketStore.getUserSockets(userId);
 		const channelName: string = userId > user.id ? userId + '_' + user.id : user.id + '_' + userId;
+		const channelExists = await this.channelService.channels({where: {channelName}});
+		if (channelExists.length !== 0)
+			return;
 		const dto: CreateChannelDto = { channelName, mode: 'PRIVMSG' };
 		const newChannel: PartialChannelDto = await this.channelService.create(dto, user.id);
 		await this.channelService.joinChannel({ userId, channelId: newChannel.id, role: 'MEMBER' });
