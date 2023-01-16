@@ -1,4 +1,3 @@
-// import './styles/profile.css'
 
 import { useContext, useEffect, useState } from "react";
 import { useLoaderData, useNavigate } from "react-router-dom";
@@ -16,8 +15,6 @@ import { FaBolt, FaCommentAlt, FaUserFriends, FaUserSlash } from "react-icons/fa
 
 
 export async function loader({ params }: any) {
-	// let res = await getUserMeModal(new URLSearchParams({'friends': 'true'}));
-	// const user = await res.json()
 	const res = await getUserModal(params.userName, new URLSearchParams({ 'playStats': 'true', 'matchHistory': 'true' }));
 	const profile = await res.json();
 	const lol = await getUserMatchHistory(profile.id);
@@ -28,11 +25,9 @@ export async function loader({ params }: any) {
 export function ProfileView() {
 	const data: any = useLoaderData();
 	const { profile, matchHistory } = data;
-	// const matchHistory = profile.matchHistory;
 	const playerStats = profile.playStats;
 	const masterSocket = useContext(SocketContext).SocketState.socket;
 	const user = useContext(SocketContext).SocketState.user;
-	// const [isFriends, setIsFriends] = useState(user?.friends?.find((e: any) => e.id === profile.id) ? true : false)
 	const isFriends = user?.friends?.find((e: any) => e.id === profile.id) ? true : false;
 	const isBlackListed = user?.blacklist?.find((user: SharedOtherUserDto) => {return user.id === profile.id}) ? true : false;
 
@@ -52,7 +47,6 @@ export function ProfileView() {
 			const res = await addFriend(profile.id);
 		}
 		masterSocket?.emit('changeFriends')
-		// setIsFriends(user?.friends?.find((e: any) => e.id === profile.id) ? true : false);
 	}
 
 	async function handleBlackList()

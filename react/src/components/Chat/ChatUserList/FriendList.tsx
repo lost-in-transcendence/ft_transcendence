@@ -2,7 +2,7 @@ import { useContext, useEffect } from "react";
 import { getUserMeModal } from "../../../requests";
 import SocketContext from "../../Socket/socket-context";
 import ContextMenuContext from "../ContextMenu/context-menu-context";
-import { StatusFriendList } from "./StatusFriendList";
+import { StatusUserList } from "./StatusUserList";
 
 export function FriendList()
 {
@@ -12,7 +12,6 @@ export function FriendList()
 	const onlineFriends = friends?.filter((v) => {return v.status !== "OFFLINE"});
 	const offlineFriends = friends?.filter((v) => {return v.status === "OFFLINE"});
 
-	// const setContextMenu = useContext(ContextMenuContext).ContextMenuSetter;
 	const setContextMenu = useContext(ContextMenuContext).ContextMenuSetter;
 
 	useEffect(() =>
@@ -43,10 +42,10 @@ export function FriendList()
 			{
 			onlineFriends && onlineFriends.length > 0 ?
 			<>
-			<StatusFriendList userList={onlineFriends}>	
+			<StatusUserList userList={onlineFriends}>	
 				<p className="text-lg ml-[5px]">Online</p>
 				<hr className="bg-gray-700 border-0 h-[1px]"/>
-			</StatusFriendList>
+			</StatusUserList>
 			</>
 			:
 			<> </>
@@ -54,10 +53,10 @@ export function FriendList()
 			{
 			offlineFriends && offlineFriends.length > 0 ?
 			<>
-			<StatusFriendList userList={offlineFriends}>	
+			<StatusUserList userList={offlineFriends}>	
 				<p className="text-lg ml-[5px]">Offline</p>
 				<hr className="bg-gray-700 border-0 h-[1px]"/>
-			</StatusFriendList>
+			</StatusUserList>
 			</>
 			:
 			<> </>

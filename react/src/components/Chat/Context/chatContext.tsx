@@ -26,15 +26,6 @@ type ChannelMembersDto =
 		}
 	}
 
-// type ChatContextType =
-// {
-// 	user: any;
-// 	socket: Socket | undefined;
-// 	joined: ChatChannelDto[];
-// 	joinable: ChatChannelDto[];
-// 	visible: ChatChannelDto[];
-// }
-
 interface IChatContextState
 {
 	socket: Socket | undefined;

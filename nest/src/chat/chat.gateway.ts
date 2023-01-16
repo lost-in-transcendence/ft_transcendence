@@ -32,17 +32,6 @@ import { TimeoutStore } from './global/timeout-store';
 @UseFilters(new CustomWsFilter())
 @UsePipes(new WsValidationPipe({ whitelist: true }))
 @WebSocketGateway({ cors: `${env.PROTOCOL}${env.APP_HOST}:${env.FRONT_PORT}`, namespace: 'chat'})
-	// {
-	// 	origin: "http://localhost:3000",
-	// 	allowedHeaders: ['Authorization'],
-	// 	credentials: true,
-	// 	exposedHeaders: ['Authorization']
-	// }, namespace: 'chat' })
-	// {
-	// 	origin: '*:*',
-	// 	credentials: true,
-	// }, namespace: 'chat'})
-	// 'http://localhost:3000'}, namespace: 'chat')
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit
 {
 	private readonly logger = new Logger(ChatGateway.name);
@@ -142,7 +131,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 			// }
 			for (let chan of channels)
 				client.join(chan.channel.id);
-			this.logger.log(`Client ${client.data.user.userName} connected to chat server`);
 		}
 		catch (err)
 		{
@@ -155,7 +143,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 	{
 		const user: User = client.data.user;
 		UserSocketStore.removeUserSocket(client.data.user.id, client);
-		this.logger.log(`Client ${user.userName} disconnected from chat server`);
 	}
 
 	/******************************************************************************************/
@@ -196,11 +183,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
 	async unbanUser(userId: string, channelId: string)
 	{
-		// await this.channelMemberService.changeRole({
-		// 	userId: userId,
-		// 	channelId: channelId,
-		// 	role: 'MEMBER'
-		// });
 		await this.channelService.leaveChannel({ userId_channelId: { userId, channelId } });
 		this.server.to(channelId).emit(events.ALERT, { event: events.USERS, args: { channelId: channelId } });
 		const userSockets = UserSocketStore.getUserSockets(userId);

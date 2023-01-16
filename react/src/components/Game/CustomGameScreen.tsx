@@ -17,7 +17,6 @@ interface IUsersList
 
 export function CustomGameScreen({ goBack, params }: { goBack: () => void, params: URLSearchParams })
 {
-	// const {goBack, params} = props;
 	const { socket } = useContext(GameSocketContext).GameSocketState;
 	const me = useContext(SocketContext).SocketState.user;
 	const masterSocket = useContext(SocketContext).SocketState.socket;

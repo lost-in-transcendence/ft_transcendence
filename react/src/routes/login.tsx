@@ -57,7 +57,6 @@ export function Login()
 		{
 			window.removeEventListener('message', onMessage);
 		}
-		console.log("message", event.data)
 		setStatus(event.data);
 	}
 

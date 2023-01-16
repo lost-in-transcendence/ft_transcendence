@@ -127,7 +127,7 @@ export function ContextMenu({ x, y, channel, target }: ContextMenuData) {
 				currentUser.id !== targetId &&
 				<>
 					{
-						isInBlacklist && target.gameStatus === 'NONE' ?
+						isInBlacklist || target.status === 'OFFLINE' && target.gameStatus === 'NONE' ?
 							<li className={noneClickable}>
 								Invite to play
 							</li>
@@ -159,12 +159,6 @@ export function ContextMenu({ x, y, channel, target }: ContextMenuData) {
 							>
 								{isInFriendList ? 'Remove' : 'Add'} Friend
 							</li>
-					}
-					{
-						isInBlacklist ?
-							<li className={noneClickable}>Invite to channel</li>
-							:
-							<li className={clickable}>Invite to channel</li>
 					}
 					{
 						isInBlacklist ?

@@ -1,4 +1,3 @@
-// import './styles/profile.css'
 
 import { useContext, useEffect, useRef, useState } from "react";
 import { Form, redirect, useActionData, useLoaderData, useNavigate } from "react-router-dom";
@@ -38,12 +37,6 @@ export async function action({ request }: any)
 	let res = undefined;
 	try {
 		res = await updateUser(updates);	
-		// if (!res.ok)
-		// {
-		// 	if (res.status === 406)
-		// 		return { status: "Unavalaible field name" };
-		// 	throw res;
-		// }
 	}
 	catch (err: any) 
 	{

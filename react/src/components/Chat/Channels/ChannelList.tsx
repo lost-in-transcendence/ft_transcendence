@@ -16,12 +16,6 @@ export function ChannelList()
 	{
 		channel.members?.find((m) => m.user.id === user.id) ? joined.push(channel) : joinable.push(channel);
 	}
-	// const joined = visibleChannels.filter((c) => {
-	// 	c.members?.find((m) => m.user.id === user.id) ? true : false;
-	// });
-	// const joinable = visibleChannels.filter((c) => {
-	// 	c.members?.find((m) => m.user.id !== user.id) ? true : false;
-	// });
 
 	return (
 		<div className="channelList" style={{ width: '15%', overflow: "auto", height: '100%', boxShadow: '0.1rem 0.1rem 10px rgba(0, 0, 0, 0.3)' }} >
