@@ -1,7 +1,6 @@
-// import './styles/profile.css'
 
 import { useContext, useEffect, useState } from "react";
-import { useLoaderData } from "react-router-dom";
+import { useLoaderData, useNavigate } from "react-router-dom";
 
 import { backURL } from "../requests/constants";
 import { getUserMatchHistory, getUserMeModal, getUserModal } from "../requests";
@@ -10,10 +9,12 @@ import { addFriend, removeFriend } from "../requests/http/friends.requests";
 import SocketContext from "../components/Socket/socket-context";
 import { MatchHistoryCard } from "../components/MatchHistoryCard/MatchHistoryCard";
 import { StatTable } from "../components/PlayStats/StatTable";
+import { SharedOtherUserDto } from "../../shared/dtos";
+import * as events from '../../../shared/constants'
+import { FaBolt, FaCommentAlt, FaUserFriends, FaUserSlash } from "react-icons/fa";
+
 
 export async function loader({ params }: any) {
-	// let res = await getUserMeModal(new URLSearchParams({'friends': 'true'}));
-	// const user = await res.json()
 	const res = await getUserModal(params.userName, new URLSearchParams({ 'playStats': 'true', 'matchHistory': 'true' }));
 	const profile = await res.json();
 	const lol = await getUserMatchHistory(profile.id);
@@ -24,22 +25,60 @@ export async function loader({ params }: any) {
 export function ProfileView() {
 	const data: any = useLoaderData();
 	const { profile, matchHistory } = data;
-	// const matchHistory = profile.matchHistory;
 	const playerStats = profile.playStats;
 	const masterSocket = useContext(SocketContext).SocketState.socket;
 	const user = useContext(SocketContext).SocketState.user;
-	// const [isFriends, setIsFriends] = useState(user?.friends?.find((e: any) => e.id === profile.id) ? true : false)
 	const isFriends = user?.friends?.find((e: any) => e.id === profile.id) ? true : false;
+	const isBlackListed = user?.blacklist?.find((user: SharedOtherUserDto) => {return user.id === profile.id}) ? true : false;
+
+	const navigate = useNavigate();
 
 	async function handleFriend() {
-		if (isFriends) {
+		if (isFriends) 
+		{
 			const res = await removeFriend(profile.id);
 		}
-		else {
+		else 
+		{
+			if (isBlackListed)
+			{
+				masterSocket?.emit(events.UNBLOCK_USER, { userId: profile.id });
+			}
 			const res = await addFriend(profile.id);
 		}
 		masterSocket?.emit('changeFriends')
-		// setIsFriends(user?.friends?.find((e: any) => e.id === profile.id) ? true : false);
+	}
+
+	async function handleBlackList()
+	{
+		if (isBlackListed)
+		{
+			masterSocket?.emit(events.UNBLOCK_USER, { userId: profile.id });
+		}
+		else
+		{
+			if (isFriends)
+			{
+				await removeFriend(profile.id)
+				masterSocket?.emit("changeFriends");
+			}
+			masterSocket?.emit(events.BLOCK_USER, { userId: profile.id });
+		}
+	}
+
+	function handleInvite()
+	{
+		navigate('/game?' + new URLSearchParams({ 'action': 'invitePlayer', 'userName': profile.userName }));
+	}
+
+	function handleSpectate()
+	{
+		navigate('/game?' + new URLSearchParams({ 'action': 'spectateGame', 'userName': profile.userName }));
+	}
+	
+	function handlePrivmsg()
+	{
+		navigate('/chat?' + new URLSearchParams({ 'action': 'privmsg', 'userName': profile.userName}));
 	}
 
 	return (
@@ -57,7 +96,7 @@ export function ProfileView() {
 				</div>
 				<div className="profileInfo">
 					<h3 className="font-bold text-5xl">{profile.userName}</h3>
-					<p className="text-center">{profile.email}</p>
+					{/* <p className="text-center">{profile.email}</p> */}
 					<p className="text-center">{profile.status}</p>
 					{
 						profile.gameStatus !== 'NONE' ?
@@ -66,6 +105,48 @@ export function ProfileView() {
 					}
 				</div>
 			</div>
+			{
+				user.id !== profile.id ?
+					<>
+					<div className="flex gap-4">
+						<button className='viewProfileButton' onClick={handleFriend}>
+							<div className="w-[50px]">
+								<FaUserFriends size="30" className="m-auto" />
+							</div>
+							<span className="flex-1">
+								{isFriends ? "Remove" : "Add"} Friend
+							</span>
+						</button>
+						<button className='viewProfileButton bg-red-600 hover:bg-red-700' onClick={handleBlackList}>
+							<div className="w-[50px]">
+								<FaUserSlash size="30" className="m-auto" />
+							</div>
+							<span className="flex-1 text-left ml-[20px]">
+								{isBlackListed ? "Unblock" : "Block"}
+							</span>
+						</button>
+						{profile.gameStatus === 'NONE' ? <button className='viewProfileButton' onClick={handleInvite}>
+							<div className="w-[50px]">
+								<FaBolt size="28" className="m-auto" />
+							</div>
+							<span className="flex-1 text-left ml-[10px]">
+								Challenge
+							</span>
+							</button> : null}
+						{profile.gameStatus === 'INGAME' ? <button className='viewProfileButton' onClick={handleSpectate}>Spectate</button> : null}
+						<button className='viewProfileButton' onClick={handlePrivmsg}>
+							<div>
+								<FaCommentAlt size="25" className='m-auto' />
+							</div>	
+							<span className="flex-1 ml-[0px]">
+								Send Message
+							</span>
+							</button>
+					</div>
+					</>
+					:
+					<></>
+			}
 			<div className="profilePong
 		flex flex-col justify-evenly items-center gap-4
 		md:flex-row md:items-start md:justify-evenly md:gap-0
@@ -100,12 +181,6 @@ export function ProfileView() {
 				</div>
 				<div className="flex-break"></div>
 			</div>
-			{
-				user.id !== profile.id ?
-					<button className={`${isFriends ? "remove" : "add"}-friend`} onClick={handleFriend}>{isFriends ? "Remove" : "Add"} Friend</button>
-					:
-					<></>
-			}
 		</div>
 	)
 }

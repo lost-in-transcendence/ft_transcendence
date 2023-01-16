@@ -15,8 +15,12 @@ export function ChatComposer({ user, className }: { user: User, className?: stri
 	function sendText(e: any)
 	{
 		e.preventDefault()
-		if (message.length < 1) return ;
-		socket?.emit(events.TO_CHANNEL, { channelId: channel?.id, content: message })
+		if (message.length < 1)
+			return ;
+		if (message.length >= 2000)
+			socket?.emit(events.NOTIFY, { channelId: channel?.id, content: 'Message too long (2000 character max)' })
+		else
+			socket?.emit(events.TO_CHANNEL, { channelId: channel?.id, content: message })
 		setMessage("")
 	}
 

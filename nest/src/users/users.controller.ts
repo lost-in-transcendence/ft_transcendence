@@ -11,7 +11,6 @@ import { Express, Response } from 'express'
 import { diskStorage } from 'multer';
 import * as fs from 'fs'
 
-// @UseGuards(FullAuthGuard)
 @Controller('users')
 export class UsersController {
 	private readonly logger = new Logger(UsersController.name);
@@ -64,8 +63,6 @@ export class UsersController {
 	@Get()
 	async findAll() {
 		const res = await this.userService.users({});
-		//if (!res)
-		// error handling
 		return res;
 	}
 
@@ -104,7 +101,6 @@ export class UsersController {
 			where: { id },
 			data
 		});
-		this.logger.log(res);
 		return res;
 	}
 
@@ -143,9 +139,7 @@ export class UsersController {
 	@HttpCode(200)
 	async findOne(@Param('userName') userName: string)
 	{
-		// const res = await this.userService.user({ userName });
 		const res = await this.userService.userModal({ userName }, this.userIncludeAll);
-		// error handling
 		if (!res) {
 			throw (new NotFoundException(`Cannot find user with user name: ${userName}`));
 		}

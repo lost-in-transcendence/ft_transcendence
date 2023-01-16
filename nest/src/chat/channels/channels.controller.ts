@@ -15,12 +15,6 @@ export class ChannelsController
 {
 	constructor(private readonly channelsService: ChannelsService) { }
 
-	// @Post()
-	// create(@Body() dto: CreateChannelDto, @GetUser('id', ParseUUIDPipe) id: string): Promise<Channel>
-	// {
-	// 	return this.channelsService.create(dto, id);
-	// }
-
 	@Get()
 	findAll(): Promise<Channel[]>
 	{
@@ -36,12 +30,6 @@ export class ChannelsController
 			throw new NotFoundException(`Channel ${where.channelName || where.id} not found`);
 		return (channel);
 	}
-
-	// @Patch(':id')
-	// update(@Param('id') id: string, @Body() updateChannelDto: UpdateChannelDto)
-	// {
-	// 	return this.channelsService.update(updateChannelDto);
-	// }
 
 	@Patch('ban/:id')
 	banUser(@Query('id', ParseUUIDPipe) id: string, @Query('chanId', ParseUUIDPipe) chanId: string)

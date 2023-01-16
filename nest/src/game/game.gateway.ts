@@ -83,7 +83,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
 	async handleConnection(client: Socket, ...args: any[])
 	{
-		this.logger.log(`Client ${client.id} connected to Game websocket Gateway`);
 		this.server.to(client.id).emit('handshake', client.data.user);
 		const { waitingRooms, ongoingGames } = { waitingRooms: this.getWaitingRooms(), ongoingGames: this.gameComputer.getOngoingGames() };
 		this.server.to(client.id).emit('games', { waitingRooms, ongoingGames });
@@ -121,7 +120,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 		{
 			this.gameComputer.spectatorDisconnected(spectatorRoom, client.id);
 		}
-		this.logger.log(`Client ${client.id} disconnected from Game websocket Gateway`);
 	}
 
 	@SubscribeMessage('leaveGame')
@@ -211,7 +209,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 		if (room)
 		{
 			this.waitingRooms = this.waitingRooms.filter((v) => v.user1SocketId !== client.id);
-			this.gamesService.remove({
+			await this.gamesService.remove({
 				where: { id: room.id }
 			})
 			this.server.to(client.id).emit('leftQueue');

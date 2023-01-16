@@ -1,5 +1,6 @@
 import { isRouteErrorResponse, Navigate, redirect, useRouteError } from "react-router-dom";
 import { logout } from "../requests";
+import { NotFound } from "./notFound";
 
 export function ErrorPage()
 {
@@ -14,7 +15,13 @@ export function ErrorPage()
 				<Navigate to='/login' state={{error: "You are not logged in!"}}/>
 			)
 		}
+
 	}
+
+	if (error.status === 404)
+		return (
+			<NotFound />
+		)
 
 	return (
 		<div id="error-page">

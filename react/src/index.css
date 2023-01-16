@@ -41,6 +41,13 @@
 	{
 		@apply bg-green-500/20
 	}
+
+	.viewProfileButton
+	{
+		@apply	w-48 text-lg font-semibold bg-green-600 hover:bg-green-700 
+				transition-all duration-100 ease-linear py-2 px-2 rounded-lg text-white
+				flex justify-center items-center
+	}
 }
 
  /* p, div, input, button

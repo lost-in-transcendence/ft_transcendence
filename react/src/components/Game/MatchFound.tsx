@@ -7,26 +7,25 @@ interface IMatchFoundProps
 	roomState: string
 }
 
-export function MatchFound({roomState}: IMatchFoundProps)
+export function MatchFound({ roomState }: IMatchFoundProps)
 {
 	const { socket } = useContext(GameSocketContext).GameSocketState;
 
 	return (
-		<div className="flex flex-col gap-4 w-full">
-			<div className="flex flex-col items-center m-auto text-xl text-gray-400 bg-gray-700">
-				<p>Match Found !</p>
-				<div className="flex flex-row items-center m-auto gap-1 text-xl text-gray-100 bg-black">
-					<button className="border-2 border-green-600"
-						onClick={() => socket?.emit('acceptMatch', { room: roomState })}>
-						Accept
-					</button>
-					<button className="border-2 border-red-600"
-						onClick={() => socket?.emit('declineMatch')}>
-						Decline
-					</button>
-				</div>
-			</div>
+		<div className="flex flex-col items-center justify-start gap-10 w-full text-gray-300">
+			<h1 className="text-3xl font-semibold mt-4">Match Found !</h1>
 
+			<img src="https://i.gifer.com/GAvs.gif" className="rounded-full h-52 w-52 border-[6px] border-neutral-100" />
+			<div className="flex items-center justify-center gap-5">
+				<button className="bg-indigo-600 rounded shadow p-1 font-semibold w-20"
+					onClick={() => socket?.emit('acceptMatch', { room: roomState })}>
+					Accept
+				</button>
+				<button className="bg-red-700 rounded shadow p-1 font-semibold w-20"
+					onClick={() => socket?.emit('declineMatch')}>
+					Decline
+				</button>
+			</div>
 		</div>
 	)
 }

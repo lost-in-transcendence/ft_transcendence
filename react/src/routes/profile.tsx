@@ -1,5 +1,4 @@
 
-// import './styles/profile.css'
 
 import { useLoaderData, useNavigate } from "react-router-dom";
 import { useContext } from "react";

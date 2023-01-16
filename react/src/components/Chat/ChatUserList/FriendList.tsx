@@ -12,7 +12,6 @@ export function FriendList()
 	const onlineFriends = friends?.filter((v) => {return v.status !== "OFFLINE"});
 	const offlineFriends = friends?.filter((v) => {return v.status === "OFFLINE"});
 
-	// const setContextMenu = useContext(ContextMenuContext).ContextMenuSetter;
 	const setContextMenu = useContext(ContextMenuContext).ContextMenuSetter;
 
 	useEffect(() =>
