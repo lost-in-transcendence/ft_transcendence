@@ -3,9 +3,6 @@ import { SharedCreateMessageDto } from 'shared/dtos'
 
 export class CreateMessageDto implements SharedCreateMessageDto
 {
-	// @IsUUID()
-	// @IsNotEmpty()
-	// userId: string;
 
 	@IsUUID()
 	@IsNotEmpty()

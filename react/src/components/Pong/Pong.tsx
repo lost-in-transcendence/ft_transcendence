@@ -153,15 +153,6 @@ export function Pong(props: { goBack: any, asSpectator: boolean, gameInfos: {the
 
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
-    // background
-    // ctx.fillStyle = "#242424";
-    // ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-
-    // outline
-    // ctx.strokeStyle = "#fff";
-    // ctx.strokeRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-
-    // middle line
     ctx.strokeStyle = "#fff";
     ctx.setLineDash([10]);
     ctx.beginPath();
@@ -169,15 +160,6 @@ export function Pong(props: { goBack: any, asSpectator: boolean, gameInfos: {the
     ctx.lineTo(ctx.canvas.width / 2, ctx.canvas.height);
     ctx.stroke();
 
-    // score
-    // ctx.font = "30px Orbitron";
-    // ctx.fillStyle = theme?.paddleColor;
-    // ctx.fillText(gameItems.player1Score, ctx.canvas.width / 2 / 2, 100);
-    // ctx.fillText(gameItems.player2Score, (ctx.canvas.width / 2) * 1.5, 100);
-
-    // display names
-    // ctx.fillText(gameInfos?.user1Name, ctx.canvas.width / 2 / 2 - 30, 40);
-    // ctx.fillText(gameInfos?.user2Name, (ctx.canvas.width / 2) * 1.5 - 30, 40);
 
     // paddles
     ctx.fillStyle = theme?.paddleColor;

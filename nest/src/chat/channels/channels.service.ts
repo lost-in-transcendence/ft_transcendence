@@ -74,12 +74,10 @@ export class ChannelsService
 									userName: true,
 									status: true,
 									gameStatus: true,
-									// avatarPath: true
 								}
 							}
 						}
 					},
-					// messages: true,
 				}
 			})
 			return (newChannel);
@@ -127,25 +125,8 @@ export class ChannelsService
 
 	async channels(params: Prisma.ChannelFindManyArgs)
 	{
-		// 	const { skip, take, cursor, where, orderBy, select, include, distinct } = params;
 		return this.prisma.channel.findMany(params);
 	}
-
-	// async channels(params: Prisma.ChannelFindManyArgs)/*: Promise<Channel[]>*/: Promise<PartialChannelDto[]>
-	// {
-	// 	const { skip, take, cursor, where, orderBy, select, include, distinct } = params;
-	// 	return this.prisma.channel.findMany(
-	// 		{
-	// 			select,
-	// 			// include,
-	// 			skip,
-	// 			take,
-	// 			cursor,
-	// 			where,
-	// 			orderBy,
-	// 			distinct,
-	// 		});
-	// }
 
 	async channelSelect(params: Prisma.ChannelFindUniqueArgsBase)
 	{

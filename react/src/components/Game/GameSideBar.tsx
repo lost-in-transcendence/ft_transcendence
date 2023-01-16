@@ -59,10 +59,6 @@ export function GameSideBar(props: { socket: any, status: any, setCustomGame: an
 						focus:bg-gray-500 focus:text-white focus:shadow-gray-900 focus:shadow-sm"
 				onClick={() =>
 				{
-					if (props.status === 'queueing')
-					{
-						socket?.emit("leaveQueue");
-					}
 					props.setCustomGame();
 				}}
 				disabled={me.gameStatus !== 'NONE' && props.status !== 'waiting' ? true : false}

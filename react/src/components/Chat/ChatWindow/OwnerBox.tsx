@@ -16,7 +16,6 @@ export function OwnerBox({ onClose, channel }: { onClose: any, channel: Channel 
 	{
 		e.preventDefault();
 		ctx.ChatState.socket?.emit(events.UPDATE_CHANNEL_INFO, data);
-		// onClose();
 	}
 
 	useEffect(() =>
