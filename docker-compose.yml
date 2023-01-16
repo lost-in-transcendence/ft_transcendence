@@ -63,8 +63,6 @@ services:
       - VITE_BACK_PORT=${BACK_PORT}
     ports:
       - ${FRONT_PORT}:${FRONT_PORT}
-    # volumes:
-      # - ./shared:/usr/shared
     networks:
       - transcendence_network
 
