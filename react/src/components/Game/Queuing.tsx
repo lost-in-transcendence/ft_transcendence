@@ -15,8 +15,7 @@ export function Queuing({ setStatus }: IQueuingProps)
 	return (
 		<div className="flex flex-col items-center justify-start gap-10 w-full text-gray-300">
 			<h1 className="text-3xl font-semibold mt-4">Waiting for other players</h1>
-			<img src='https://i.giphy.com/media/TQhaok8yNsxTnGcOdL/200w.webp' className="rounded-full" />
-			{/* <Spinner /> */}
+			<img src='https://i.giphy.com/media/TQhaok8yNsxTnGcOdL/200w.webp' className="rounded-full h-52 w-52" />
 			<div className="mx-auto mt-2 text-xl text-gray-100 bg-black">
 				<button
 					onClick={() => { setStatus('waiting'); socket?.emit("leaveQueue"); }}
