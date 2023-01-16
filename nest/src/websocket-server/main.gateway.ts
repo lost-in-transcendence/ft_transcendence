@@ -59,36 +59,18 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		}, this.rankInterval)
 	}
 
-<<<<<<< HEAD
-	handleConnection(client: Socket) {
-		this.logger.log(`Client ${client.id} connected to Main websocket Gateway`);
-=======
 	handleConnection(client: Socket)
 	{
->>>>>>> 7366691b9c448155b90b35e8e3f070d309f9bb9c
 		this.server.to(client.id).emit('handshake', client.data.user);
 		this.socketStore.setUserSockets(client.data.user.id, client);
 	}
 
-<<<<<<< HEAD
-	async handleDisconnect(client: Socket) {
-		this.logger.log(`Client ${client.id} disconnected from Main websocket Gateway`);
-		this.socketStore.removeUserSocket(client.data.user.id, client);
-		const ret = await this.userService.user({ id: client.data.user.id });
-		// if (ret.isGuest)
-		// {
-		// 	await this.userService.deleteUser({id : ret.id});
-		// 	return;
-		// }
-		if (this.socketStore.getUserSockets(ret.id).length === 0) {
-=======
 	async handleDisconnect(client: Socket)
 	{
 		this.socketStore.removeUserSocket(client.data.user.id, client);
 		const ret = await this.userService.user({id: client.data.user.id});
 		if (this.socketStore.getUserSockets(ret.id).length === 0)
 		{
->>>>>>> 7366691b9c448155b90b35e8e3f070d309f9bb9c
 			this.userService.updateUser({ where: { id: ret.id }, data: { status: StatusType.OFFLINE, gameStatus: GameStatusType.NONE } });
 			this.updateUser(client, ret, { status: StatusType.OFFLINE, gameStatus: GameStatusType.NONE });
 		}
