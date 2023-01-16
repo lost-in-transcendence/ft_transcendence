@@ -25,7 +25,7 @@ export function QuickPlayMenu()
 				parentClassName='bg-gray-700 mx-auto text-gray-300 text-xl mt-1'
 				childrenClassName='mx-4 my-2 p-2 rounded-lg shadow'
 			>
-				<p className="text-gray-300" >
+				<div className="text-gray-300" >
 					<h2 className="text-2xl">Rules are simple :</h2>
 					<ul>
 						<li>
@@ -45,7 +45,7 @@ export function QuickPlayMenu()
 							<span>S</span> : Move paddle DOWN
 						</li>
 					</ul>
-				</p>
+				</div>
 			</Accordeon>
 			<button className="
 						 flex flex-row gap-4 items-center mx-auto p-1 justify-items-center
