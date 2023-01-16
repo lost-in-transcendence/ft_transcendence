@@ -9,8 +9,7 @@ import { CustomWsFilter } from "./filters";
 import { UserInterceptor } from "./interceptor";
 import { WsValidationPipe } from "./pipes";
 import { GetUserWs } from "src/users/decorator/get-user-ws";
-import * as events from 'shared/constants/users'
-import * as chatEvents from 'shared/constants/chat'
+import * as events from 'shared/constants/'
 import { type } from "os";
 import { SocketStore } from "./socket-store";
 import { IsNotEmpty, IsUUID } from "class-validator";
@@ -21,8 +20,7 @@ import { PlayStatsService } from "src/playstats/playstats-service";
 @UseFilters(new CustomWsFilter())
 @UsePipes(new WsValidationPipe({ whitelist: true }))
 @WebSocketGateway({ cors: `${env.PROTOCOL}${env.APP_HOST}:${env.FRONT_PORT}` })
-export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
-{
+export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
 	private readonly logger = new Logger(MainGateway.name);
 	private readonly socketStore = new SocketStore();
 	private nextRanking: Date;
@@ -33,12 +31,10 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	@WebSocketServer()
 	server: Server;
 
-	afterInit(server: Server)
-	{
+	afterInit(server: Server) {
 		this.logger.log('Main Gateway initialized');
 
-		const intervalId = setInterval(async () =>
-		{
+		const intervalId = setInterval(async () => {
 			this.nextRanking = new Date(Date.now() + this.rankInterval)
 			this.server.emit("nextRanking", { nextRanking: this.nextRanking });
 			const usersByPoints = await this.playStatsService.findMany(
@@ -52,8 +48,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 						user: true,
 					}
 				});
-			usersByPoints.forEach((v: PlayStats, i: number) =>
-			{
+			usersByPoints.forEach((v: PlayStats, i: number) => {
 				const { userId } = v;
 				this.playStatsService.update(
 					{
@@ -79,58 +74,49 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			this.userService.updateUser({ where: { id: ret.id }, data: { status: StatusType.OFFLINE, gameStatus: GameStatusType.NONE } });
 			this.updateUser(client, ret, { status: StatusType.OFFLINE, gameStatus: GameStatusType.NONE });
 		}
-		else if (ret.gameStatus === 'NONE')
-		{
+		else if (ret.gameStatus === 'NONE') {
 			this.updateUser(client, ret, { gameStatus: GameStatusType.NONE });
 		}
 	}
 
 	@SubscribeMessage('nextRanking')
-	async sendNextRanking(@ConnectedSocket() client: Socket)
-	{
+	async sendNextRanking(@ConnectedSocket() client: Socket) {
 		this.server.to(client.id).emit("nextRanking", { nextRanking: this.nextRanking });
 	}
 
 	@SubscribeMessage(events.CHANGE_STATUS)
-	async changeStatus(@GetUserWs() user: User, @MessageBody('status', new ParseEnumPipe(StatusType)) newStatus: StatusType, @ConnectedSocket() client: Socket)
-	{
+	async changeStatus(@GetUserWs() user: User, @MessageBody('status', new ParseEnumPipe(StatusType)) newStatus: StatusType, @ConnectedSocket() client: Socket) {
 		const updatedUser = await this.userService.updateUser({
 			where: { id: user.id },
 			data: { status: newStatus }
 		});
-		this.socketStore.getUserSockets(user.id).forEach((v) =>
-		{
+		this.socketStore.getUserSockets(user.id).forEach((v) => {
 			this.server.to(v.id).emit(events.UPDATE_USER, { status: updatedUser.status });
 		})
 		this.updateUser(client, user, { status: updatedUser.status });
 	}
 
 	@SubscribeMessage('changeGameStatus')
-	async changeGameStatus(@ConnectedSocket() client: Socket, @GetUserWs() user: User, @MessageBody('gameStatus', new ParseEnumPipe(GameStatusType)) gameStatus: GameStatusType)
-	{
+	async changeGameStatus(@ConnectedSocket() client: Socket, @GetUserWs() user: User, @MessageBody('gameStatus', new ParseEnumPipe(GameStatusType)) gameStatus: GameStatusType) {
 		const updatedUser = await this.userService.updateUser({
 			where: { id: user.id },
 			data: { gameStatus }
 		});
-		this.socketStore.getUserSockets(user.id).forEach((v) =>
-		{
+		this.socketStore.getUserSockets(user.id).forEach((v) => {
 			this.server.to(v.id).emit(events.UPDATE_USER, { gameStatus: updatedUser.gameStatus });
 		})
 		this.updateUser(client, user, { gameStatus: updatedUser.gameStatus });
 	}
 
 	@SubscribeMessage('changeUserName')
-	async changeUserName(@ConnectedSocket() client: Socket, @GetUserWs() user: User, @MessageBody('userName') userName: string)
-	{
-		this.socketStore.getUserSockets(user.id).forEach((v) =>
-		{
+	async changeUserName(@ConnectedSocket() client: Socket, @GetUserWs() user: User, @MessageBody('userName') userName: string) {
+		this.socketStore.getUserSockets(user.id).forEach((v) => {
 			this.server.to(v.id).emit(events.UPDATE_USER, { userName });
 		})
 		this.updateUser(client, user, { userName });
 	}
 
-	async updateUser(client: Socket, user: User, payload: any)
-	{
+	async updateUser(client: Socket, user: User, payload: any) {
 		// get joined chans
 		const joinedChans = await this.channelService.channels(
 			{
@@ -148,8 +134,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			{ id: user.id },
 			{ friendTo: { select: { id: true } } }
 		)
-		const friendSockets = friendList.friendTo.map((v) =>
-		{
+		const friendSockets = friendList.friendTo.map((v) => {
 			const sockets = this.socketStore.getUserSockets(v.id);
 			if (!sockets)
 				return;
@@ -163,9 +148,16 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			this.server.to(flatSockets).emit("updateFriend", { id: user.id, data: payload });
 	}
 
+	@SubscribeMessage(events.GET_ALL_USERS)
+	async getAllUser(@ConnectedSocket() client: Socket) {
+		this.logger.debug('in getallUSERSS')
+		const users: User[] = await this.userService.users({ where: {} });
+		this.logger.debug({ users })
+		this.server.to(client.id).emit(events.GET_ALL_USERS, users);
+	}
+
 	@SubscribeMessage(events.GET_FRIENDLIST)
-	async getFriendList(@MessageBody("userId", ParseUUIDPipe) userId: string, @ConnectedSocket() client: Socket)
-	{
+	async getFriendList(@MessageBody("userId", ParseUUIDPipe) userId: string, @ConnectedSocket() client: Socket) {
 		const friendList = await this.userService.userSelect(
 			{ id: userId },
 			{ friends: { select: { id: true, userName: true } } }
@@ -174,23 +166,19 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	}
 
 	@SubscribeMessage('test')
-	async testfunct()
-	{
+	async testfunct() {
 		this.server.of('/chat').emit('notify', { status: 'this is a test' });
 	}
 
 	@SubscribeMessage('invite')
-	async invite(@ConnectedSocket() client: Socket, @GetUserWs() user: User, @MessageBody() body: any)
-	{
+	async invite(@ConnectedSocket() client: Socket, @GetUserWs() user: User, @MessageBody() body: any) {
 		const { gameId, invitedUser } = body;
 		const sockets = this.socketStore.getUserSockets(invitedUser);
-		if (sockets.length === 0)
-		{
+		if (sockets.length === 0) {
 			this.server.to(client.id).emit('userOffline');
 			return;
 		}
-		sockets.forEach((v) =>
-		{
+		sockets.forEach((v) => {
 			this.server.to(v.id).emit('notification', { type: 'invite', inviter: user.userName, inviterId: user.id, gameId });
 		})
 		// find uid corresponding socket(s)
@@ -199,31 +187,25 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	}
 
 	@SubscribeMessage('declineInvite')
-	async declineInvite(@ConnectedSocket() client: Socket, @MessageBody('inviterId', new ParseUUIDPipe) inviterId: string)
-	{
+	async declineInvite(@ConnectedSocket() client: Socket, @MessageBody('inviterId', new ParseUUIDPipe) inviterId: string) {
 		const sockets = this.socketStore.getUserSockets(inviterId);
-		sockets.forEach((v) =>
-		{
+		sockets.forEach((v) => {
 			this.server.to(v.id).emit('invitationDeclined');
 		})
 	}
 
 	@SubscribeMessage('changeFriends')
-	async changeFriend(@ConnectedSocket() client: Socket, @GetUserWs() user: User)
-	{
+	async changeFriend(@ConnectedSocket() client: Socket, @GetUserWs() user: User) {
 		const friends = (await this.userService.userSelect({ id: user.id }, { friends: true })).friends;
-		this.socketStore.getUserSockets(user.id).forEach((v) =>
-		{
+		this.socketStore.getUserSockets(user.id).forEach((v) => {
 			this.server.to(v.id).emit(events.UPDATE_USER, { friends });
 
 		});
 	}
 
 	@SubscribeMessage(events.BLOCK_USER)
-	async blockUser(@ConnectedSocket() client: Socket, @MessageBody('userId', ParseUUIDPipe) userId: string, @GetUserWs() user: User)
-	{
-		if (user.id === userId)
-		{
+	async blockUser(@ConnectedSocket() client: Socket, @MessageBody('userId', ParseUUIDPipe) userId: string, @GetUserWs() user: User) {
+		if (user.id === userId) {
 			throw new WsException("You can't blacklist yourself !");
 		}
 		await this.userService.updateUser({
@@ -238,17 +220,15 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		});
 		const blackList = (await this.userService.userSelect({ id: user.id }, { blacklist: true })).blacklist;
 		const blockedName = blackList?.find((u) => u.id === userId).userName;
-		this.socketStore.getUserSockets(user.id).forEach((v) =>
-		{
+		this.socketStore.getUserSockets(user.id).forEach((v) => {
 			this.server.to(v.id).emit(events.UPDATE_USER, { blacklist: blackList });
-			this.server.to(v.id).emit(chatEvents.NOTIFY, { content: `You have blocked ${blockedName}` })
+			this.server.to(v.id).emit(events.NOTIFY, { content: `You have blocked ${blockedName}` })
 
 		});
 	}
 
 	@SubscribeMessage(events.UNBLOCK_USER)
-	async unblockUser(@ConnectedSocket() client: Socket, @MessageBody('userId', ParseUUIDPipe) userId: string, @GetUserWs() user: User)
-	{
+	async unblockUser(@ConnectedSocket() client: Socket, @MessageBody('userId', ParseUUIDPipe) userId: string, @GetUserWs() user: User) {
 		if (user.id === userId)
 			return;
 		await this.userService.updateUser({
@@ -260,10 +240,9 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		});
 		const blackList = (await this.userService.userSelect({ id: user.id }, { blacklist: true })).blacklist;
 		const blockedName = (await this.userService.user({ id: userId })).userName;
-		this.socketStore.getUserSockets(user.id).forEach((v) =>
-		{
+		this.socketStore.getUserSockets(user.id).forEach((v) => {
 			this.server.to(v.id).emit(events.UPDATE_USER, { blacklist: blackList });
-			this.server.to(v.id).emit(chatEvents.NOTIFY, { content: `You have unblocked ${blockedName}` })
+			this.server.to(v.id).emit(events.NOTIFY, { content: `You have unblocked ${blockedName}` })
 		});
 	}
 }

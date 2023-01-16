@@ -14,6 +14,7 @@ export const PROMOTE_USER: string = 'promoteUser';
 export const DEMOTE_USER: string = 'demoteUser';
 export const GET_BANNED_USERS: string = 'getBannedUsers';
 export const INVITE_TO_PRIVATE_CHANNEL: string = 'inviteToPrivateChannel';
+export const GET_ALL_USERS: string = 'getAllUsers'
 
 export const USERS: string = 'users';
 

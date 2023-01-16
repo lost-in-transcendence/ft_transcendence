@@ -12,6 +12,8 @@ import { CurrentStatus, UserAvatarStatusProfile } from "../Avatar/UserAvatarStat
 import SocketContext from "../Socket/socket-context";
 
 import './UserCardMenu.css'
+import {onlineIcon, offlineIcon, busyIcon, awayIcon} from '../../../assets'
+
 
 export function SideBarAvatarMenu(props: { close: any })
 {
@@ -83,25 +85,25 @@ export function SideBarAvatarMenu(props: { close: any })
 							<div className='bg-black px-[7px] py-[7px] rounded-[4px]'>
 								<div className='card-button'
 									onClick={() => { changeStatus(socket, SharedUserStatus.ONLINE); close() }}>
-									<img className="w-[12px]" src="/assets/online.png" />
+									<img className="w-[12px]" src={onlineIcon} />
 									<p className="">Online</p>
 								</div>
 								<hr />
 								<div className='card-button'
 									onClick={() => { changeStatus(socket, SharedUserStatus.AWAY); close() }}>
-									<img className="w-[12px]" src="/assets/away.png" />
+									<img className="w-[12px]" src={awayIcon}/>
 									<p className="">Away</p>
 								</div>
 								<hr />
 								<div className='card-button'
 									onClick={() => { changeStatus(socket, SharedUserStatus.BUSY); close() }}>
-									<img className="w-[12px]" src="/assets/busy.png" />
+									<img className="w-[12px]" src={busyIcon} />
 									<p className="">Busy</p>
 								</div>
 								<hr />
 								<div className='card-button'
 									onClick={() => { changeStatus(socket, SharedUserStatus.OFFLINE); close() }}>
-									<img className="w-[12px]" src="/assets/offline.png" />
+									<img className="w-[12px]" src={offlineIcon} />
 									<p className="">Invisible</p>
 								</div>
 							</div>

@@ -289,65 +289,6 @@ export function Game()
 					:
 					whatToRender(status)
 			}
-
-			{/* status === 'quickplayMenu' ?
-						<div className="flex flex-col gap-4 w-full ">
-							<Accordeon title={'Rules And Instructions'} bgColor={'bg-gray-600'} width='bg-gray-600 w-auto mx-auto text-xl text-gray-400'>
-								<p className=" flex flex-row" >Rule Set</p>
-							</Accordeon>
-							<button className="
-												 flex flex-row gap-4 items-center mt-10 mx-auto h-12 w-auto justify-items-center
-												text-xl text-gray-400 cursor-pointer rounded bg-gray-600
-												hover:bg-gray-500 hover:text-white hover:shadow-gray-900 hover:shadow-sm
-												focus:bg-gray-500 focus:text-white focus:shadow-gray-900 focus:shadow-sm"
-								onClick={() => { socket?.emit('quickplay') }}
-								disabled={gameStatus !== 'NONE' ? true : false}
-							>
-								Quickplay
-							</button>
-						</div>
-
-						: status === 'matchAccepted' ?
-							<div className="flex flex-col gap-4 w-full ">
-								<div className="flex flex-col items-center m-auto text-xl text-gray-400 bg-gray-700">
-									<p>Waiting for the other player</p>
-									<Spinner />
-								</div>
-							</div>
-
-							: status === 'matchFound' ?
-								<div className="flex flex-col gap-4 w-full">
-									<div className="flex flex-col items-center m-auto text-xl text-gray-400 bg-gray-700">
-										<p>Match Found!!!!!!!!!!</p>
-										<div className="flex flex-row items-center m-auto gap-1 text-xl text-gray-100 bg-black">
-											<button className="border-2 border-green-600"
-												onClick={() => socket?.emit('acceptMatch', { room: roomState })}>
-												Accept
-											</button>
-											<button className="border-2 border-red-600"
-												onClick={() => socket?.emit('declineMatch')}>
-												Decline
-											</button>
-										</div>
-									</div>
-
-								</div>
-
-								: status === 'queueing' ?
-									<div className="m-auto text-xl text-gray-400 bg-gray-700">
-										<p>In Queue</p>
-										<Spinner />
-										<div className="mx-auto mt-2 text-xl text-gray-100 bg-black">
-											<button onClick={() => { setStatus('waiting'); socket?.emit("leaveQueue"); }}>Stop Queue</button>
-										</div>
-									</div>
-
-									: status === 'customGame' ?
-										<CustomGameScreen goBack={goBack} params={params} />
-
-										:
-										<></>
-		</div> */}
 		</div>
 	)
 }

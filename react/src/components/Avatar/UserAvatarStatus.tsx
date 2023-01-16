@@ -3,6 +3,8 @@ import { parseClassName } from "react-toastify/dist/utils";
 import { SharedUserStatus } from "../../../shared/dtos";
 import { backURL } from "../../requests";
 
+import {onlineIcon, offlineIcon, busyIcon, awayIcon} from '../../../assets'
+
 export function UserAvatarStatus({userName, status, size = '12', border = 'border-gray-900', className = ''} : {userName: string, status: SharedUserStatus, size?: string, border?: string, className?: string})
 {
 	return (
@@ -36,15 +38,14 @@ export function CurrentStatus(props: {className: string, status: SharedUserStatu
 
     useEffect(() =>
     {
-        const baseUrl = '/assets/';
         if (status == 'ONLINE')
-            setStatusImg(baseUrl + 'online.png');
+            setStatusImg(onlineIcon);
         else if (status == 'OFFLINE')
-            setStatusImg(baseUrl + 'offline.png');
+            setStatusImg(offlineIcon);
         else if (status == 'BUSY')
-            setStatusImg(baseUrl + 'busy.png');
+            setStatusImg(busyIcon);
         else if (status == 'AWAY')
-            setStatusImg(baseUrl + 'away.png');
+            setStatusImg(awayIcon);
     }, [status])
 
     return (

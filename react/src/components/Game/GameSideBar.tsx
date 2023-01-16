@@ -78,7 +78,7 @@ export function GameSideBar(props: { socket: any, status: any, setCustomGame: an
 					{
 						if (room.invitation === false && room.user1 !== me.userName)
 							return (
-								<div className="flex flex-col bg-gray-600 mb-2 w-11/12 m-auto
+								<div key={room.id} className="flex flex-col bg-gray-600 mb-2 w-11/12 m-auto
 										cursor-pointer rounded
 										">
 									<p><span className="text-gray-400 text-sm">user: </span><span className="text-gray-300 text-base">{room.user1}</span></p>
@@ -100,7 +100,7 @@ export function GameSideBar(props: { socket: any, status: any, setCustomGame: an
 					ongoingGames.map((game: any) =>
 					{
 						return (
-							<div className="flex flex-col bg-gray-600 mb-2 w-11/12 m-auto
+							<div key={game.id} className="flex flex-col bg-gray-600 mb-2 w-11/12 m-auto
 						cursor-pointer rounded
 						">
 								<p><span className="text-gray-300 text-base">{game.user1}</span><span className="text-gray-400 text-sm"> vs </span><span className="text-gray-300 text-base">{game.user2}</span></p>
@@ -117,7 +117,6 @@ export function GameSideBar(props: { socket: any, status: any, setCustomGame: an
 					})
 				}
 			</Accordeon>
-			{/* <button onClick={goBack}>Go Back!</button> */}
 		</div>
 	)
 }

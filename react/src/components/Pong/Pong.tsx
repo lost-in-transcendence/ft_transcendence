@@ -1,5 +1,6 @@
 import { useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { GameStatus } from "../../dto/game.dto";
+import { backURL } from "../../requests";
 import { Canvas } from "../Canvas/canvas";
 import GameSocketContext from "../Game/Context/game-socket-context";
 import SocketContext from "../Socket/socket-context";
@@ -56,7 +57,7 @@ function DisplayTimer(props: {
     timerstr += ":" + (seconds < 10 ? `0${seconds}` : seconds);
   }
 
-  return <div className="flex mx-auto bg-gray-700 text-gray-400 text-xl">{timerstr}</div>;
+  return <div className="flex min-w-[55px] text-center items-center justify-center mx-auto bg-gray-700 text-gray-400 text-xl">{timerstr}</div>;
 }
 
 export function Pong(props: { goBack: any, asSpectator: boolean, gameInfos: {theme: string, user1Name: string, user2Name: string, launchTime: number} | undefined}) {
@@ -86,6 +87,37 @@ export function Pong(props: { goBack: any, asSpectator: boolean, gameInfos: {the
   const [timer, setTimer] = useState(0);
 
   const [theme, setTheme] = useState<{ballColor: string, paddleColor: string, background: string}>(themes.classic);
+
+  function handleKeyUp(e: any) {
+    if (asSpectator === true) return;
+    var key = e.key;
+    if (key === "w") {
+      socket?.emit("paddleMove", { direction: PaddleDirection.STOP });
+    }
+    if (key === "s") {
+      socket?.emit("paddleMove", { direction: PaddleDirection.STOP });
+    }
+  }
+
+  function handleKeyDown(e: any) {
+    if (asSpectator === true) return;
+    var key = e.key;
+    if (key === "w") {
+      socket?.emit("paddleMove", { direction: PaddleDirection.UP });
+    }
+    if (key === "s") {
+      socket?.emit("paddleMove", { direction: PaddleDirection.DOWN });
+    }
+  }
+  useEffect( () => {
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    return () => {
+      window.removeEventListener('keydown', ()=>{});
+      window.removeEventListener('keyup', ()=>{});
+    }
+  }, [])
+
   useEffect( () => {
     switch (props.gameInfos?.theme)
     {
@@ -189,40 +221,22 @@ export function Pong(props: { goBack: any, asSpectator: boolean, gameInfos: {the
     ctx.fill();
   }
 
-  function handleKeyUp(e: any) {
-    if (asSpectator === true) return;
-    var key = e.key;
-    if (key === "w") {
-      socket?.emit("paddleMove", { direction: PaddleDirection.STOP });
-    }
-    if (key === "s") {
-      socket?.emit("paddleMove", { direction: PaddleDirection.STOP });
-    }
-  }
 
-  function handleKeyDown(e: any) {
-    if (asSpectator === true) return;
-    var key = e.key;
-    if (key === "w") {
-      socket?.emit("paddleMove", { direction: PaddleDirection.UP });
-    }
-    if (key === "s") {
-      socket?.emit("paddleMove", { direction: PaddleDirection.DOWN });
-    }
-  }
 
   return (
-    <div className="flex flex-col items-center w-full">
+    <div className="flex flex-col items-center w-full" onKeyUp={handleKeyUp} onKeyDown={handleKeyDown}>
 
-      <div className="flex flex-row bg-gray-700 my-2 w-full h-[20%]">
+      <div className="flex flex-row bg-gray-700 my-2 w-full">
 
-        <div className="flex flex-col h-full w-[30%] text-xl text-gray-400 border-gray-600 border-2 justify-center">
+        <div className="flex w-[30%] text-xl text-gray-400 border-gray-600 border-y-2 border-l-2 justify-center items-center">
           <p className="truncate text-center border-b border-gray-600">{gameInfos?.user1Name}</p>
         </div>
-        <div className="flex flex-col h-full w-[10%] text-xl text-gray-400 border-gray-600 border-2 justify-center">
+        <div className="flex w-[10%] text-xl text-gray-400 border-gray-600 border-2 justify-center items-center">
           <p className="flex mx-auto">{gameItems.player1Score}</p>
         </div>
-
+        <div className="mx-[15px] my-[5px]">
+            <img className="w-[45px] h-[45px] rounded-full" src={`${backURL}/users/avatars/${gameInfos?.user1Name}`} />
+          </div>
         <DisplayTimer timer={timer}
         years={false}
         hours={false}
@@ -230,10 +244,13 @@ export function Pong(props: { goBack: any, asSpectator: boolean, gameInfos: {the
         seconds={true}
         />
 
-        <div className="flex flex-col h-full w-[10%] text-xl text-gray-400 border-gray-600 border-2 justify-center">
+        <div className="mx-[15px] my-[5px]">
+            <img className="w-[45px] h-[45px] rounded-full" src={`${backURL}/users/avatars/${gameInfos?.user2Name}`} />
+          </div>
+        <div className="flex w-[10%] text-xl text-gray-400 border-gray-600 border-2 justify-center items-center">
           <p className="flex mx-auto">{gameItems.player2Score}</p>
         </div>
-        <div className="flex flex-col h-full w-[30%] text-xl text-gray-400 border-gray-600 border-2 justify-center">
+        <div className="flex w-[30%] text-xl text-gray-400 border-gray-600 border-y-2 border-r-2 justify-center items-center">
           <p className="truncate text-center border-b border-gray-600">{gameInfos?.user2Name}</p>
         </div>
 
@@ -242,9 +259,7 @@ export function Pong(props: { goBack: any, asSpectator: boolean, gameInfos: {the
 
       <div className={theme? theme.background + ' mx-auto relative': 'mx-auto relative'}>
         <Canvas
-        onKeyDown={(e: any) => handleKeyDown(e)}
-        onKeyUp={(e: any) => handleKeyUp(e)}
-        tabIndex={0}
+        tabIndex={1}
         draw={drawGame}
         />
       {

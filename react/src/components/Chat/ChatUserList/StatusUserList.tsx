@@ -9,7 +9,7 @@ import { UserAvatarStatus } from "../../Avatar/UserAvatarStatus";
 import { BsFillChatFill } from "react-icons/bs";
 
 
-export function StatusFriendList({userList, children}: {userList: SharedOtherUserDto[], children: ReactNode})
+export function StatusUserList({userList, children}: {userList: SharedOtherUserDto[], children: ReactNode})
 {
 	const setContextMenu = useContext(ContextMenuContext).ContextMenuSetter;
 	const mainCtx = useContext(SocketContext);
