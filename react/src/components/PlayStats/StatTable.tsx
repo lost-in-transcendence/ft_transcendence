@@ -31,13 +31,13 @@ export function StatTable({ playerStats }: IStatTableProps)
 					<td>{playerStats.rank}</td>
 				</tr>
 				<tr  className="flex items-start w-full px-10 justify-between">
-					<td>Points Scored</td>
+					<td>Points</td>
 					<td>{playerStats.points}</td>
 				</tr>
-				<tr  className="flex items-start w-full px-10 justify-between">
+				{/* <tr  className="flex items-start w-full px-10 justify-between">
 					<td>Achievement points</td>
 					<td>{playerStats.achievement_points}</td>
-				</tr>
+				</tr> */}
 			</tbody>
 
 		</table>
