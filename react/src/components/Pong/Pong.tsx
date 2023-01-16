@@ -86,6 +86,37 @@ export function Pong(props: { goBack: any, asSpectator: boolean, gameInfos: {the
   const [timer, setTimer] = useState(0);
 
   const [theme, setTheme] = useState<{ballColor: string, paddleColor: string, background: string}>(themes.classic);
+
+  function handleKeyUp(e: any) {
+    if (asSpectator === true) return;
+    var key = e.key;
+    if (key === "w") {
+      socket?.emit("paddleMove", { direction: PaddleDirection.STOP });
+    }
+    if (key === "s") {
+      socket?.emit("paddleMove", { direction: PaddleDirection.STOP });
+    }
+  }
+
+  function handleKeyDown(e: any) {
+    if (asSpectator === true) return;
+    var key = e.key;
+    if (key === "w") {
+      socket?.emit("paddleMove", { direction: PaddleDirection.UP });
+    }
+    if (key === "s") {
+      socket?.emit("paddleMove", { direction: PaddleDirection.DOWN });
+    }
+  }
+  useEffect( () => {
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    return () => {
+      window.removeEventListener('keydown', ()=>{});
+      window.removeEventListener('keyup', ()=>{});
+    }
+  }, [])
+
   useEffect( () => {
     switch (props.gameInfos?.theme)
     {
@@ -189,30 +220,10 @@ export function Pong(props: { goBack: any, asSpectator: boolean, gameInfos: {the
     ctx.fill();
   }
 
-  function handleKeyUp(e: any) {
-    if (asSpectator === true) return;
-    var key = e.key;
-    if (key === "w") {
-      socket?.emit("paddleMove", { direction: PaddleDirection.STOP });
-    }
-    if (key === "s") {
-      socket?.emit("paddleMove", { direction: PaddleDirection.STOP });
-    }
-  }
 
-  function handleKeyDown(e: any) {
-    if (asSpectator === true) return;
-    var key = e.key;
-    if (key === "w") {
-      socket?.emit("paddleMove", { direction: PaddleDirection.UP });
-    }
-    if (key === "s") {
-      socket?.emit("paddleMove", { direction: PaddleDirection.DOWN });
-    }
-  }
 
   return (
-    <div className="flex flex-col items-center w-full">
+    <div className="flex flex-col items-center w-full" onKeyUp={handleKeyUp} onKeyDown={handleKeyDown}>
 
       <div className="flex flex-row bg-gray-700 my-2 w-full h-[20%]">
 
@@ -242,9 +253,7 @@ export function Pong(props: { goBack: any, asSpectator: boolean, gameInfos: {the
 
       <div className={theme? theme.background + ' mx-auto relative': 'mx-auto relative'}>
         <Canvas
-        onKeyDown={(e: any) => handleKeyDown(e)}
-        onKeyUp={(e: any) => handleKeyUp(e)}
-        tabIndex={0}
+        tabIndex={1}
         draw={drawGame}
         />
       {
