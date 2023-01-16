@@ -28,6 +28,9 @@ services:
         condition: service_healthy
     ports:
       - ${BACK_PORT}:${BACK_PORT}
+    volumes:
+      - ./nest:/usr/src/app
+      - ./shared:/usr/src/shared
     environment:
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PW}
@@ -44,9 +47,6 @@ services:
       - JWT_SECRET=${JWT_SECRET}
       - MAILERHOST_USER=${MAILERHOST_USER}
       - MAILERHOST_PW=${MAILERHOST_PW}
-      - DATABASE_URL=${DB_URL}
-    volumes:
-      - ./nest/asset:/usr/src/app/asset
     networks:
       - transcendence_network
 
@@ -63,8 +63,9 @@ services:
       - VITE_BACK_PORT=${BACK_PORT}
     ports:
       - ${FRONT_PORT}:${FRONT_PORT}
-    # volumes:
-      # - ./shared:/usr/shared
+    volumes:
+      - ./react:/usr/src/app
+      - ./shared:/usr/src/shared
     networks:
       - transcendence_network
 

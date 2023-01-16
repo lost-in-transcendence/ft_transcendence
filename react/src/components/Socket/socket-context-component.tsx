@@ -1,7 +1,7 @@
 import { useEffect, useInsertionEffect, useReducer, useState } from "react";
 
 import { useSocket } from "../../hooks/use-socket";
-import { getCookie } from "../../requests";
+import { backURL, getCookie } from "../../requests";
 import { defaultSocketContextState, SocketContextProvider, SocketReducer } from "./socket-context";
 import * as events from '../../../shared/constants/users'
 import { changeStatus } from "../../requests/ws/users.messages";
@@ -18,7 +18,7 @@ export default function SocketContextComponent(props: any)
 	const [loading, setLoading] = useState(true);
 
 
-	const socket = useSocket("http://localhost:3333",
+	const socket = useSocket(`${backURL}`,
 		{
 			reconnectionAttempts: 5,
 			reconnectionDelay: 5000,

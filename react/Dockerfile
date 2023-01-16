@@ -6,4 +6,4 @@ COPY . .
 
 ENTRYPOINT ["./entrypoint.sh"]
 
-CMD ["npm", "run", "dev"]
+CMD ["npm", "run", "prod"]

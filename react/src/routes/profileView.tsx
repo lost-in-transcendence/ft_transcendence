@@ -10,7 +10,7 @@ import SocketContext from "../components/Socket/socket-context";
 import { MatchHistoryCard } from "../components/MatchHistoryCard/MatchHistoryCard";
 import { StatTable } from "../components/PlayStats/StatTable";
 import { SharedOtherUserDto } from "../../shared/dtos";
-import * as events from '../../../shared/constants'
+import * as events from '../../shared/constants'
 import { FaBolt, FaCommentAlt, FaUserFriends, FaUserSlash } from "react-icons/fa";
 
 
@@ -34,11 +34,11 @@ export function ProfileView() {
 	const navigate = useNavigate();
 
 	async function handleFriend() {
-		if (isFriends) 
+		if (isFriends)
 		{
 			const res = await removeFriend(profile.id);
 		}
-		else 
+		else
 		{
 			if (isBlackListed)
 			{
@@ -75,7 +75,7 @@ export function ProfileView() {
 	{
 		navigate('/game?' + new URLSearchParams({ 'action': 'spectateGame', 'userName': profile.userName }));
 	}
-	
+
 	function handlePrivmsg()
 	{
 		navigate('/chat?' + new URLSearchParams({ 'action': 'privmsg', 'userName': profile.userName}));
@@ -137,7 +137,7 @@ export function ProfileView() {
 						<button className='viewProfileButton' onClick={handlePrivmsg}>
 							<div>
 								<FaCommentAlt size="25" className='m-auto' />
-							</div>	
+							</div>
 							<span className="flex-1 ml-[0px]">
 								Send Message
 							</span>

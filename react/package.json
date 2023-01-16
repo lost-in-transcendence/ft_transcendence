@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host",
-    "build": "tsc && vite build",
-    "preview": "vite preview"
+    "build": "vite build",
+	"prod": "npm run build && npm run preview",
+    "preview": "vite preview --host"
   },
   "dependencies": {
     "@types/uuid": "^9.0.0",

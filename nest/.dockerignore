@@ -1,5 +1,4 @@
 .dockerignore
 Dockerfile
-.env
 node_modules
 dist

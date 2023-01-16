@@ -8,7 +8,7 @@ import ContextMenuContext from "../components/Chat/ContextMenu/context-menu-cont
 import { ContextMenu } from "../components/Chat/ContextMenu/ContextMenu";
 import { ChatUserList } from "../components/Chat/ChatUserList/ChatUserList";
 import { Channel } from "../dto/channels.dto";
-import * as events from '../../../shared/constants'
+import * as events from '../../shared/constants'
 import SocketContext from "../components/Socket/socket-context";
 
 export async function loader()
@@ -74,17 +74,17 @@ export function Chat()
 			target={contextMenu.target} />
 			:
 			<></>
-			
+
 		}
 			<div className="flex flex-col md:flex-row">
 				<ChatSidebar user={user} />
 				<div className="text-white basis-full overflow-auto justify-self-center mr-auto bg-gray-800">
 					{
-						state.activeChannel ?	
+						state.activeChannel ?
 						<ChatDisplay currentUser={user}/>
 						:
 						<>
-				
+
 						<ChatUserList />
 						</>
 					}
