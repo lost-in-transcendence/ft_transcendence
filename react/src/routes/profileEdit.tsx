@@ -72,8 +72,7 @@ async function handleToggleTwoFa()
 
 export function ProfileEdit()
 {
-	// const user: any = useLoaderData();
-	const user = useContext(SocketContext).SocketState.user;
+	const user: any = useLoaderData();
 	const playerStats = user.playStats;
 	const [status, setStatus] = useState('waiting');
 	const [twoFa, setTwoFa] = useState<boolean>(user.twoFaEnabled);
@@ -98,9 +97,6 @@ export function ProfileEdit()
 		{
 			setError("Error generating OTP");
 		}
-		else {
-			masterSocket?.emit('changeTwoFa');
-		}
 		return res.ok;
 	}
 
@@ -115,7 +111,6 @@ export function ProfileEdit()
 		try
 		{
 			await handleToggleTwoFa()
-			masterSocket?.emit('changeTwoFa');
 			setTwoFa(false);
 		}
 		catch (err: any)
