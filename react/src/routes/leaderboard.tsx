@@ -19,16 +19,11 @@ export function LeaderBoard()
 
 	useEffect(() =>
 	{
-		socket?.on('nextRanking', (payload: { nextRanking: Date }) =>
+		socket?.on('nextRanking', (payload: { nextRanking: Date, previousRanking: PlayStats[] }) =>
 		{
-			setNextRanking(new Date(payload.nextRanking));
-			async function loadRanking()
-			{
-				const res = await getLeaderBoard();
-				setRanking(await res.json());
-			}
 			setLoading(true);
-			loadRanking()
+			setNextRanking(new Date(payload.nextRanking));
+			setRanking(payload.previousRanking);
 			setLoading(false);
 		})
 

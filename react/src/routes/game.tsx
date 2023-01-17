@@ -15,6 +15,7 @@ import { Queuing } from "../components/Game/Queuing";
 import { QuickPlayMenu } from "../components/Game/QuickPlayMenu";
 import { MatchAccepted } from "../components/Game/MatchAccepted";
 import { MatchFound } from "../components/Game/MatchFound";
+import useIsMounted from "../hooks/use-is-mounted";
 
 export async function loader()
 {
@@ -50,6 +51,7 @@ export function Game()
 	const [gameInfos, setGameInfos] = useState<{ theme: string, user1Name: string, user2Name: string, launchTime: number } | undefined>(undefined);
 
 	const [params, setParams] = useSearchParams();
+	const mounted = useIsMounted();
 
 	useEffect(() =>
 	{
@@ -87,6 +89,7 @@ export function Game()
 		})
 		socket?.on("leftQueue", () =>
 		{
+			setStatus('waiting');
 			masterSocket?.emit('changeGameStatus', { gameStatus: GameStatus.NONE })
 			masterSocket?.off("invitationDeclined");
 		});
@@ -125,6 +128,7 @@ export function Game()
 
 		socket?.on('matchAccepted', () =>
 		{
+			masterSocket?.emit('changeGameStatus', { gameStatus: GameStatus.WAITING })
 			setStatus('matchAccepted');
 		})
 
@@ -144,8 +148,6 @@ export function Game()
 
 		return () =>
 		{
-			if (gameStatus !== SharedGameStatusDto.NONE)
-				masterSocket?.emit('changeGameStatus', { gameStatus: GameStatus.NONE })
 			socket?.off('queueing');
 			socket?.off('inviteGameCreated');
 			masterSocket?.off('userOffline');
@@ -159,6 +161,20 @@ export function Game()
 			socket?.off('matchDeclinedByOpponent')
 		}
 	}, [])
+
+	useEffect(() =>
+	{
+		return () =>
+		{
+			if (mounted())
+				return;
+			console.log("Unmounting");
+			if (gameStatus !== 'NONE' && (status === 'ongoingGame' || status === 'queueing' || status === 'matchFound' || status === 'matchAccepted'))
+			{
+				masterSocket?.emit('changeGameStatus', { gameStatus: GameStatus.NONE })
+			}
+		}
+	}, [mounted])
 
 	useEffect(() =>
 	{
@@ -196,7 +212,7 @@ export function Game()
 				{
 					socket?.emit('leaveQueue')
 				}
-				else if (user.gameStatus === 'WAITING' && status === 'matchFound')
+				else if (user.gameStatus === 'WAITING' && (status === 'matchFound' || status === 'matchAccepted'))
 				{
 					socket?.emit('declineMatch');
 				}
@@ -208,6 +224,7 @@ export function Game()
 					masterSocket?.emit('declineInvite', {inviterId: target.id});
 					return;
 				}
+				socket?.emit('declineAllMatches');
 				setError('');
 				masterSocket?.emit('changeGameStatus', { gameStatus: GameStatus.WAITING })
 				socket?.emit('joinCustomGame', { room: gameId });

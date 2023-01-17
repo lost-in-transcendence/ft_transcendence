@@ -93,6 +93,12 @@ export default function SocketContextComponent(props: any)
 				displayInviteNotification(inviter, inviterId, gameId, socket);
 			}
 		})
+
+		socket.on('closeNotification', (payload: {id: string}) =>
+		{
+			console.log("in close notification, id:", payload.id);
+			toast.dismiss(payload.id);
+		});
 	}
 
 	function SendHandshake()
