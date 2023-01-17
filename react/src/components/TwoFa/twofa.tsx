@@ -5,10 +5,9 @@ async function submitTwoFa(code: string)
 {
 
 	const res = await authenticateTwoFa(code);
-
 	if (res.status !== 200)
 	{
-		throw new Error('Wrong code!');
+		throw new Error('Wrong code !');
 	}
 }
 
@@ -88,6 +87,8 @@ export function TwoFa(props: { onSuccess: any })
 			await resendEmail()
 			setTimer(5 * 60);
 			setStatus('waiting');
+			setCode('')
+			setError(null)
 		}
 		catch (err: any)
 		{
@@ -126,14 +127,24 @@ export function TwoFa(props: { onSuccess: any })
 					<input
 						type={'text'}
 						value={code}
+						placeholder='______'
 						onChange={handleChange}
 						disabled={status === 'submitting'}
-						className='text-center rounded shadow'
+						className='text-center rounded shadow tracking-widest'
+						minLength={6}
 						maxLength={6}
 					/>
+					{
+						error ?
+							<p className="text-red-600">
+								{error}
+							</p>
+							:
+							null
+					}
 					<button
 						disabled={code.length === 0 || code.length > 6 || status === 'submitting'}
-						className='bg-indigo-500 rounded shadow px-1 text-gray-200'
+						className={`${code.length !== 6 ? 'bg-gray-500 cursor-not-allowed' : 'bg-indigo-500'} rounded shadow px-1 text-gray-200`}
 					>
 						Submit
 					</button>

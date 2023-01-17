@@ -6,7 +6,7 @@ import * as events from "../../../../shared/constants";
 
 export function OwnerBox({ onClose, channel }: { onClose: any, channel: Channel })
 {
-	const [data, setData] = useState<{ channelId: string, channelName?: string; mode?: string; password?: string; }>({ channelId: channel.id });
+	const [data, setData] = useState<{ channelId: string, channelName?: string; mode?: string; password?: string; }>({ channelId: channel.id, mode: channel.mode });
 	const [bannedUsers, setbannedUsers] = useState<Member[]>([]);
 
 	const ctx = useContext(ChatContext);

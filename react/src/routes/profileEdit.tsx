@@ -36,9 +36,9 @@ export async function action({ request }: any)
 	}
 	let res = undefined;
 	try {
-		res = await updateUser(updates);	
+		res = await updateUser(updates);
 	}
-	catch (err: any) 
+	catch (err: any)
 	{
 		if (err.status === 406)
 		{
@@ -280,8 +280,8 @@ export function ProfileEdit()
 								</button>
 							</div>
 							{action?.status === 'empty field' ? (<><br /><p><b>Fields must not be empty</b></p></>) : (<></>)}
-							{action?.status === 'name too long' ? (<><br /><p><b>You cannot have a name that is longer than 32 characters</b></p></>) : (<></>)}
-							{action?.status === 'unavalaible input' ? (<><br /><p><b>This name is already taken by somebody else</b></p></>) : (<></>)}
+							{action?.status === 'name too long' ? (<><br /><p className="text-red-600">Name too long (32 characters max)</p></>) : (<></>)}
+							{action?.status === 'unavalaible input' ? (<><p className="text-red-600 " >Username already taken</p></>) : (<></>)}
 
 						</Form>
 						:
