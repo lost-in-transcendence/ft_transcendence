@@ -178,6 +178,12 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			this.server.to(client.id).emit('userOffline');
 			return;
 		}
+		const target = await this.userService.user({id: invitedUser});
+		if (target.gameStatus === 'INGAME')
+		{
+			this.server.to(client.id).emit('userIsIngame');
+			return;
+		}
 		sockets.forEach((v) => {
 			this.server.to(v.id).emit('notification', { type: 'invite', inviter: user.userName, inviterId: user.id, gameId });
 		})

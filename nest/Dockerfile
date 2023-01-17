@@ -5,7 +5,6 @@ RUN apk add --update --no-cache openssl1.1-compat
 
 COPY . .
 
-
 ENTRYPOINT ["./entrypoint.sh"]
 
 CMD ["npm", "run", "dev"]
