@@ -5,6 +5,7 @@ import SocketContext from "../../Socket/socket-context";
 import ContextMenuContext from "../ContextMenu/context-menu-context";
 import { StatusUserList } from "./StatusUserList";
 import * as events from "../../../../shared/constants";
+import { StatusBlockedList } from "./StatusBlockedlist";
 
 export function BlockedList()
 {
@@ -44,9 +45,9 @@ export function BlockedList()
 		<>
 		<h1 className="text-5xl text-center">Blocked</h1>
 		{ blackList && blackList.length > 0 ?
-		<StatusUserList userList={blackList}>
+		<StatusBlockedList userList={blackList}>
 				<hr className="bg-gray-700 border-0 h-[1px]"/>
-		</StatusUserList>
+		</StatusBlockedList>
 		:
 		<h1>You haven't blocked any users</h1>
 		}
