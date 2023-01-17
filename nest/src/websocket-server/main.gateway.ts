@@ -194,6 +194,14 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		})
 	}
 
+	@SubscribeMessage('changeTwoFa')
+	async changeTwoFa(@ConnectedSocket() client: Socket, @GetUserWs() user: User)
+	{
+		this.socketStore.getUserSockets(user.id).forEach((v) => {
+			this.server.to(v.id).emit(events.UPDATE_USER, { twoFaEnabled : user.twoFaEnabled });
+		});
+	}
+
 	@SubscribeMessage('changeFriends')
 	async changeFriend(@ConnectedSocket() client: Socket, @GetUserWs() user: User) {
 		const friends = (await this.userService.userSelect({ id: user.id }, { friends: true })).friends;
