@@ -25,7 +25,20 @@ export class AuthService
 		let user: User = await this.usersService.user({ id42: id42.toString() });
 		if (!user)
 		{
-			user = await this.usersService.createUser({  id42: id42.toString(), userName, email});
+			let validName = userName;
+			for (let valid: Boolean = false, postfix : number = 0; valid !== true || postfix <= 1000 ; postfix++)
+			{
+				let nameDuplicate = await this.usersService.user({userName: validName});
+				if (!nameDuplicate)
+				{
+					valid = true;
+				}
+				else
+				{
+					validName = userName + '_' + postfix.toString();
+				}
+			}
+			user = await this.usersService.createUser({  id42: id42.toString(), userName: validName, email});
 			const url = avatarURL;
 			const filename = `./asset/avatars/${user.id}_${Date.now().toString()}_avatar.png`;
 			const fileWriterStream = fs.createWriteStream(filename);
@@ -35,7 +48,7 @@ export class AuthService
 				responseType: 'stream',
 			});
 			await response.data.pipe(fileWriterStream);
-			const data: Prisma.UserUpdateInput = { id42: id42.toString(), userName, email, avatarPath : filename};
+			const data: Prisma.UserUpdateInput = { id42: id42.toString(), userName: validName, email, avatarPath : filename};
 			await this.usersService.updateUser({
 				where: { id : user.id },
 				data
