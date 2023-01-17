@@ -76,7 +76,7 @@ export function GameSideBar(props: { socket: any, status: any, setCustomGame: an
 				{
 					waitingRooms.map((room: any) =>
 					{
-						if (room.invitation === false && room.user1 !== me.userName)
+						if (room.invitation === false && room.user1Id !== me.id)
 							return (
 								<div
 									key={room.id}

@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from "react";
 import { Params, useLoaderData, useLocation, useParams, useSearchParams } from "react-router-dom";
-import { getAllUsersSelect, getOngoingGame } from "../requests";
+import { getAllUsersSelect, getOngoingGame, getUser } from "../requests";
 import GameSocketContext from "../components/Game/Context/game-socket-context";
 import { Pong } from "../components/Pong/Pong";
 import SocketContext from "../components/Socket/socket-context";
@@ -15,6 +15,7 @@ import { Queuing } from "../components/Game/Queuing";
 import { QuickPlayMenu } from "../components/Game/QuickPlayMenu";
 import { MatchAccepted } from "../components/Game/MatchAccepted";
 import { MatchFound } from "../components/Game/MatchFound";
+import useIsMounted from "../hooks/use-is-mounted";
 
 export async function loader()
 {
@@ -38,7 +39,9 @@ export function Game()
 {
 	const loaderData: any = useLoaderData();
 	const { socket } = useContext(GameSocketContext).GameSocketState;
-	const masterSocket = useContext(SocketContext).SocketState.socket;
+	const mainCtx = useContext(SocketContext);
+	const masterSocket = mainCtx.SocketState.socket;
+	const {user} = mainCtx.SocketState;
 	const gameStatus = useContext(SocketContext).SocketState.user.gameStatus;
 	const [status, setStatus] = useState('waiting')
 	const [error, setError] = useState<string | null>(null);
@@ -48,6 +51,7 @@ export function Game()
 	const [gameInfos, setGameInfos] = useState<{ theme: string, user1Name: string, user2Name: string, launchTime: number } | undefined>(undefined);
 
 	const [params, setParams] = useSearchParams();
+	const mounted = useIsMounted();
 
 	useEffect(() =>
 	{
@@ -60,8 +64,8 @@ export function Game()
 		socket?.on('inviteGameCreated', (payload: any) =>
 		{
 			const { gameId, invitedUser } = payload;
-			masterSocket?.emit('invite', { gameId, invitedUser });
 			setStatus('queueing');
+			masterSocket?.emit('invite', { gameId, invitedUser });
 			masterSocket?.emit('changeGameStatus', { gameStatus: GameStatus.WAITING })
 			masterSocket?.on('invitationDeclined', () =>
 			{
@@ -77,8 +81,15 @@ export function Game()
 			setError('The person you invited is offline');
 			setRoomState('');
 		});
+		masterSocket?.on('userIsIngame', () =>
+		{
+			socket?.emit('leaveQueue');
+			setError('The person you invited is already in a game');
+			setRoomState('');
+		})
 		socket?.on("leftQueue", () =>
 		{
+			setStatus('waiting');
 			masterSocket?.emit('changeGameStatus', { gameStatus: GameStatus.NONE })
 			masterSocket?.off("invitationDeclined");
 		});
@@ -91,6 +102,7 @@ export function Game()
 		socket?.on('roomReady', (payload: any) =>
 		{
 			const { roomId, user1Name, user2Name, theme, launchTime } = payload;
+			masterSocket?.emit('changeGameStatus', { gameStatus: GameStatus.WAITING })
 			setStatus('matchFound');
 			setRoomState(roomId);
 			setGameInfos({ theme, user1Name, user2Name, launchTime });
@@ -116,6 +128,7 @@ export function Game()
 
 		socket?.on('matchAccepted', () =>
 		{
+			masterSocket?.emit('changeGameStatus', { gameStatus: GameStatus.WAITING })
 			setStatus('matchAccepted');
 		})
 
@@ -135,8 +148,6 @@ export function Game()
 
 		return () =>
 		{
-			if (gameStatus !== SharedGameStatusDto.NONE)
-				masterSocket?.emit('changeGameStatus', { gameStatus: GameStatus.NONE })
 			socket?.off('queueing');
 			socket?.off('inviteGameCreated');
 			masterSocket?.off('userOffline');
@@ -150,6 +161,20 @@ export function Game()
 			socket?.off('matchDeclinedByOpponent')
 		}
 	}, [])
+
+	useEffect(() =>
+	{
+		return () =>
+		{
+			if (mounted())
+				return;
+			console.log("Unmounting");
+			if (gameStatus !== 'NONE' && (status === 'ongoingGame' || status === 'queueing' || status === 'matchFound' || status === 'matchAccepted'))
+			{
+				masterSocket?.emit('changeGameStatus', { gameStatus: GameStatus.NONE })
+			}
+		}
+	}, [mounted])
 
 	useEffect(() =>
 	{
@@ -172,15 +197,41 @@ export function Game()
 			}
 			else if (action === 'joinInvite')
 			{
+				setParams(new URLSearchParams())
 				if (!gameId)
 				{
 					setError("Cannot find game, no game Id provided");
 					return;
 				}
+				if (!userName)
+				{
+					setError("Cannot find game, no username provided");
+					return;
+				}
+				if (user.gameStatus === 'WAITING' && status === 'queueing')
+				{
+					socket?.emit('leaveQueue')
+				}
+				else if (user.gameStatus === 'WAITING' && (status === 'matchFound' || status === 'matchAccepted'))
+				{
+					socket?.emit('declineMatch');
+				}
+				else if (user.gameStatus === 'INGAME')
+				{
+					setError("You cannot accept a challenge when you are already in a game");
+					const res = await getUser(userName);
+					const target = await res.json();
+					masterSocket?.emit('declineInvite', {inviterId: target.id});
+					return;
+				}
+				socket?.emit('declineAllMatches');
+				setError('');
+				masterSocket?.emit('changeGameStatus', { gameStatus: GameStatus.WAITING })
 				socket?.emit('joinCustomGame', { room: gameId });
 			}
 			else if (action === 'spectateGame')
 			{
+				setParams(new URLSearchParams())
 				if (!userName)
 				{
 					setError("Cannot find game, no username provided");
@@ -244,7 +295,7 @@ export function Game()
 				)
 			case 'customGame':
 				return (
-					<CustomGameScreen goBack={goBack} params={params} />
+					<CustomGameScreen goBack={goBack} params={params} setParams={setParams} />
 				)
 			case 'declinedByMe':
 				return (
@@ -289,6 +340,9 @@ export function Game()
 					:
 					whatToRender(status)
 			}
+			<div className="text-white">
+				My status: {user.gameStatus}
+			</div>
 		</div>
 	)
 }

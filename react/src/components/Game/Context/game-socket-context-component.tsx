@@ -1,6 +1,6 @@
 import { useEffect, useInsertionEffect, useReducer, useState } from "react";
 import { useSocket } from "../../../hooks/use-socket";
-import { getCookie } from "../../../requests";
+import { backURL, getCookie } from "../../../requests";
 
 import { defaultSocketContextState, SocketReducer } from "../../Socket/socket-context";
 import { Spinner } from "../../Spinner/Spinner";
@@ -14,7 +14,7 @@ export default function GameSocketContextComponent(props: any)
 	const [loading, setLoading] = useState(true);
 
 
-	const socket = useSocket("http://localhost:3333/game",
+	const socket = useSocket(`${backURL}/game`,
 		{
 			reconnectionAttempts: 5,
 			reconnectionDelay: 5000,
