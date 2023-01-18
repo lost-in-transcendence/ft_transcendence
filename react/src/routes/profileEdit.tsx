@@ -44,6 +44,10 @@ export async function action({ request }: any)
 		{
 			return { status: "unavalaible input" };
 		}
+		else if (err.status === 404 && err.message === 'Email not found')
+		{
+			return { status : "Couldn't send the code... please check that your email is valid" }
+		}
 		throw res;
 	}
 	let ret: any = { status: "updated" };
@@ -77,6 +81,7 @@ export function ProfileEdit()
 	const [status, setStatus] = useState('waiting');
 	const [twoFa, setTwoFa] = useState<boolean>(user.twoFaEnabled);
 	const [error, setError] = useState<string | null>(null);
+	const [mailError, setMailError] = useState<Boolean>(false);
 	const [edit, setEdit] = useState(false);
 	const [userNameEdit, setUserNameEdit] = useState(false);
 	const [emailEdit, setEmailEdit] = useState(false);
@@ -92,12 +97,20 @@ export function ProfileEdit()
 
 	async function onModalOpen()
 	{
-		const res = await generateTwoFa();
-		if (res.status !== 200)
-		{
-			setError("Error generating OTP");
+		setMailError(false);
+		try{
+			const res : any = await generateTwoFa();
+			if (res?.status !== 200)
+			{
+				setError("Error generating OTP");
+			}
+			return res.ok;
 		}
-		return res.ok;
+		catch (err : any)
+		{
+			setMailError(true);
+			setIsModalOpen(false);
+		}
 	}
 
 	async function enableTwoFa()
@@ -318,7 +331,6 @@ export function ProfileEdit()
 								</button>
 							</div>
 							{action?.status === 'empty field' ? (<><br /><p><b>Fields must not be empty</b></p></>) : (<></>)}
-							{action?.status === 'unavalaible input' ? (<><br /><p><b>This email is already used</b></p></>) : (<></>)}
 						</Form>
 						:
 						<div className="flex justify-between items-center mx-1 gap-10">
@@ -351,6 +363,7 @@ export function ProfileEdit()
 						<div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
 					</label>
 				</div>
+				{mailError ? (<><br /><p><b>Could not send mail</b></p></>) : (<></>)}
 
 			</div>
 		</div>
