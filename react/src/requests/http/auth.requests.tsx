@@ -50,17 +50,18 @@ export async function validateToken()
 
 export async function generateTwoFa()
 {
-    const res = await fetch(`${backURL}/twofa/generate`,
+
+        const res = await fetch(`${backURL}/twofa/generate`,
         {
             method: 'POST',
             credentials: 'include',
             headers: {"Authorization": "Bearer " + getCookie("jwt")}
         })
-    if (res.status !== 200)
-    {
-        throw res
-    }
-    return res;
+        if (res.status !== 200)
+        {
+            throw res
+        }
+        return res;
 }
 
 export async function authenticateTwoFa(code: string)
