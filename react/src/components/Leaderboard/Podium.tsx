@@ -1,7 +1,9 @@
 import { useNavigate } from "react-router-dom";
+import { BsFillTrophyFill as Trophy } from "react-icons/bs";
+
+import { avatarPlaceholder } from "../../../assets";
 import { PlayStats } from "../../dto/game.dto";
 import { backURL } from "../../requests";
-import { BsFillTrophyFill as Trophy } from "react-icons/bs";
 
 export function Podium({ number, player }: { number: number, player: PlayStats | undefined })
 {
@@ -32,7 +34,7 @@ export function Podium({ number, player }: { number: number, player: PlayStats |
 	divBg = 'bg-gray-300'
 	let imgSrc: string = '';
 	if (!player)
-		imgSrc = 'https://www.pngkit.com/png/full/72-729913_user-blank-avatar-png.png'
+		imgSrc = avatarPlaceholder
 	else
 		imgSrc = `${backURL}/users/avatars/${player.user.userName}`
 	let userName: string = ''
