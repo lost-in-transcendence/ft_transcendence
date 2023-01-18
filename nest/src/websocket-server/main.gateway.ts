@@ -52,11 +52,12 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		const ret = await this.userService.user({id: client.data.user.id});
 		if (this.socketStore.getUserSockets(ret.id).length === 0)
 		{
-			this.userService.updateUser({ where: { id: ret.id }, data: { status: StatusType.OFFLINE, gameStatus: GameStatusType.NONE } });
-			this.updateUser(client, ret, { status: StatusType.OFFLINE, gameStatus: GameStatusType.NONE });
+			await this.userService.updateUser({ where: { id: ret.id }, data: { status: StatusType.OFFLINE, gameStatus: GameStatusType.NONE } });
+			await this.updateUser(client, ret, { status: StatusType.OFFLINE, gameStatus: GameStatusType.NONE });
 		}
-		else if (ret.gameStatus === 'NONE') {
-			this.updateUser(client, ret, { gameStatus: GameStatusType.NONE });
+		else if (ret.gameStatus === 'NONE')
+		{
+			await this.updateUser(client, ret, { gameStatus: GameStatusType.NONE });
 		}
 	}
 
@@ -103,7 +104,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		this.socketStore.getUserSockets(user.id).forEach((v) => {
 			this.server.to(v.id).emit(events.UPDATE_USER, { status: updatedUser.status });
 		})
-		this.updateUser(client, user, { status: updatedUser.status });
+		await this.updateUser(client, user, { status: updatedUser.status });
 	}
 
 	@SubscribeMessage('changeGameStatus')
@@ -115,7 +116,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		this.socketStore.getUserSockets(user.id).forEach((v) => {
 			this.server.to(v.id).emit(events.UPDATE_USER, { gameStatus: updatedUser.gameStatus });
 		})
-		this.updateUser(client, user, { gameStatus: updatedUser.gameStatus });
+		await this.updateUser(client, user, { gameStatus: updatedUser.gameStatus });
 	}
 
 	@SubscribeMessage('changeUserName')
@@ -123,7 +124,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		this.socketStore.getUserSockets(user.id).forEach((v) => {
 			this.server.to(v.id).emit(events.UPDATE_USER, { userName });
 		})
-		this.updateUser(client, user, { userName });
+		await this.updateUser(client, user, { userName });
 	}
 
 	async updateUser(client: Socket, user: User, payload: any) {
