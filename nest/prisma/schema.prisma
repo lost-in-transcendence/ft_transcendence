@@ -31,7 +31,7 @@ model User {
     id         String  @id @default(uuid())
     id42       String  @unique
     userName   String  @unique
-    email      String  @unique
+    email      String
     avatarPath String?
 
     isGuest    Boolean @default(false)

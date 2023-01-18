@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { SharedOtherUserDto, SharedPartialUserDto } from "../../../../shared/dtos";
 import { getUserMeModal } from "../../../requests";
 import SocketContext from "../../Socket/socket-context";
@@ -20,6 +20,7 @@ export function UserList()
 	const onlineUser: SharedOtherUserDto[] = users.filter((u) => u.status === 'ONLINE' && u.id !== currentUser.id)
 	const offlineUser: SharedOtherUserDto[] = users.filter((u) => u.status === 'OFFLINE' && u.id !== currentUser.id)
 
+	const ref = useRef<HTMLDivElement>(null)
 //	const onlineUser: SharedPartialOtherUserDto[] = users.filter()
 	useEffect(() =>
 	{
@@ -56,6 +57,7 @@ export function UserList()
 	return (
 		<>
 		<h1 className="text-5xl text-center">Users</h1>
+		<div className="overflow-scroll pb-[150px] h-screen">
 		{
 			onlineUser && onlineUser.length > 0 ?
 			<StatusUserList userList={onlineUser}>
@@ -72,6 +74,7 @@ export function UserList()
 			</StatusUserList>
 			: null
 		}
+		</div>
 			{/* <h1 className="text-5xl text-center">Friends</h1>
 			{
 			onlineFriends && onlineFriends.length > 0 ?

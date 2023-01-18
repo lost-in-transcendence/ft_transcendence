@@ -23,7 +23,7 @@ export function Ranking({ranking} : {ranking: PlayStats[]})
 				{
 					ranking.map((v: PlayStats, i: number) =>
 					{
-						return <RankingItem v={v} i={i} />
+						return <RankingItem key={v.userId} v={v} i={i} />
 					})
 				}
 				</tbody>

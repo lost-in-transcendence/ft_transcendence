@@ -1,4 +1,4 @@
-import { Logger, ParseEnumPipe, ParseUUIDPipe, UseFilters, UseInterceptors, UsePipes, ValidationPipe } from "@nestjs/common";
+import { Logger, ParseEnumPipe, ParseIntPipe, ParseUUIDPipe, UseFilters, UseInterceptors, UsePipes, ValidationPipe } from "@nestjs/common";
 import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer, WsException } from "@nestjs/websockets";
 import { Socket, Server, Namespace } from 'socket.io';
 import { env } from "process";
@@ -10,9 +10,7 @@ import { UserInterceptor } from "./interceptor";
 import { WsValidationPipe } from "./pipes";
 import { GetUserWs } from "src/users/decorator/get-user-ws";
 import * as events from 'shared/constants/'
-import { type } from "os";
 import { SocketStore } from "./socket-store";
-import { IsNotEmpty, IsUUID } from "class-validator";
 import { ChannelsService } from "src/chat/channels/channels.service";
 import { PlayStatsService } from "src/playstats/playstats-service";
 
@@ -23,50 +21,33 @@ import { PlayStatsService } from "src/playstats/playstats-service";
 export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
 	private readonly logger = new Logger(MainGateway.name);
 	private readonly socketStore = new SocketStore();
-	private nextRanking: Date;
-	private rankInterval: number = 1000 * 60;
+	private nextRankingTimer: Date;
+	private previousRanking: PlayStats[];
+	private rankInterval: number = 1000 * 30;
 
 	constructor(private readonly userService: UsersService, private readonly playStatsService: PlayStatsService, private readonly channelService: ChannelsService) { }
 
 	@WebSocketServer()
 	server: Server;
 
-	afterInit(server: Server) {
+	afterInit(server: Server)
+	{
 		this.logger.log('Main Gateway initialized');
 
-		const intervalId = setInterval(async () => {
-			this.nextRanking = new Date(Date.now() + this.rankInterval)
-			this.server.emit("nextRanking", { nextRanking: this.nextRanking });
-			const usersByPoints = await this.playStatsService.findMany(
-				{
-					orderBy:
-					{
-						points: 'desc',
-					},
-					include:
-					{
-						user: true,
-					}
-				});
-			usersByPoints.forEach((v: PlayStats, i: number) => {
-				const { userId } = v;
-				this.playStatsService.update(
-					{
-						where: { userId },
-						data: { rank: { set: i + 1 } },
-					})
-			});
-		}, this.rankInterval)
-	}
+		this.doRanking();
+		const intervalId = setInterval(() => this.doRanking(), this.rankInterval)
+	}	
 
 	handleConnection(client: Socket)
 	{
+		this.logger.log(`Client ${client.id} has joined Main Gateway`);
 		this.server.to(client.id).emit('handshake', client.data.user);
 		this.socketStore.setUserSockets(client.data.user.id, client);
 	}
 
 	async handleDisconnect(client: Socket)
 	{
+		this.logger.log(`Client ${client.id} has disconnected from Main Gateway`);
 		this.socketStore.removeUserSocket(client.data.user.id, client);
 		const ret = await this.userService.user({id: client.data.user.id});
 		if (this.socketStore.getUserSockets(ret.id).length === 0)
@@ -79,13 +60,42 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		}
 	}
 
+	async doRanking()
+	{
+		this.nextRankingTimer = new Date(Date.now() + this.rankInterval)
+		const usersByPoints = await this.playStatsService.findMany(
+		{
+			orderBy:
+			{
+				points: 'desc',
+			},
+			include:
+			{
+				user: true,
+			}
+		});
+		this.previousRanking = await Promise.all(usersByPoints.map(async (v: PlayStats, i: number) =>
+		{
+			const { userId } = v;
+			const playStat = await this.playStatsService.update(
+			{
+				where: { userId },
+				data: { rank: { set: i + 1 } },
+				include: {user: {select: {userName: true}}}
+			})
+			return playStat;
+		}))
+		this.server.emit("nextRanking", { nextRanking: this.nextRankingTimer, previousRanking: this.previousRanking });
+	}
+
 	@SubscribeMessage('nextRanking')
 	async sendNextRanking(@ConnectedSocket() client: Socket) {
-		this.server.to(client.id).emit("nextRanking", { nextRanking: this.nextRanking });
+		this.server.to(client.id).emit("nextRanking", { nextRanking: this.nextRankingTimer, previousRanking: this.previousRanking });
 	}
 
 	@SubscribeMessage(events.CHANGE_STATUS)
-	async changeStatus(@GetUserWs() user: User, @MessageBody('status', new ParseEnumPipe(StatusType)) newStatus: StatusType, @ConnectedSocket() client: Socket) {
+	async changeStatus(@GetUserWs() user: User, @MessageBody('status', new ParseEnumPipe(StatusType)) newStatus: StatusType, @ConnectedSocket() client: Socket)
+	{
 		const updatedUser = await this.userService.updateUser({
 			where: { id: user.id },
 			data: { status: newStatus }
@@ -150,9 +160,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
 	@SubscribeMessage(events.GET_ALL_USERS)
 	async getAllUser(@ConnectedSocket() client: Socket) {
-		this.logger.debug('in getallUSERSS')
 		const users: User[] = await this.userService.users({ where: {} });
-		this.logger.debug({ users })
 		this.server.to(client.id).emit(events.GET_ALL_USERS, users);
 	}
 
@@ -178,12 +186,25 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			this.server.to(client.id).emit('userOffline');
 			return;
 		}
+		const target = await this.userService.user({id: invitedUser});
+		if (target.gameStatus === 'INGAME')
+		{
+			this.server.to(client.id).emit('userIsIngame');
+			return;
+		}
 		sockets.forEach((v) => {
 			this.server.to(v.id).emit('notification', { type: 'invite', inviter: user.userName, inviterId: user.id, gameId });
 		})
-		// find uid corresponding socket(s)
-		// send a "notification" message to socket(s)
-		// payload should have type: invite, inviter: user.userName
+	}
+
+	@SubscribeMessage('closeNotification')
+	async closeNotification(@ConnectedSocket() client: Socket, @GetUserWs() user: User, @MessageBody('id') id: string)
+	{
+		const sockets = this.socketStore.getUserSockets(user.id);
+		sockets.forEach((v: Socket) =>
+		{
+			this.server.to(v.id).emit("closeNotification", {id});
+		})
 	}
 
 	@SubscribeMessage('declineInvite')
@@ -192,6 +213,15 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		sockets.forEach((v) => {
 			this.server.to(v.id).emit('invitationDeclined');
 		})
+	}
+
+	@SubscribeMessage('changeTwoFa')
+	async changeTwoFa(@ConnectedSocket() client: Socket, @GetUserWs() user: User)
+	{
+		this.logger.log('twofaenabled', user.twoFaEnabled);
+		this.socketStore.getUserSockets(user.id).forEach((v) => {
+			this.server.to(v.id).emit(events.UPDATE_USER, { twoFaEnabled : user.twoFaEnabled });
+		});
 	}
 
 	@SubscribeMessage('changeFriends')

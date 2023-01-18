@@ -4,14 +4,12 @@ import { Form, redirect, useActionData, useLoaderData, useNavigate } from "react
 import { FaFileUpload as UploadIcon } from 'react-icons/fa'
 import { BsPencilFill, BsCheckLg } from 'react-icons/bs'
 
-import { getCookie } from "../requests/cookies"
 import { generateTwoFa, toggleTwoFa } from "../requests"
-import { backURL, frontURL } from "../requests/constants";
+import { backURL } from "../requests/constants";
 import { getUserMeFull, updateUser, updateAvatar } from "../requests";
 import Modal from "../components/Modal/modal";
 import { TwoFa } from "../components/TwoFa/twofa";
 import SocketContext from "../components/Socket/socket-context";
-import { GiCondorEmblem } from "react-icons/gi";
 
 export async function loader()
 {
@@ -36,13 +34,17 @@ export async function action({ request }: any)
 	}
 	let res = undefined;
 	try {
-		res = await updateUser(updates);	
+		res = await updateUser(updates);
 	}
-	catch (err: any) 
+	catch (err: any)
 	{
 		if (err.status === 406)
 		{
 			return { status: "unavalaible input" };
+		}
+		else if (err.status === 404 && err.message === 'Email not found')
+		{
+			return { status : "Couldn't send the code... please check that your email is valid" }
 		}
 		throw res;
 	}
@@ -73,10 +75,9 @@ async function handleToggleTwoFa()
 export function ProfileEdit()
 {
 	const user: any = useLoaderData();
-	const playerStats = user.playStats;
 	const [status, setStatus] = useState('waiting');
-	const [twoFa, setTwoFa] = useState<boolean>(user.twoFaEnabled);
 	const [error, setError] = useState<string | null>(null);
+	const [mailError, setMailError] = useState<Boolean>(false);
 	const [edit, setEdit] = useState(false);
 	const [userNameEdit, setUserNameEdit] = useState(false);
 	const [emailEdit, setEmailEdit] = useState(false);
@@ -85,6 +86,7 @@ export function ProfileEdit()
 	const [fileError, setFileError] = useState('ok');
 	const action: any = useActionData();
 	const masterSocket = useContext(SocketContext).SocketState.socket;
+	const twoFa = useContext(SocketContext).SocketState.user.twoFaEnabled;
 
 	const uploadRef = useRef<HTMLInputElement>(null);
 
@@ -92,12 +94,20 @@ export function ProfileEdit()
 
 	async function onModalOpen()
 	{
-		const res = await generateTwoFa();
-		if (res.status !== 200)
-		{
-			setError("Error generating OTP");
+		setMailError(false);
+		try{
+			const res : any = await generateTwoFa();
+			if (res?.status !== 200)
+			{
+				setError("Error generating OTP");
+			}
+			return res.ok;
 		}
-		return res.ok;
+		catch (err : any)
+		{
+			setMailError(true);
+			setIsModalOpen(false);
+		}
 	}
 
 	async function enableTwoFa()
@@ -111,7 +121,8 @@ export function ProfileEdit()
 		try
 		{
 			await handleToggleTwoFa()
-			setTwoFa(false);
+			masterSocket?.emit('changeTwoFa')
+			// setTwoFa(false);
 		}
 		catch (err: any)
 		{
@@ -140,7 +151,8 @@ export function ProfileEdit()
 			try
 			{
 				handleToggleTwoFa();
-				setTwoFa(true);
+				masterSocket?.emit('changeTwoFa')
+				// setTwoFa(true);
 
 			}
 			catch (err: any)
@@ -280,8 +292,8 @@ export function ProfileEdit()
 								</button>
 							</div>
 							{action?.status === 'empty field' ? (<><br /><p><b>Fields must not be empty</b></p></>) : (<></>)}
-							{action?.status === 'name too long' ? (<><br /><p><b>You cannot have a name that is longer than 32 characters</b></p></>) : (<></>)}
-							{action?.status === 'unavalaible input' ? (<><br /><p><b>This name is already taken by somebody else</b></p></>) : (<></>)}
+							{action?.status === 'name too long' ? (<><br /><p className="text-red-600">Name too long (32 characters max)</p></>) : (<></>)}
+							{action?.status === 'unavalaible input' ? (<><p className="text-red-600 " >Username already taken</p></>) : (<></>)}
 
 						</Form>
 						:
@@ -318,7 +330,6 @@ export function ProfileEdit()
 								</button>
 							</div>
 							{action?.status === 'empty field' ? (<><br /><p><b>Fields must not be empty</b></p></>) : (<></>)}
-							{action?.status === 'unavalaible input' ? (<><br /><p><b>This email is already used</b></p></>) : (<></>)}
 						</Form>
 						:
 						<div className="flex justify-between items-center mx-1 gap-10">
@@ -351,6 +362,7 @@ export function ProfileEdit()
 						<div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
 					</label>
 				</div>
+				{mailError ? (<><br /><p><b>Could not send mail</b></p></>) : (<></>)}
 
 			</div>
 		</div>

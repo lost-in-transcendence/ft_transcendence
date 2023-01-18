@@ -1,9 +1,10 @@
-import { useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { GameStatus } from "../../dto/game.dto";
 import { backURL } from "../../requests";
 import { Canvas } from "../Canvas/canvas";
 import GameSocketContext from "../Game/Context/game-socket-context";
 import SocketContext from "../Socket/socket-context";
+import { debounce } from "../utils/debounce";
 
 const gameWidth = 800;
 const gameHeight = 600;
@@ -14,6 +15,8 @@ const themes = {
   classic: {ballColor: 'white', paddleColor: 'white', background: 'bg-black' },
   camouflage: {ballColor: 'green', paddleColor: 'green', background: 'bg-green-600'},
   rolandGarros: {ballColor: 'yellow', paddleColor: 'white', background: 'bg-rolandGarros bg-cover bg-no-repeat'},
+  musicMakesMeLoseControl: {ballColor: 'white', paddleColor: 'white', background: 'bg-musicMakesMeLoseControl bg-cover bg-no-repeat'},
+  catPong: {ballColor: 'white', paddleColor: 'white', background: 'bg-catPong bg-cover bg-no-repeat'},
 };
 
 type GameItems = {
@@ -71,8 +74,7 @@ export function Pong(props: { goBack: any, asSpectator: boolean, gameInfos: {the
     draw: false,
     reason: "",
   });
-  const [status, setStatus] = useState("playing");
-  const [error, setError] = useState<string | null>(null);
+
   const [gameItems, setGameItems] = useState<GameItems>({
     paddle1Pos: Math.round(gameHeight / 2 - paddleSize / 2),
     paddle2Pos: Math.round(gameHeight / 2 - paddleSize / 2),
@@ -88,33 +90,74 @@ export function Pong(props: { goBack: any, asSpectator: boolean, gameInfos: {the
 
   const [theme, setTheme] = useState<{ballColor: string, paddleColor: string, background: string}>(themes.classic);
 
-  function handleKeyUp(e: any) {
-    if (asSpectator === true) return;
-    var key = e.key;
-    if (key === "w") {
-      socket?.emit("paddleMove", { direction: PaddleDirection.STOP });
-    }
-    if (key === "s") {
-      socket?.emit("paddleMove", { direction: PaddleDirection.STOP });
-    }
-  }
+  const [keys, setKeys] = useState<{up: boolean, down: boolean}>({up: false, down: false});
+  
+  const canvasDivRef = useRef<HTMLDivElement>(null);
 
-  function handleKeyDown(e: any) {
-    if (asSpectator === true) return;
-    var key = e.key;
-    if (key === "w") {
+  const [barWidth, setBarWidth] = useState(0);
+
+  const handleResize = useMemo(() => debounce(() =>
+  {
+    if (canvasDivRef.current)
+      setBarWidth(canvasDivRef.current?.scrollWidth)
+  }, 270),
+  []);
+  
+
+  useEffect(() =>
+  {
+    if (canvasDivRef.current)
+      setBarWidth(canvasDivRef.current.scrollWidth);
+  }, [canvasDivRef])
+
+    useEffect(() =>
+    {
+      if (keys.up === true && keys.down === true)
+      socket?.emit("paddleMove", { direction: PaddleDirection.STOP });
+      else if (keys.up === false && keys.down === false)
+      socket?.emit("paddleMove", { direction: PaddleDirection.STOP });
+      else if (keys.up === true)
       socket?.emit("paddleMove", { direction: PaddleDirection.UP });
-    }
-    if (key === "s") {
+      else if (keys.down === true)
       socket?.emit("paddleMove", { direction: PaddleDirection.DOWN });
+    },[keys])
+    
+    useEffect( () => {
+    const handleKeyUp = (e: KeyboardEvent) => 
+    {
+      if (asSpectator === true) return;
+      var key = e.key;
+      setKeys((prev) => 
+      {
+        if (key === 'w' && prev.up === true)
+          return {...prev, up: false}
+        else if (key === 's' && prev.down === true)
+          return {...prev, down: false};
+        return prev;
+     });
     }
-  }
-  useEffect( () => {
+  
+    const handleKeyDown = (e: KeyboardEvent) =>
+    {
+      if (asSpectator === true) return;
+      var key = e.key;
+      setKeys((prev) => 
+      {
+        if (key === 'w' && prev.up === false)
+          return {...prev, up: true}
+        else if (key === 's' && prev.down === false)
+          return {...prev, down: true};
+        return prev;
+      });
+    }
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
+    window.addEventListener('resize', handleResize)
     return () => {
-      window.removeEventListener('keydown', ()=>{});
-      window.removeEventListener('keyup', ()=>{});
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+      window.removeEventListener('resize', handleResize)
+
     }
   }, [])
 
@@ -126,6 +169,12 @@ export function Pong(props: { goBack: any, asSpectator: boolean, gameInfos: {the
         break;
       case 'rolandGarros':
         setTheme(themes.rolandGarros);
+        break;
+      case 'musicMakesMeLoseControl':
+        setTheme(themes.musicMakesMeLoseControl);
+        break;
+      case 'catPong':
+        setTheme(themes.catPong);
         break;
       default:
         setTheme(themes.classic);
@@ -150,10 +199,6 @@ export function Pong(props: { goBack: any, asSpectator: boolean, gameInfos: {the
   }, [showEndScreen]);
 
   useEffect(() => {
-    socket?.on("disconnected", () => {
-      setStatus("playerDisconnected");
-      setError("Someone disconnected");
-    });
     socket?.on("renderFrame", (payload: any) => {
       setGameItems({
         ...gameItems,
@@ -181,7 +226,6 @@ export function Pong(props: { goBack: any, asSpectator: boolean, gameInfos: {the
   function drawGame(ctx: any) {
     const heightRatio = ctx.canvas.height / 600;
     const widthRatio = ctx.canvas.width / 800;
-    
 
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
@@ -221,12 +265,11 @@ export function Pong(props: { goBack: any, asSpectator: boolean, gameInfos: {the
     ctx.fill();
   }
 
-
-
   return (
-    <div className="flex flex-col items-center w-full" onKeyUp={handleKeyUp} onKeyDown={handleKeyDown}>
+    <div className="flex flex-col items-center w-full">
 
-      <div className="flex flex-row bg-gray-700 my-2 w-full">
+      <div className="flex flex-row bg-gray-700 my-2" style={{width: `${barWidth}px`}}>
+      {/* <div className="flex flex-1 flex-row bg-gray-700 my-2"> */}
 
         <div className="flex w-[30%] text-xl text-gray-400 border-gray-600 border-y-2 border-l-2 justify-center items-center">
           <p className="truncate text-center border-b border-gray-600">{gameInfos?.user1Name}</p>
@@ -234,18 +277,18 @@ export function Pong(props: { goBack: any, asSpectator: boolean, gameInfos: {the
         <div className="flex w-[10%] text-xl text-gray-400 border-gray-600 border-2 justify-center items-center">
           <p className="flex mx-auto">{gameItems.player1Score}</p>
         </div>
-        <div className="mx-[15px] my-[5px]">
-            <img className="w-[45px] h-[45px] rounded-full" src={`${backURL}/users/avatars/${gameInfos?.user1Name}`} />
+        <div className="mx-[15px] my-[5px] md:block hidden">
+            <img className="w-[45px] rounded-full" src={`${backURL}/users/avatars/${gameInfos?.user1Name}`} />
           </div>
         <DisplayTimer timer={timer}
-        years={false}
+        years={false} 
         hours={false}
         minutes={true}
         seconds={true}
         />
 
-        <div className="mx-[15px] my-[5px]">
-            <img className="w-[45px] h-[45px] rounded-full" src={`${backURL}/users/avatars/${gameInfos?.user2Name}`} />
+        <div className="mx-[15px] my-[5px] md:block hidden">
+            <img className="w-[45px] rounded-full" src={`${backURL}/users/avatars/${gameInfos?.user2Name}`} />
           </div>
         <div className="flex w-[10%] text-xl text-gray-400 border-gray-600 border-2 justify-center items-center">
           <p className="flex mx-auto">{gameItems.player2Score}</p>
@@ -257,7 +300,7 @@ export function Pong(props: { goBack: any, asSpectator: boolean, gameInfos: {the
       </div> 
 
 
-      <div className={theme? theme.background + ' mx-auto relative': 'mx-auto relative'}>
+      <div ref={canvasDivRef} className={theme? theme.background + ' mx-auto relative': 'mx-auto relative'}>
         <Canvas
         tabIndex={1}
         draw={drawGame}
@@ -291,13 +334,16 @@ export function EndScreen(props: {
   reason: string;
 }) {
   const { winner, loser, draw, reason } = props;
-  const ref: any = useRef(null);
+  const ref = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
   const [height, setHeight] = useState(0);
 
   useLayoutEffect(() => {
-    setWidth(ref.current.offsetWidth);
-    setHeight(ref.current.offsetHeight);
+    if (ref.current)
+    {
+      setWidth(ref.current.offsetWidth);
+      setHeight(ref.current.offsetHeight);
+    }
   }, []);
 
   let title, content;

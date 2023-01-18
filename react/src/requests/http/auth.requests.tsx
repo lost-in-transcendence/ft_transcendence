@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 export async function login(params: URLSearchParams)
 {
-    return fetch(`${backURL}/auth/login?` + params, 
+    return fetch(`${backURL}/auth/login?` + params,
     {
         method: 'GET',
         credentials: 'include',
@@ -14,11 +14,11 @@ export async function login(params: URLSearchParams)
 
 export async function logDev()
 {
-    return fetch(`${backURL}/auth/dev-signup`, 
+    return fetch(`${backURL}/auth/dev-signup`,
     {
         method: 'POST',
         credentials: 'include',
-        headers: 
+        headers:
         {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
@@ -50,27 +50,28 @@ export async function validateToken()
 
 export async function generateTwoFa()
 {
-    const res = await fetch(`${backURL}/twofa/generate`,
+
+        const res = await fetch(`${backURL}/twofa/generate`,
         {
             method: 'POST',
             credentials: 'include',
             headers: {"Authorization": "Bearer " + getCookie("jwt")}
         })
-    if (res.status !== 200)
-    {
-        throw res
-    }
-    return res;
+        if (res.status !== 200)
+        {
+            throw res
+        }
+        return res;
 }
 
 export async function authenticateTwoFa(code: string)
 {
-    
+
     const res = await fetch(`${backURL}/twofa/authenticate`,
     {
         method: 'POST',
         credentials: 'include',
-        headers: 
+        headers:
         {
             "Authorization": "Bearer " + getCookie("jwt"),
             'Accept': 'application/json',
@@ -78,10 +79,10 @@ export async function authenticateTwoFa(code: string)
         },
         body: JSON.stringify({token: code}),
     });
-    if (res.status !== 200)
-    {
-        throw res
-    }
+    // if (res.status !== 200)
+    // {
+    //     throw res
+    // }
     return res;
 }
 

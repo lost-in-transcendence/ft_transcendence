@@ -55,12 +55,14 @@ class Ball
 class Paddle
 {
 	position: number;
+	prevDirection: PaddleDirection;
 	direction: PaddleDirection;
 	speed: number;
 	size: number;
 	constructor(position, size)
 	{
 		this.position = position;
+		this.prevDirection = PaddleDirection.IDLE;
 		this.direction = PaddleDirection.IDLE;
 		this.speed = 0;
 		this.size = size;
@@ -192,11 +194,21 @@ export class GameComputer
 			const isPlayer = this.isAPlayer(game, userSocketId);
 			if (isPlayer === 1)
 			{
+				game.paddle1.prevDirection = game.paddle1.direction;
 				game.paddle1.direction = direction;
+				if (game.paddle1.direction === PaddleDirection.IDLE ||
+					(game.paddle1.direction === PaddleDirection.UP && game.paddle1.prevDirection === PaddleDirection.DOWN) ||
+					(game.paddle1.direction === PaddleDirection.DOWN && game.paddle1.prevDirection === PaddleDirection.UP))
+					game.paddle1.speed = 0;
 			}
 			else if (isPlayer === 2)
 			{
+				game.paddle2.prevDirection = game.paddle2.direction;
 				game.paddle2.direction = direction;
+				if (game.paddle2.direction === PaddleDirection.IDLE ||
+					(game.paddle2.direction === PaddleDirection.UP && game.paddle2.prevDirection === PaddleDirection.DOWN) ||
+					(game.paddle2.direction === PaddleDirection.DOWN && game.paddle2.prevDirection === PaddleDirection.UP))
+					game.paddle2.speed = 0;
 			}
 		}
 	}

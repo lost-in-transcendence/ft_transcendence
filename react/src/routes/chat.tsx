@@ -38,7 +38,6 @@ export function Chat()
 	{
 		const res = await getUser(userName);
 		const target = await res.json();
-		console.log("target", target);
 		const channelName = target.id > user.id ? target.id + '_' + user.id : user.id + '_' + target.id;
 		const channelExists: Channel | undefined = channels.find((c) => c.channelName === channelName);
 
@@ -81,7 +80,7 @@ export function Chat()
 		}
 			<div className="flex flex-col md:flex-row">
 				<ChatSidebar user={user} />
-				<div className="text-white basis-full overflow-auto justify-self-center mr-auto bg-gray-800">
+				<div className="text-white flex-1 h-screen overflow-hidden justify-self-center mr-auto bg-gray-800">
 					{
 						state.activeChannel ?
 						<ChatDisplay currentUser={user}/>

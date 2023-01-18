@@ -4,7 +4,7 @@ import { useCanvas } from "../../hooks/use-canvas";
 export function Canvas (props: {draw: Function, tabIndex: number})
 {
     const {draw, tabIndex} = props;
-    const canvasRef: any = useCanvas(draw);
+    const canvasRef: React.MutableRefObject<HTMLCanvasElement | null> = useCanvas(draw);
 
     useEffect(() => {
         if (canvasRef.current) {

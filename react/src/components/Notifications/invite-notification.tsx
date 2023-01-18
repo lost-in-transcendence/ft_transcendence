@@ -6,7 +6,7 @@ import { backURL } from "../../requests";
 
 export function displayInviteNotification(inviter: string, inviterId: string, gameId: string, socket?: Socket)
 {
-    toast(
+    const id = toast(
     <InviteNotification inviter={inviter} inviterId={inviterId} gameId={gameId} socket={socket}/>, 
     {
         className: "bg-gray-300",
@@ -26,7 +26,9 @@ export function InviteNotification(props: {inviter: string, inviterId: string, g
         return () =>
         {
             if (declineInvite === true)
+            {
                 socket?.emit('declineInvite', {inviterId});
+            }
         }
     }, [])
 
@@ -34,12 +36,14 @@ export function InviteNotification(props: {inviter: string, inviterId: string, g
     {
         declineInvite = false;
         closeToast();
-        navigate('/game?' + new URLSearchParams({'action': 'joinInvite', 'gameId' : gameId}));
+        navigate('/game?' + new URLSearchParams({'action': 'joinInvite', 'gameId' : gameId, 'userName' : inviter}));
+        socket?.emit("closeNotification", {id: '1'});
     }
 
     function decline()
     {
         closeToast();
+        socket?.emit("closeNotification", {id: '1'});
     }
 
     return (

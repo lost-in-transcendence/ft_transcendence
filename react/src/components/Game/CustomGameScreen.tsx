@@ -15,7 +15,7 @@ interface IUsersList
 	id: string
 }
 
-export function CustomGameScreen({ goBack, params }: { goBack: () => void, params: URLSearchParams })
+export function CustomGameScreen({ goBack, params, setParams }: { goBack: () => void, params: URLSearchParams, setParams: any })
 {
 	const { socket } = useContext(GameSocketContext).GameSocketState;
 	const me = useContext(SocketContext).SocketState.user;
@@ -41,6 +41,11 @@ export function CustomGameScreen({ goBack, params }: { goBack: () => void, param
 		return user.userName.includes(userSearchFilter) && user.id !== me.id;
 	});
 
+	const disableSubmit : boolean = me.gameStatus === 'WAITING' || me.gameStatus === 'INGAME' || 
+									(gameVisibility === 'invite' && 
+									(userToInvite === undefined || userToInvite.userName === '' )) ? true
+									: false
+
 	useEffect(() =>
 	{
 		async function load()
@@ -52,6 +57,7 @@ export function CustomGameScreen({ goBack, params }: { goBack: () => void, param
 				return;
 			if (action === 'invitePlayer')
 			{
+				setParams(new URLSearchParams())
 				if (!userName)
 				{
 					return;
@@ -116,6 +122,8 @@ export function CustomGameScreen({ goBack, params }: { goBack: () => void, param
 								<option value='classic'>Classic</option>
 								<option value='camouflage'>Camouflage</option>
 								<option value='rolandGarros'>Roland Garros</option>
+								<option value='musicMakesMeLoseControl'>Music Makes Me Lose Control</option>
+								<option value='catPong'>Cat Pong</option>
 							</select>
 						</div>
 						<div className="flex justify-between w-full items-center gap-2">
@@ -219,19 +227,10 @@ export function CustomGameScreen({ goBack, params }: { goBack: () => void, param
 					<div className="flex justify-between w-full">
 						<BackButton goBack={goBack} />
 						<input
-							className={` rounded shadow px-2  ${gameVisibility === 'invite' && !userToInvite ? 'bg-gray-500 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-500 cursor-pointer'}`}
+							className={` rounded shadow px-2  ${disableSubmit ? 'bg-gray-500 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-500 cursor-pointer'}`}
 							type="submit"
 							value="Play !"
-							disabled=
-							{
-								gameVisibility !== 'invite' ?
-									false :
-									userToInvite === undefined ?
-										true :
-										userToInvite.userName === '' ?
-											true :
-											false
-							}
+							disabled={disableSubmit}
 						/>
 					</div>
 				</div>

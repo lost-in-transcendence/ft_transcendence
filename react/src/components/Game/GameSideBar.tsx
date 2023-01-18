@@ -76,42 +76,111 @@ export function GameSideBar(props: { socket: any, status: any, setCustomGame: an
 				{
 					waitingRooms.map((room: any) =>
 					{
-						if (room.invitation === false && room.user1 !== me.userName)
+						if (room.invitation === false && room.user1Id !== me.id)
 							return (
-								<div key={room.id} className="flex flex-col bg-gray-600 mb-2 w-11/12 m-auto
-										cursor-pointer rounded
-										">
-									<p><span className="text-gray-400 text-sm">user: </span><span className="text-gray-300 text-base">{room.user1}</span></p>
+								<div
+									key={room.id}
+									className="flex flex-col justify-start items-center bg-gray-600 rounded shadow m-2 p-2"
+								>
+									<div className="flex justify-between w-full items-center">
+										<span className="text-gray-400 text-sm">
+											Player
+										</span>
+										<span className="text-gray-300 text-base ml-3 truncate">
+											{room.user1}
+										</span>
+									</div>
 									<hr className="border-gray-500" />
-									<p><span className="text-gray-400 text-sm">objective: </span><span className="text-gray-300 text-base">{room.goal} {room.objective === Objective.SCORE ? "points" : "minutes"}</span></p>
+									<div className="flex justify-between w-full items-center">
+										<span className="text-gray-400 text-sm">
+											Objective
+										</span>
+										<span className="text-gray-300 text-base">
+											{room.goal} {room.objective === Objective.SCORE ? "points" : "minutes"}
+										</span>
+									</div>
 									<hr className="border-gray-500" />
-									<p><span className="text-gray-400 text-sm">theme: </span><span className="text-gray-300 text-base">{room.theme}</span></p>
-									<button className="hover:bg-gray-400 hover:text-white hover:shadow-gray-900 hover:shadow-sm border-2 border-gray-500"
+									<div className="flex justify-between w-full items-center">
+										<span className="text-gray-400 text-sm">
+											Theme
+										</span>
+										<span className="text-gray-300 text-base">
+											{room.theme}
+										</span>
+									</div>
+									<button
+										className="bg-indigo-500 hover:bg-indigo-600 rounded shadow px-1 m-1 mb-0"
 										onClick={() => socket?.emit('joinCustomGame', { room: room.id })}
 										disabled={me.gameStatus !== 'NONE' && props.status !== 'waiting' ? true : false}
-									>Join Game!!!!!</button>
+									>
+										Join
+									</button>
 								</div>
 							)
 					})
 				}
 			</Accordeon>
-			<Accordeon title={'Ongoing games'}>
+			<Accordeon title={'Ongoing games'} bgColor={'bg-gray-700'}>
 				{
 					ongoingGames.map((game: any) =>
 					{
 						return (
-							<div key={game.id} className="flex flex-col bg-gray-600 mb-2 w-11/12 m-auto
-						cursor-pointer rounded
-						">
-								<p><span className="text-gray-300 text-base">{game.user1}</span><span className="text-gray-400 text-sm"> vs </span><span className="text-gray-300 text-base">{game.user2}</span></p>
+							<div
+								key={game.id}
+								className="flex flex-col justify-start items-center bg-gray-600 rounded shadow m-2 p-2"
+							>
+								<div
+									className="flex flex-row items-center w-full justify-between mb-3 bg-gray-700 rounded shadow px-1"
+								>
+									<span className="text-gray-300 text-base basis-full truncate">
+										{game.user1}
+									</span>
+									<span className="text-gray-400 text-sm basis-0">
+										vs
+									</span>
+									<span className="text-gray-300 text-base basis-full text-right truncate">
+										{game.user2}
+									</span>
+								</div>
 								<hr className="border-gray-500" />
-								<p><span className="text-gray-400 text-sm">objective: </span><span className="text-gray-300 text-base">{game.goal} {game.objective === Objective.SCORE ? "points" : "minutes"}</span></p>
+								<div
+									className="flex justify-between items-center w-full"
+								>
+									<span
+
+									className="text-gray-400 text-sm basis-full mr-1"
+									>
+										objective:
+									</span>
+									<span
+									className="text-gray-300 text-left basis-0 "
+									>
+									{game.goal}
+									{game.objective === Objective.SCORE ? "points" : "min"}
+									</span>
+								</div>
 								<hr className="border-gray-500" />
-								<p><span className="text-gray-400 text-sm">theme: </span><span className="text-gray-300 text-base">{game.theme}</span></p>
-								<button className="hover:bg-gray-400 hover:text-white hover:shadow-gray-900 hover:shadow-sm border-2 border-gray-500"
+								<div
+									className="flex w-full flex-row items-center justify-between"
+								>
+									<span
+										className="text-gray-400 text-sm mr-1"
+									>
+										theme:
+									</span>
+									<span
+										className="text-gray-300 text-base ml-1"
+									>
+										{game.theme}
+									</span>
+								</div>
+								<button
+									className="bg-indigo-500 hover:bg-indigo-600 rounded shadow px-1 m-1 mb-0"
 									onClick={() => { socket?.emit('joinAsSpectator', { room: game.id }); }}
 									disabled={me.gameStatus !== 'NONE' && props.status !== 'waiting' ? true : false}
-								>Join as Spectator</button>
+								>
+									Spectate
+								</button>
 							</div>
 						)
 					})

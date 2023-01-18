@@ -1,20 +1,16 @@
-import { ForbiddenException, Logger, ParseEnumPipe, UseFilters, UseInterceptors, UsePipes } from "@nestjs/common";
+import { Logger, ParseEnumPipe, UseFilters, UseInterceptors, UsePipes } from "@nestjs/common";
 import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer, WsException } from "@nestjs/websockets";
 import { env } from "process";
 import { CustomWsFilter } from "src/websocket-server/filters";
 import { UserInterceptor } from "src/websocket-server/interceptor";
 import { WsValidationPipe } from "src/websocket-server/pipes";
 import { Socket, Namespace } from 'socket.io';
-import { Game, GameStatusType, User } from '@prisma/client';
+import { GameStatusType, User } from '@prisma/client';
 import { GetUserWs } from "src/users/decorator/get-user-ws";
 import { GamesService } from "./game.service";
-import { create } from "domain";
-import { GetUser } from "src/users/decorator";
-import { GameComputer, GameStatusValue, Objective, PaddleDirection } from "./game-computer";
-import { Subscriber } from "rxjs";
-import { userInfo } from "os";
-import { IsEnum } from "class-validator";
+import { GameComputer, Objective, PaddleDirection } from "./game-computer";
 import { UsersService } from "src/users/users.service";
+import { SocketStore } from "src/websocket-server/socket-store";
 
 export enum GameType
 {
@@ -63,6 +59,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 {
 	private readonly logger = new Logger(GameGateway.name);
 	private waitingRooms: GameWaitingRoom[] = [];
+    private readonly socketStore = new SocketStore();
 
 	@WebSocketServer()
 	server: Namespace;
@@ -73,7 +70,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 		private readonly gameComputer: GameComputer)
 	{ }
 
-
 	async afterInit()
 	{
 		this.logger.log("Game Gateway initialized");
@@ -83,13 +79,16 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
 	async handleConnection(client: Socket, ...args: any[])
 	{
+        this.logger.log(`Client ${client.id} has joined Game Gateway`);
 		this.server.to(client.id).emit('handshake', client.data.user);
 		const { waitingRooms, ongoingGames } = { waitingRooms: this.getWaitingRooms(), ongoingGames: this.gameComputer.getOngoingGames() };
 		this.server.to(client.id).emit('games', { waitingRooms, ongoingGames });
-	}
+        this.socketStore.setUserSockets(client.data.user.id, client);
+    }
 
 	async handleDisconnect(client: Socket)
 	{
+        this.socketStore.removeUserSocket(client.data.user.id, client);
 		// is socket id in GameWaitingRoom?
 		const waitingRoom = await this.waitingRooms.find((v) => v.user1SocketId === client.id);
 		if (waitingRoom)
@@ -256,7 +255,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     }
 
     @SubscribeMessage('joinCustomGame')
-    async joinCustomGame(@ConnectedSocket() client: Socket, @GetUserWs() user: User, @MessageBody('room') room: any)
+    async joinCustomGame(@ConnectedSocket() client: Socket, @GetUserWs() user: User, @MessageBody('room') room: string)
     {
         const customGameRoom = this.waitingRooms.find((v) => {return v.id === room});
         if (!customGameRoom)
@@ -319,8 +318,47 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 				this.server.to(game.user1SocketId).emit('matchDeclinedByOpponent');
 			}
 		}
-		this.server.to(client.id).emit('matchDeclined');
+        this.server.to(client.id).emit('matchDeclined');
 	}
+
+    @SubscribeMessage('declineAllMatches')
+    async declineAllMatches(@ConnectedSocket() client: Socket, @GetUserWs() user: User)
+    {
+        const sockets = this.socketStore.getUserSockets(user.id);
+        sockets.forEach(async (s : Socket) =>
+        {
+            if (s.id === client.id)
+                return;
+            const room = this.waitingRooms.find((v) => { return (v.user1SocketId === s.id) });
+            if (room)
+            {
+                this.server.to(s.id).emit('leftQueue');
+                this.waitingRooms = this.waitingRooms.filter((v) => v.user1SocketId !== s.id);
+                await this.gamesService.remove({
+                    where: { id: room.id }
+                })
+                this.emitWaitingRooms();
+                return;
+            }
+            const game = await this.gameComputer.findGameBySocketId(s.id);
+            if (!game)
+                return ;
+		    const isPlayer = this.gameComputer.isAPlayer(game, s.id);
+		    if (isPlayer)
+		    {
+                this.gameComputer.playerDisconnected(s.id);
+                if (isPlayer === 1 && game.readyPlayer2 === false)
+                {
+                    this.server.to(game.user2SocketId).emit('matchDeclinedByOpponent');
+                }
+                else if (isPlayer === 2 && game.readyPlayer1 === false)
+                {
+                    this.server.to(game.user1SocketId).emit('matchDeclinedByOpponent');
+                }
+                this.server.to(s.id).emit('matchDeclined');
+		    }
+        })
+    }
 
     @SubscribeMessage('joinAsSpectator')
     async joinAsSpectator(@ConnectedSocket() client: Socket, @GetUserWs() user: User, @MessageBody('room') room: string)
@@ -356,6 +394,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
                     goal: room.goal,
                     theme: room.theme,
                     user1: room.user1.userName,
+                    user1Id: room.user1.id,
                     invitation: room.invitation,
                     invitedUser: room.invitedUser
                 }

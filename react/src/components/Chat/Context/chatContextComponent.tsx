@@ -16,6 +16,7 @@ export function ChatContextComponent(props: any)
 
 	const socket = useSocket(`${backURL}/chat`,
 		{
+			forceNew: true,
 			reconnectionAttempts: 5,
 			reconnectionDelay: 5000,
 			autoConnect: false,

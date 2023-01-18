@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import SocketContext from "../../Socket/socket-context";
@@ -9,6 +9,7 @@ import { Channel } from "../../../dto/channels.dto";
 import Modal from "../../Modal/modal";
 import { addFriend, removeFriend } from "../../../requests";
 import { BanBox } from "./BanBox";
+import ContextMenuContext from "./context-menu-context";
 
 export function ContextMenu({ x, y, channel, target }: ContextMenuData) {
 	const mainCtx = useContext(SocketContext);
@@ -34,13 +35,34 @@ export function ContextMenu({ x, y, channel, target }: ContextMenuData) {
 	const [banBoxIsOpen, setBanBoxIsOpen] = useState(false)
 	const [mutBoxIsOpen, setMuteBoxIsOpen] = useState(false)
 
-
 	const channels = chatCtx.ChatState.visibleChannels;
 
 	const isInBlacklist: boolean = blacklist?.find((u) => u.id === targetId) ? true : false;
 	const isInFriendList: boolean = friendlist?.find((u) => u.id === targetId) ? true : false;
 
+	const ref = useRef<HTMLUListElement>(null)
 	const navigate = useNavigate();
+
+	const [finalX, setFinalX] = useState<number>(x);
+	const [finalY, setFinalY] = useState<number>(y);
+	
+	useEffect(() =>
+	{
+		if (!ref || !ref.current)
+			return;
+		const { innerWidth: width, innerHeight: height } = window;
+		const {scrollWidth, scrollHeight} = ref.current;
+		if (x >= width - scrollWidth)
+			setFinalX(width-scrollWidth);
+		else
+			setFinalX(x);
+		if (y >= height - scrollHeight)
+
+			setFinalY(height - scrollHeight);
+		else
+			setFinalY(y)
+	}, [ref, x, y])
+	
 
 	if (channel && channel.mode !== 'PRIVMSG') {
 		const me = channel.members.find((m) => m.user?.id === currentUser.id);
@@ -91,6 +113,11 @@ export function ContextMenu({ x, y, channel, target }: ContextMenuData) {
 		chatSocket?.emit(events.DEMOTE_USER, { channelId: channel?.id, userId: targetId });
 	}
 
+	function kickUser()
+	{
+		chatSocket?.emit(events.KICK_USER, { channelId: channel?.id, userId: targetId, userName });
+	}
+
 	function sendPrivmsg() {
 		const channelName = targetId > currentUser.id ? targetId + '_' + currentUser.id : currentUser.id + '_' + targetId;
 		const channelExists: Channel | undefined = channels.find((c) => c.channelName === channelName);
@@ -113,7 +140,8 @@ export function ContextMenu({ x, y, channel, target }: ContextMenuData) {
 	return (
 		<ul
 			className={`list-none w-48 rounded p-2 bg-zinc-800 fixed overflow-hidden z-[250]`}
-			style={{ top: `${y}px`, left: `${x}px` }}
+			style={{ top: `${finalY}px`, left: `${finalX}px` }}
+			ref={ref}
 		>
 			<li
 				className={clickable}
@@ -210,6 +238,13 @@ export function ContextMenu({ x, y, channel, target }: ContextMenuData) {
 												Promote
 											</li>
 									)
+								}
+								{
+									isAdmin && !targetIsOwner &&
+									<li className={clickable}
+									onClick={kickUser}>
+										Kick
+									</li>
 								}
 								{
 									isAdmin && !targetIsOwner &&

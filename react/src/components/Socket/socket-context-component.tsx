@@ -17,9 +17,9 @@ export default function SocketContextComponent(props: any)
 	const [SocketState, SocketDispatch] = useReducer(SocketReducer, defaultSocketContextState);
 	const [loading, setLoading] = useState(true);
 
-
 	const socket = useSocket(`${backURL}`,
 		{
+			forceNew: true,
 			reconnectionAttempts: 5,
 			reconnectionDelay: 5000,
 			autoConnect: false,
@@ -29,7 +29,6 @@ export default function SocketContextComponent(props: any)
 	useEffect(() =>
 	{
 		socket.connect();
-
 		SocketDispatch({ type: 'update_socket', payload: socket });
 
 		StartListeners();
@@ -62,7 +61,7 @@ export default function SocketContextComponent(props: any)
 		socket.io.on('reconnect_failed', () =>
 		{
 			console.info(`Reconnection failure`);
-			alert('Unable to reconnect to websocket server');
+			// alert('Unable to reconnect to websocket server');
 		})
 
 		socket.on('handshake', (payload: any) =>
@@ -93,6 +92,11 @@ export default function SocketContextComponent(props: any)
 				displayInviteNotification(inviter, inviterId, gameId, socket);
 			}
 		})
+
+		socket.on('closeNotification', (payload: {id: string}) =>
+		{
+			toast.dismiss(payload.id);
+		});
 	}
 
 	function SendHandshake()
