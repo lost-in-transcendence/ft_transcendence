@@ -61,7 +61,7 @@ export function HomePage()
 				</div>
 			</div>
 			<div>
-				<h2 className="text-2xl mb-2 text-center">Look at the repo:</h2>
+				<h2 className="text-2xl mb-2 text-center">Github repo of the project:</h2>
 				<a className="text-green-600 hover:text-green-500" href="https://github.com/mchibane/ft_transcendence">https://github.com/mchibane/ft_transcendence</a>
 			</div>
 			<div>
