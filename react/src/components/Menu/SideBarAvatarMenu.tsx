@@ -71,8 +71,8 @@ export function SideBarAvatarMenu(props: { close: any })
 				<div className="about-me pl-[5px]">
 					<div className="category-title">About Me</div>
 					{user.gameStatus !== 'NONE' ? <p>Currently {user.gameStatus === 'WAITING' ? 'In Queue' : 'In Game'}</p> : <></>}
-					<p>Rank: #{playStats?.rank}, {playStats?.points} points</p>
-					<p>Wins: {playStats?.wins} | Losses: {playStats?.losses}</p>
+					<p>Rank: #{playStats?.rank ? playStats.rank : 0}, {playStats?.points ? playStats.points : 0} points</p>
+					<p>Wins: {playStats?.wins ? playStats.win : 0} | Losses: {playStats?.losses ? playStats.losses : 0}</p>
 				</div>
 				<hr />
 				<div className='relative card-button my-[10px]'
