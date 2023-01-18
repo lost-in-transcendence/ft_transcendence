@@ -63,6 +63,13 @@ export interface SharedBanUserDto {
 	userName: string;
 }
 
+export interface SharedKickUserDto
+{
+	userId: string;
+	channelId: string;
+	userName: string;
+}
+
 export enum SharedChannelMode {
 	PUBLIC = 'PUBLIC',
 	PRIVATE = 'PRIVATE',
