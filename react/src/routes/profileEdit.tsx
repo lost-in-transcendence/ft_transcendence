@@ -32,6 +32,11 @@ export async function action({ request }: any)
 	{
 		return { status: "name too long" };
 	}
+	else if (updates?.userName)
+	{
+		if (updates.userName.replace(/\W/g,'').length != updates.userName.length)
+		return {status: "forbidden name"}
+	}
 	let res = undefined;
 	try {
 		res = await updateUser(updates);
@@ -294,6 +299,7 @@ export function ProfileEdit()
 							{action?.status === 'empty field' ? (<><br /><p><b>Fields must not be empty</b></p></>) : (<></>)}
 							{action?.status === 'name too long' ? (<><br /><p className="text-red-600">Name too long (32 characters max)</p></>) : (<></>)}
 							{action?.status === 'unavalaible input' ? (<><p className="text-red-600 " >Username already taken</p></>) : (<></>)}
+							{action?.status === 'forbidden name' ? (<><p className="text-red-600 " >Username must only contain alphanumeric characters or underscore</p></>) : (<></>)}
 
 						</Form>
 						:
