@@ -90,7 +90,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 	{
         this.socketStore.removeUserSocket(client.data.user.id, client);
 		// is socket id in GameWaitingRoom?
-		const waitingRoom = await this.waitingRooms.find((v) => v.user1SocketId === client.id);
+		const waitingRoom = this.waitingRooms.find((v) => v.user1SocketId === client.id);
 		if (waitingRoom)
 		{
 			this.waitingRooms = this.waitingRooms.filter((v) => v.user1SocketId !== client.id);
@@ -106,7 +106,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 		if (onGoingroom)
 		{
 			// if so gracefully close and notify everything
-			this.gameComputer.playerDisconnected(client.id);
+			await this.gameComputer.playerDisconnected(client.id);
 			this.gameComputer.emitOngoingGames();
 			const updatedUser = await this.userService.updateUser({
 				where: { id: client.data.user.id },
@@ -117,7 +117,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 		const spectatorRoom = await this.gameComputer.findGameBySpectatorSocketId(client.id);
 		if (spectatorRoom)
 		{
-			this.gameComputer.spectatorDisconnected(spectatorRoom, client.id);
+			await this.gameComputer.spectatorDisconnected(spectatorRoom, client.id);
 		}
 	}
 
@@ -294,9 +294,15 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 	@SubscribeMessage('acceptMatch')
 	async joinRoom(@ConnectedSocket() client: Socket, @GetUserWs() user: User, @MessageBody('room') room: string)
 	{
-		if (!this.gameComputer.userJoin(room, user, client.id))
+        const ret = await this.gameComputer.userJoin(room, user, client.id);
+		if (!ret)
 			return;
 		client.join(room);
+        const game = await this.gameComputer.findGame(room);
+        if (!game)
+            return;
+        if (game.readyPlayer1 === true && game.readyPlayer2 === true)
+            return;
 		this.server.to(client.id).emit('matchAccepted');
 	}
 

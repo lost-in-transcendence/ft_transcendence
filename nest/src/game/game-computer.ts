@@ -47,7 +47,7 @@ class Ball
 	{
 		this.position = position;
 		this.direction = direction;
-		this.speed = { x: 3, y: 3 };
+		this.speed = { x: 5, y: 5 };
 		this.size = size;
 	}
 }
@@ -229,10 +229,15 @@ export class GameComputer
 			const distToPaddle = game.ball.position.y - paddleCenter;
 			const paddleRatio = (distToPaddle / paddleHalf);
 			game.ball.speed.y += ((paddleRatio < 0 ? -paddleRatio : paddleRatio) - 0.1) + (paddle.speed / 12.5);
-			if (game.ball.speed.y < 1)
-				game.ball.speed.y = 1;
+			game.ball.speed.x += ((paddleRatio < 0 ? -paddleRatio : paddleRatio) - 0.1) + (paddle.speed / 12.5);
+			if (game.ball.speed.y < 5)
+				game.ball.speed.y = 5;
 			else if (game.ball.speed.y > 25)
 				game.ball.speed.y = 25;
+			if (game.ball.speed.x < 5)
+				game.ball.speed.x = 5;
+			else if (game.ball.speed.x > 25)
+				game.ball.speed.x = 25;
 			game.ball.direction.y = paddleRatio;
 		}
 		else
@@ -499,10 +504,12 @@ export class GameComputer
 		}
 		if (game.readyPlayer1 === true && game.readyPlayer2 === true && game.status !== GameStatusValue.ONGOING)
 		{
-			this.server.to(game.id).emit('startGame');
+			// this.server.to(game.id).emit('startGame');
+			this.server.to(game.user1SocketId).emit('startGame');
+			this.server.to(game.user2SocketId).emit('startGame');
 			game.timer = Date.now() + game.goal * 60 * 1000;
 			game.status = GameStatusValue.ONGOING;
-			this.gamesService.update({
+			await this.gamesService.update({
 				where: { id: game.id }, data:
 				{
 					ongoing: true,
@@ -511,6 +518,7 @@ export class GameComputer
             game.launchTime = Date.now();
 			this.emitOngoingGames();
 		}
+		return true;
 	}
 
 	async playerDisconnected(userSocketId: string)
