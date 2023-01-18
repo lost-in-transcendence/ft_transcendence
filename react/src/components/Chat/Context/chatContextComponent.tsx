@@ -63,6 +63,11 @@ export function ChatContextComponent(props: any)
 			ChatDispatch({ type: 'update_active', payload });
 		})
 
+		socket.on(events.UNSET_ACTIVE_CHAN, (payload: {channelId: string}) =>
+		{
+			ChatDispatch({ type: 'unset_active', payload: payload.channelId});
+		})
+
 		socket.on(events.ALERT, (payload: { event: string, args: any }) =>
 		{
 			if (payload.event === events.USERS && !payload.args)
