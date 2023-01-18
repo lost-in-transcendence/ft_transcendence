@@ -170,22 +170,20 @@ function CreateChannelForm({ onClose }: any)
 			<form className="flex flex-col" onSubmit={createChannel}>
 				<label className="flex flex-row justify-between p-2">
 					<p>Channel Name</p>
-					<div>
-						<input
-							type={"text"}
-							onChange={(e) => setData({ ...data, channelName: e.target.value })}
-							className="basis-1/2 rounded shadow"
-						/>
-						{
-							error ?
-								<p className='text-red-500'>
-									{error}
-								</p>
-								:
-								<></>
-						}
-					</div>
+					<input
+						type={"text"}
+						onChange={(e) => setData({ ...data, channelName: e.target.value })}
+						className="basis-1/2 rounded shadow"
+					/>
 				</label>
+				{
+					error ?
+						<p className='text-red-500'>
+							{error}
+						</p>
+						:
+						<></>
+				}
 				<label className="flex flex-row justify-between p-2">
 					<p>Mode</p>
 					<select

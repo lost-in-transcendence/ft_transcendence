@@ -11,7 +11,8 @@ import { addFriend, removeFriend } from "../../../requests";
 import { BanBox } from "./BanBox";
 import ContextMenuContext from "./context-menu-context";
 
-export function ContextMenu({ x, y, channel, target }: ContextMenuData) {
+export function ContextMenu({ x, y, channel, target }: ContextMenuData)
+{
 	const mainCtx = useContext(SocketContext);
 	const chatCtx = useContext(ChatContext);
 
@@ -45,15 +46,15 @@ export function ContextMenu({ x, y, channel, target }: ContextMenuData) {
 
 	const [finalX, setFinalX] = useState<number>(x);
 	const [finalY, setFinalY] = useState<number>(y);
-	
+
 	useEffect(() =>
 	{
 		if (!ref || !ref.current)
 			return;
 		const { innerWidth: width, innerHeight: height } = window;
-		const {scrollWidth, scrollHeight} = ref.current;
+		const { scrollWidth, scrollHeight } = ref.current;
 		if (x >= width - scrollWidth)
-			setFinalX(width-scrollWidth);
+			setFinalX(width - scrollWidth);
 		else
 			setFinalX(x);
 		if (y >= height - scrollHeight)
@@ -62,18 +63,21 @@ export function ContextMenu({ x, y, channel, target }: ContextMenuData) {
 		else
 			setFinalY(y)
 	}, [ref, x, y])
-	
 
-	if (channel && channel.mode !== 'PRIVMSG') {
+
+	if (channel && channel.mode !== 'PRIVMSG')
+	{
 		const me = channel.members.find((m) => m.user?.id === currentUser.id);
-		if (me) {
+		if (me)
+		{
 			if (me.role === "OWNER" || me.role === "ADMIN")
 				isAdmin = true
 			if (me.role === "OWNER")
 				isOwner = true;
 		}
 		const targetMember = channel.members.find((m) => m.user.id === targetId)
-		if (targetMember) {
+		if (targetMember)
+		{
 			if (targetMember.role === "ADMIN")
 				targetIsAdmin = true;
 			else if (targetMember.role === "OWNER")
@@ -81,35 +85,43 @@ export function ContextMenu({ x, y, channel, target }: ContextMenuData) {
 		}
 	}
 
-	function goToProfile(userName: string) {
+	function goToProfile(userName: string)
+	{
 		navigate(`/profile/view/${userName}`);
 	}
 
-	function inviteToGame() {
+	function inviteToGame()
+	{
 		navigate('/game?' + new URLSearchParams({ 'action': 'invitePlayer', 'userName': target.userName }));
 	}
 
-	function spectateGame() {
+	function spectateGame()
+	{
 		navigate('/game?' + new URLSearchParams({ 'action': 'spectateGame', 'userName': target.userName }));
 	}
 
-	async function blockUser(targetId: string) {
-		if (isInFriendList) {
+	async function blockUser(targetId: string)
+	{
+		if (isInFriendList)
+		{
 			await removeFriend(targetId)
 			mainSocket?.emit("changeFriends");
 		}
 		mainSocket?.emit(events.BLOCK_USER, { userId: targetId });
 	}
 
-	function unblockUser() {
+	function unblockUser()
+	{
 		mainSocket?.emit(events.UNBLOCK_USER, { userId: targetId });
 	}
 
-	function promoteUser() {
+	function promoteUser()
+	{
 		chatSocket?.emit(events.PROMOTE_USER, { channelId: channel?.id, userId: targetId });
 	}
 
-	function demoteUser() {
+	function demoteUser()
+	{
 		chatSocket?.emit(events.DEMOTE_USER, { channelId: channel?.id, userId: targetId });
 	}
 
@@ -118,7 +130,8 @@ export function ContextMenu({ x, y, channel, target }: ContextMenuData) {
 		chatSocket?.emit(events.KICK_USER, { channelId: channel?.id, userId: targetId, userName });
 	}
 
-	function sendPrivmsg() {
+	function sendPrivmsg()
+	{
 		const channelName = targetId > currentUser.id ? targetId + '_' + currentUser.id : currentUser.id + '_' + targetId;
 		const channelExists: Channel | undefined = channels.find((c) => c.channelName === channelName);
 
@@ -127,7 +140,8 @@ export function ContextMenu({ x, y, channel, target }: ContextMenuData) {
 		chatCtx.ChatDispatch({ type: 'update_active', payload: channelExists });
 	}
 
-	async function toggleFriend(id: string, isInFriendList: boolean) {
+	async function toggleFriend(id: string, isInFriendList: boolean)
+	{
 		let toggleFunc: Function = isInFriendList ? removeFriend : addFriend;
 		if (await toggleFunc(id) === true)
 			mainSocket?.emit("changeFriends");
@@ -145,7 +159,8 @@ export function ContextMenu({ x, y, channel, target }: ContextMenuData) {
 		>
 			<li
 				className={clickable}
-				onClick={() => {
+				onClick={() =>
+				{
 					goToProfile(userName);
 				}}
 			>
@@ -218,7 +233,7 @@ export function ContextMenu({ x, y, channel, target }: ContextMenuData) {
 					{
 						channel ?
 							<>
-								<hr className="border-gray-700" />
+								<hr className="border-gray-700 my-1" />
 								{
 
 									isOwner &&
@@ -240,48 +255,55 @@ export function ContextMenu({ x, y, channel, target }: ContextMenuData) {
 									)
 								}
 								{
-									isAdmin && !targetIsOwner &&
-									<li className={clickable}
-									onClick={kickUser}>
-										Kick
-									</li>
+									isOwner || (isAdmin && !targetIsOwner && !targetIsAdmin) ?
+										<li className={clickable}
+											onClick={kickUser}>
+											Kick
+										</li>
+										:
+										null
 								}
 								{
-									isAdmin && !targetIsOwner &&
-									<li className={clickable}
-										onClick={(e) => { e.stopPropagation(); setBanBoxIsOpen(true) }}
-									>
-										<Modal isOpen={banBoxIsOpen} onClose={() => setBanBoxIsOpen(false)}>
-											<BanBox
-												onClose={() => setBanBoxIsOpen(false)}
-												channel={channel}
-												target={target}
-												action='BAN'
-											/>
-										</Modal>
-										Ban
-									</li>
+									isOwner || (isAdmin && !targetIsOwner && !targetIsAdmin) ?
+										<li className={clickable}
+											onClick={(e) => { e.stopPropagation(); setBanBoxIsOpen(true) }}
+										>
+											<Modal isOpen={banBoxIsOpen} onClose={() => setBanBoxIsOpen(false)}>
+												<BanBox
+													onClose={() => setBanBoxIsOpen(false)}
+													channel={channel}
+													target={target}
+													action='BAN'
+												/>
+											</Modal>
+											Ban
+										</li>
+										:
+										null
 								}
 								{
-									isAdmin && !targetIsOwner &&
-									<li className={clickable}
-										onClick={(e) => { e.stopPropagation(); setMuteBoxIsOpen(true) }}
-									>
-										<Modal isOpen={mutBoxIsOpen} onClose={() => setMuteBoxIsOpen(false)}>
-											<BanBox
-												onClose={() => setMuteBoxIsOpen(false)}
-												channel={channel}
-												target={target}
-												action='MUTE'
-											/>
-										</Modal>
-										Mute
-									</li>
+									isOwner || (isAdmin && !targetIsOwner && !targetIsAdmin) ?
+										<li className={clickable}
+											onClick={(e) => { e.stopPropagation(); setMuteBoxIsOpen(true) }}
+										>
+											<Modal isOpen={mutBoxIsOpen} onClose={() => setMuteBoxIsOpen(false)}>
+												<BanBox
+													onClose={() => setMuteBoxIsOpen(false)}
+													channel={channel}
+													target={target}
+													action='MUTE'
+												/>
+											</Modal>
+											Mute
+										</li>
+										:
+										null
 								}
 							</>
 							:
 							<></>
 					}
+					<hr className="border-gray-700 my-1" />
 				</>
 			}
 		</ul >

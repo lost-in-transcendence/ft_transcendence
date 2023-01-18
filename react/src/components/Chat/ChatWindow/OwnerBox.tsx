@@ -8,6 +8,7 @@ export function OwnerBox({ onClose, channel }: { onClose: any, channel: Channel 
 {
 	const [data, setData] = useState<{ channelId: string, channelName?: string; mode: string; password?: string; }>({ channelId: channel.id, mode: channel.mode});
 	const [bannedUsers, setbannedUsers] = useState<Member[]>([]);
+	const [error, setError] = useState<string | null>(null)
 
 	const ctx = useContext(ChatContext);
 	const { socket } = ctx.ChatState;
@@ -15,6 +16,8 @@ export function OwnerBox({ onClose, channel }: { onClose: any, channel: Channel 
 	function updateChannel(e: any)
 	{
 		e.preventDefault();
+		if (data.channelName.length <= 0)
+			return setError('Channel name cannot be empty')
 		ctx.ChatState.socket?.emit(events.UPDATE_CHANNEL_INFO, data);
 	}
 
@@ -51,6 +54,14 @@ export function OwnerBox({ onClose, channel }: { onClose: any, channel: Channel 
 						defaultValue={channel.channelName}
 					/>
 				</label>
+				{
+					error ?
+					<p className='text-red-500'>
+						{error}
+					</p>
+					:
+					<></>
+				}
 				<label className="flex flex-row justify-between p-2">
 					<p>Mode</p>
 					<select
