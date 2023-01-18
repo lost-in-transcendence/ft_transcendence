@@ -162,9 +162,9 @@ export function Login()
 							</button>
 						</div>
 				}
-				<button onClick={logAsGuest}>
+				{/* <button onClick={logAsGuest}>
 					Log as Guest
-				</button>
+				</button> */}
 			</div>
 		</div>
 	)
