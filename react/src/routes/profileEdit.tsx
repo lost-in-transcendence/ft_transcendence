@@ -4,14 +4,12 @@ import { Form, redirect, useActionData, useLoaderData, useNavigate } from "react
 import { FaFileUpload as UploadIcon } from 'react-icons/fa'
 import { BsPencilFill, BsCheckLg } from 'react-icons/bs'
 
-import { getCookie } from "../requests/cookies"
 import { generateTwoFa, toggleTwoFa } from "../requests"
-import { backURL, frontURL } from "../requests/constants";
+import { backURL } from "../requests/constants";
 import { getUserMeFull, updateUser, updateAvatar } from "../requests";
 import Modal from "../components/Modal/modal";
 import { TwoFa } from "../components/TwoFa/twofa";
 import SocketContext from "../components/Socket/socket-context";
-import { GiCondorEmblem } from "react-icons/gi";
 
 export async function loader()
 {
@@ -77,9 +75,7 @@ async function handleToggleTwoFa()
 export function ProfileEdit()
 {
 	const user: any = useLoaderData();
-	const playerStats = user.playStats;
 	const [status, setStatus] = useState('waiting');
-	const [twoFa, setTwoFa] = useState<boolean>(user.twoFaEnabled);
 	const [error, setError] = useState<string | null>(null);
 	const [mailError, setMailError] = useState<Boolean>(false);
 	const [edit, setEdit] = useState(false);
@@ -90,6 +86,7 @@ export function ProfileEdit()
 	const [fileError, setFileError] = useState('ok');
 	const action: any = useActionData();
 	const masterSocket = useContext(SocketContext).SocketState.socket;
+	const twoFa = useContext(SocketContext).SocketState.user.twoFaEnabled;
 
 	const uploadRef = useRef<HTMLInputElement>(null);
 
@@ -124,7 +121,8 @@ export function ProfileEdit()
 		try
 		{
 			await handleToggleTwoFa()
-			setTwoFa(false);
+			masterSocket?.emit('changeTwoFa')
+			// setTwoFa(false);
 		}
 		catch (err: any)
 		{
@@ -153,7 +151,8 @@ export function ProfileEdit()
 			try
 			{
 				handleToggleTwoFa();
-				setTwoFa(true);
+				masterSocket?.emit('changeTwoFa')
+				// setTwoFa(true);
 
 			}
 			catch (err: any)

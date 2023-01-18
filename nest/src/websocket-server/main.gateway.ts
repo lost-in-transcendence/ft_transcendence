@@ -14,8 +14,6 @@ import { SocketStore } from "./socket-store";
 import { ChannelsService } from "src/chat/channels/channels.service";
 import { PlayStatsService } from "src/playstats/playstats-service";
 
-
-
 @UseInterceptors(UserInterceptor)
 @UseFilters(new CustomWsFilter())
 @UsePipes(new WsValidationPipe({ whitelist: true }))
@@ -201,9 +199,6 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		sockets.forEach((v) => {
 			this.server.to(v.id).emit('notification', { type: 'invite', inviter: user.userName, inviterId: user.id, gameId });
 		})
-		// find uid corresponding socket(s)
-		// send a "notification" message to socket(s)
-		// payload should have type: invite, inviter: user.userName
 	}
 
 	@SubscribeMessage('closeNotification')
@@ -227,6 +222,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	@SubscribeMessage('changeTwoFa')
 	async changeTwoFa(@ConnectedSocket() client: Socket, @GetUserWs() user: User)
 	{
+		this.logger.log('twofaenabled', user.twoFaEnabled);
 		this.socketStore.getUserSockets(user.id).forEach((v) => {
 			this.server.to(v.id).emit(events.UPDATE_USER, { twoFaEnabled : user.twoFaEnabled });
 		});
