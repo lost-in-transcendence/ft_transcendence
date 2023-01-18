@@ -81,7 +81,6 @@ export function ProfileEdit()
 		try
 		{
 			const res = await toggleTwoFa();
-			console.log("about to change TwoFa");
 			masterSocket?.emit('changeTwoFa')
 			return res;
 		}
