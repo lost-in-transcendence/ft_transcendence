@@ -57,6 +57,7 @@ export function TwoFa(props: { onSuccess: any })
 	const [error, setError] = useState(null);
 	const [code, setCode] = useState('');
 	const [timer, setTimer] = useState(5 * 60);
+	const [resendDisabled, setResendDisabled] = useState(false);
 
 	function handleChange(e: any)
 	{
@@ -83,6 +84,8 @@ export function TwoFa(props: { onSuccess: any })
 	{
 		try
 		{
+			setResendDisabled(true);
+			const timeoutId = setTimeout(() => {setResendDisabled(false)}, 1000 * 15)
 			setStatus('loading');
 			await resendEmail()
 			setTimer(5 * 60);
@@ -96,6 +99,12 @@ export function TwoFa(props: { onSuccess: any })
 			setStatus('error');
 		}
 	}
+
+	useEffect(() =>
+	{
+		if (resendDisabled === true)
+			setTimeout(() => {setResendDisabled(false)}, 1000 * 15);
+	}, [resendDisabled])
 
 	useEffect(() =>
 	{
@@ -150,8 +159,9 @@ export function TwoFa(props: { onSuccess: any })
 					</button>
 				</form>
 				<button
-					onClick={regenerateOTP}
-					className='bg-indigo-500 rounded shadow px-1 text-gray-200'
+					onClick={() => {regenerateOTP(); setResendDisabled(true);}}
+					className={`${resendDisabled ? 'bg-gray-500' : 'bg-indigo-500'} rounded shadow px-1 text-gray-200`}
+					disabled={resendDisabled}
 				>
 					Re-send code
 				</button>
