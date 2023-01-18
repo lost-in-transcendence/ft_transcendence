@@ -38,7 +38,6 @@ export function Chat()
 	{
 		const res = await getUser(userName);
 		const target = await res.json();
-		console.log("target", target);
 		const channelName = target.id > user.id ? target.id + '_' + user.id : user.id + '_' + target.id;
 		const channelExists: Channel | undefined = channels.find((c) => c.channelName === channelName);
 

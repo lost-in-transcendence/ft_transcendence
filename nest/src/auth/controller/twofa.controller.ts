@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, Post, Res, UnauthorizedException, UseGuards } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, HttpCode, NotFoundException, Post, Res, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { GetUser } from 'src/users/decorator';
 import { FirstStepAuthGuard } from '../guard/first-step-auth.guard';
 import { TwofaService } from '../service/twofa.service';
@@ -26,7 +26,13 @@ export class TwofaController
             };
         const token = authenticator.generate(secret);
         
-        await this.twofaService.sendMail(user, token);
+        try {
+            await this.twofaService.sendMail(user, token);
+        }
+        catch (err)
+        {
+            throw new BadRequestException('Email not found');
+        }
     }
 
     @UseGuards(FirstStepAuthGuard)
