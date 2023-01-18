@@ -59,6 +59,14 @@ export function StatusUserList({userList, children}: {userList: SharedOtherUserD
 								<p className="break-keep">{v.userName.length > 15? v.userName.slice(0, 12) + "..." : v.userName}</p>
 								<p>{status}</p>
 							</div>
+							{
+								v.gameStatus !== 'NONE' ?
+								<div>
+									<p>Currently</p>
+									<p>{v.gameStatus === 'WAITING' ? 'In Queue' : "In Game"}</p>
+								</div>
+								: null
+							}
 							<div className="ml-auto mr-5 w-[30px] h-[30px] bg-gray-700 group/button group-hover:bg-gray-900 rounded-full flex items-center">
 								<BsFillChatFill size={17} className="mx-auto my-auto text-gray-400 group-hover/button:text-gray-300" />
 							</div>

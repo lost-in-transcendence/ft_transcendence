@@ -46,9 +46,9 @@ interface IChatUpdateActiveMembers
 	users: Member[]
 }
 
-type TChatContextActions = 'update_channels' | 'update_socket' | 'new_channel' | 'update_active' | "update_active_members" | 'update_active_member';
+type TChatContextActions = 'update_channels' | 'update_socket' | 'new_channel' | 'update_active' | 'unset_active' | "update_active_members" | 'update_active_member';
 
-type TChatContextPayload = Socket | PartialUser | PartialChannel[] | Channel | undefined | IChatUpdateActiveMembers;
+type TChatContextPayload = Socket | PartialUser | PartialChannel[] | Channel | undefined | string | IChatUpdateActiveMembers;
 
 interface IChatContextActions
 {
@@ -96,7 +96,12 @@ export function ChatReducer(state: IChatContextState, action: IChatContextAction
 				return { ...state, visibleChannels: newChannels };
 			}
 		case 'update_active':
-			return { ...state, activeChannel: action.payload as Channel }
+			return { ...state, activeChannel: action.payload as Channel };
+		case 'unset_active':
+		{
+			if (state.activeChannel && state.activeChannel.id === action.payload as string)
+			return {...state, activeChannel: undefined};
+		}
 		case 'update_active_members':
 			{
 				if (!state.activeChannel)

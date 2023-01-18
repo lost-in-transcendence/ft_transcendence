@@ -247,7 +247,9 @@ export class ChannelsGateway implements OnGatewayConnection
 		sockets.forEach((s: Socket) =>
 		{
 			s.leave(body.channelId);
+			this.server.to(s.id).emit(events.UNSET_ACTIVE_CHAN, {channelId: body.channelId});
 			this.server.to(s.id).emit(events.ALERT, { event: events.CHANNELS});
+
 		})
 		this.server.to(body.channelId).emit(events.NOTIFY, { channelId: body.channelId, content: `${body.userName} has been kicked by ${user.userName}`})
 		this.server.to(body.channelId).emit(events.ALERT, { event: events.USERS, args: { channelId: body.channelId}});
