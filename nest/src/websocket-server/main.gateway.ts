@@ -36,7 +36,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
 		this.doRanking();
 		const intervalId = setInterval(() => this.doRanking(), this.rankInterval)
-	}	
+	}
 
 	handleConnection(client: Socket)
 	{
@@ -220,7 +220,6 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	async changeTwoFa(@ConnectedSocket() client: Socket, @GetUserWs() user: User)
 	{
 		const twoFaEnabled = (await this.userService.userSelect({id: user.id}, {twoFaEnabled: true})).twoFaEnabled;
-		this.logger.log('twofaenabled', user.twoFaEnabled);
 		this.socketStore.getUserSockets(user.id).forEach((v) => {
 			this.server.to(v.id).emit(events.UPDATE_USER, { twoFaEnabled : twoFaEnabled});
 		});

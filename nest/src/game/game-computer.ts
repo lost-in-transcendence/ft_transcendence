@@ -47,7 +47,7 @@ class Ball
 	{
 		this.position = position;
 		this.direction = direction;
-		this.speed = { x: 5, y: 5 };
+		this.speed = { x: 3, y: 5 };
 		this.size = size;
 	}
 }
@@ -117,7 +117,7 @@ class OngoingGame
 
     paddle1: Paddle;
     paddle2: Paddle;
-    
+
     launchTime: number;
 
     ball: any;
@@ -172,7 +172,7 @@ export class GameComputer
         const {id, user1, user2, objective, goal, theme, user1SocketId, user2SocketId} = waitingRoom;
         const game = new OngoingGame(
             {
-                id, 
+                id,
                 user1,
                 user2,
                 user1SocketId,
@@ -234,17 +234,20 @@ export class GameComputer
 				game.ball.speed.y = 5;
 			else if (game.ball.speed.y > 25)
 				game.ball.speed.y = 25;
-			if (game.ball.speed.x < 5)
-				game.ball.speed.x = 5;
-			else if (game.ball.speed.x > 25)
-				game.ball.speed.x = 25;
+			if (game.ball.speed.x < 3)
+				game.ball.speed.x = 3;
+			else if (game.ball.speed.x > 15)
+				game.ball.speed.x = 15;
 			game.ball.direction.y = paddleRatio;
 		}
 		else
 		{
 			game.ball.position.x = width / 2;
 			game.ball.position.y = height / 2;
-			game.ball.speed.y = 3;
+			game.ball.speed.y = 3
+			game.ball.speed.x = 3
+			game.ball.direction.x *= -1
+			game.ball.direction.y = Math.round(Math.random()) === 1 ? 1 : -1
 			if (player === 1)
 			{
 				game.score2++;

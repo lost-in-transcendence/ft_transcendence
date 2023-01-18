@@ -303,7 +303,6 @@ export function ContextMenu({ x, y, channel, target }: ContextMenuData)
 							:
 							<></>
 					}
-					<hr className="border-gray-700 my-1" />
 				</>
 			}
 		</ul >
