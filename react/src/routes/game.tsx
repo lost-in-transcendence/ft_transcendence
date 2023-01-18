@@ -168,7 +168,6 @@ export function Game()
 		{
 			if (mounted())
 				return;
-			console.log("Unmounting");
 			if (gameStatus !== 'NONE' && (status === 'ongoingGame' || status === 'queueing' || status === 'matchFound' || status === 'matchAccepted'))
 			{
 				masterSocket?.emit('changeGameStatus', { gameStatus: GameStatus.NONE })

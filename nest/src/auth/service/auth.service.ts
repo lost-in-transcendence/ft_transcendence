@@ -97,11 +97,13 @@ export class AuthService
 			{
 				expires: date,
 				overwrite: true,
+				sameSite: 'lax'
 			});
 		res.cookie('jwtExpiration', Number(date),
 			{
 				expires: date,
 				overwrite: true,
+				sameSite: 'lax'
 			});
 	}
 }

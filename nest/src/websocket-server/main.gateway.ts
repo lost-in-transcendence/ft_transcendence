@@ -74,7 +74,6 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 				user: true,
 			}
 		});
-		const newRanking: PlayStats[] = [];
 		this.previousRanking = await Promise.all(usersByPoints.map(async (v: PlayStats, i: number) =>
 		{
 			const { userId } = v;
@@ -86,7 +85,6 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			})
 			return playStat;
 		}))
-		// console.log('newRanking', this.previousRanking);
 		this.server.emit("nextRanking", { nextRanking: this.nextRankingTimer, previousRanking: this.previousRanking });
 	}
 

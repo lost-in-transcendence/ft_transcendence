@@ -95,7 +95,6 @@ export default function SocketContextComponent(props: any)
 
 		socket.on('closeNotification', (payload: {id: string}) =>
 		{
-			console.log("in close notification, id:", payload.id);
 			toast.dismiss(payload.id);
 		});
 	}

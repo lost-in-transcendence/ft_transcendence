@@ -46,11 +46,13 @@ export class AuthController
 	{
 		res.cookie('jwt', 'none',
 			{
-				expires: new Date(Date.now() + 1000 * 1)
+				expires: new Date(Date.now() + 1000 * 1),
+				sameSite: 'lax'
 			});
 		res.cookie('jwtExpiration', 'none',
 			{
-				expires: new Date(Date.now() + 1000 * 1)
+				expires: new Date(Date.now() + 1000 * 1),
+				sameSite: 'lax',
 			});
 		res.send();
 	}
