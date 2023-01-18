@@ -8,7 +8,7 @@ export function RankingItem({v, i}: {v: PlayStats, i: number})
 	    userName = v.user.userName.length > 15 ? v.user.userName.slice(0, 15) + '...' : v.user.userName;
     let bgColor = i % 2 === 0 ? 'bg-gray-700' : 'bg-gray-800';
 	return (
-		<tr key={v.userId} className={`text-white ${bgColor} table-row text-xl`}>
+		<tr className={`text-white ${bgColor} table-row text-xl`}>
 		    <td className="table-cell">
 			    <div className="">{v.rank}</div>
 			</td>

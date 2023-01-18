@@ -9,7 +9,7 @@ export function HomePage()
 	return (
 		<div className="text-gray-300 mx-5 flex flex-col justify-between items-center h-full">
 			<h1 className="text-6xl mb-6 text-center">Welcome to Lost in Transcendence !</h1>
-			<div className=" text-center w-[50%] flex justify-center my-5 bg-gray-700 rounded-lg shadow p-2 mx-12">
+			<div className=" text-center lg:w-[50%] md:w-[65%] sm:w-[75%] flex justify-center my-5 bg-gray-700 rounded-lg shadow p-2 mx-12">
 				<div className="w-[90%]">
 
 				<h2 className="text-2xl mb-6">
@@ -66,7 +66,7 @@ export function HomePage()
 			</div>
 			<div>
 				<h2 className="text-2xl my-6 text-center">Made by these four handsome men</h2>
-				<div className="w-full flex justify-between lg:justify-center lg:gap-20 items-center mb-2">
+				<div className="w-full flex justify-between lg:justify-center lg:gap-20 md:gap-12 items-center mb-2">
 					<div id="acabiac">
 						<a href="https://github.com/TsakBoolhak" className="flex flex-col items-center justify-center">
 						<img

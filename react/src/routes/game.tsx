@@ -324,9 +324,7 @@ export function Game()
 		<div className="flex flex-col md:flex-row w-full ">
 			{
 				status === 'ongoingGame' ?
-					<div className="">
-						<Pong goBack={leaveGame} asSpectator={asSpectator} gameInfos={gameInfos} />
-					</div>
+					<Pong goBack={leaveGame} asSpectator={asSpectator} gameInfos={gameInfos} />
 					:
 					<GameSideBar socket={socket} status={status} setQuickPlay={(e: any) => { setStatus('quickplayMenu'); setError(null); }} setCustomGame={(e: any) => { setStatus('customGame'); setError(null); }} />
 			}
@@ -340,9 +338,6 @@ export function Game()
 					:
 					whatToRender(status)
 			}
-			<div className="text-white">
-				My status: {user.gameStatus}
-			</div>
 		</div>
 	)
 }
