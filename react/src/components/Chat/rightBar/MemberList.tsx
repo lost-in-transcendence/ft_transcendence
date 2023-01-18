@@ -51,7 +51,14 @@ export function MemberList({ members, status, channel}: { members: Member[], sta
 							>
 
 								<UserAvatarStatus userName={user.userName} status={user.status} size={"10"} border={"border-zinc-700"} className={"ml-1 mr-0 group"} />
-								<span> {displayName} </span>
+								<div>
+								<p> {displayName} </p>
+								{
+									user.gameStatus !== 'NONE' ?
+									<p>{user.gameStatus === 'WAITING' ? 'In Queue' : 'In Game'}</p>
+									: null
+								}
+								</div>
 								{
 									u.role === 'OWNER' &&
 									<span className="text-yellow-500 " >
