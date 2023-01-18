@@ -32,21 +32,24 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	@WebSocketServer()
 	server: Server;
 
-	afterInit(server: Server) {
+	afterInit(server: Server)
+	{
 		this.logger.log('Main Gateway initialized');
 
 		this.doRanking();
 		const intervalId = setInterval(() => this.doRanking(), this.rankInterval)
-		}	
+	}	
 
 	handleConnection(client: Socket)
 	{
+		this.logger.log(`Client ${client.id} has joined Main Gateway`);
 		this.server.to(client.id).emit('handshake', client.data.user);
 		this.socketStore.setUserSockets(client.data.user.id, client);
 	}
 
 	async handleDisconnect(client: Socket)
 	{
+		this.logger.log(`Client ${client.id} has disconnected from Main Gateway`);
 		this.socketStore.removeUserSocket(client.data.user.id, client);
 		const ret = await this.userService.user({id: client.data.user.id});
 		if (this.socketStore.getUserSockets(ret.id).length === 0)
@@ -95,7 +98,8 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	}
 
 	@SubscribeMessage(events.CHANGE_STATUS)
-	async changeStatus(@GetUserWs() user: User, @MessageBody('status', new ParseEnumPipe(StatusType)) newStatus: StatusType, @ConnectedSocket() client: Socket) {
+	async changeStatus(@GetUserWs() user: User, @MessageBody('status', new ParseEnumPipe(StatusType)) newStatus: StatusType, @ConnectedSocket() client: Socket)
+	{
 		const updatedUser = await this.userService.updateUser({
 			where: { id: user.id },
 			data: { status: newStatus }

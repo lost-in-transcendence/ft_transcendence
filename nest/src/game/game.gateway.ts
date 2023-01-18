@@ -79,6 +79,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
 	async handleConnection(client: Socket, ...args: any[])
 	{
+        this.logger.log(`Client ${client.id} has joined Game Gateway`);
 		this.server.to(client.id).emit('handshake', client.data.user);
 		const { waitingRooms, ongoingGames } = { waitingRooms: this.getWaitingRooms(), ongoingGames: this.gameComputer.getOngoingGames() };
 		this.server.to(client.id).emit('games', { waitingRooms, ongoingGames });
@@ -254,7 +255,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     }
 
     @SubscribeMessage('joinCustomGame')
-    async joinCustomGame(@ConnectedSocket() client: Socket, @GetUserWs() user: User, @MessageBody('room') room: any)
+    async joinCustomGame(@ConnectedSocket() client: Socket, @GetUserWs() user: User, @MessageBody('room') room: string)
     {
         const customGameRoom = this.waitingRooms.find((v) => {return v.id === room});
         if (!customGameRoom)

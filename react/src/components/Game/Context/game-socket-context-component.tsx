@@ -16,6 +16,7 @@ export default function GameSocketContextComponent(props: any)
 
 	const socket = useSocket(`${backURL}/game`,
 		{
+			forceNew: true,
 			reconnectionAttempts: 5,
 			reconnectionDelay: 5000,
 			autoConnect: false,
@@ -58,7 +59,7 @@ export default function GameSocketContextComponent(props: any)
 		socket.io.on('reconnect_failed', () =>
 		{
 			console.info(`Reconnection failure`);
-			alert('Unable to reconnect to websocket server');
+			// alert('Unable to reconnect to websocket server');
 		})
 
 		socket.on('handshake', (payload: any) =>
