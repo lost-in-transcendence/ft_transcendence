@@ -65,7 +65,7 @@ export function ChatSidebar({ user }: any)
 					onClick={setFriends}
 				>
 					<FaUsers size="20" className="ml-3" />
-					Friends
+					Users
 				</button>
 				<button
 					onClick={() => setIsOpen(true)}

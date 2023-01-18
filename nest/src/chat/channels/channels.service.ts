@@ -5,13 +5,10 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 
 import { CreateChannelDto } from './dto';
-import { UpdateChannelDto } from './dto';
-import { ChannelDto, PartialChannelDto } from './dto/channel-dto';
-import { CreateUserDto, UserIncludeQueryDto } from 'src/users/dto';
+import { PartialChannelDto } from './dto/channel-dto';
 import { joinChannelDto } from './dto/join-channel.dto';
 import { BanMemberDto, ChannelMemberDto } from './channel-member/dto';
 import { ChannelMemberService } from './channel-member/channel-member.service';
-import { Server } from 'http';
 
 @Injectable()
 export class ChannelsService

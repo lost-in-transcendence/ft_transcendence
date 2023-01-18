@@ -92,10 +92,10 @@ export function ProfileView() {
 		w-full mt-10 p-2
 		bg-gray-800 shadow-md">
 				<div className="profileImg">
-					<img className='rounded-full h-24 w-24' src={`${backURL}/users/avatars/${profile.userName}?time=${Date.now()}`} />
+					<img className='rounded-full w-24' src={`${backURL}/users/avatars/${profile.userName}?time=${Date.now()}`} />
 				</div>
 				<div className="profileInfo">
-					<h3 className="font-bold text-5xl">{profile.userName}</h3>
+					<h3 className="font-bold text-5xl break-all">{profile.userName}</h3>
 					{/* <p className="text-center">{profile.email}</p> */}
 					<p className="text-center">{profile.status}</p>
 					{

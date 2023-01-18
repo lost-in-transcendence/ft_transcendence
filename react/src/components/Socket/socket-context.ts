@@ -77,6 +77,7 @@ function updateFriends(user: User, payload: PartialOtherUser)
 
 export function SocketReducer(state: ISocketContextState, action: ISocketContextActions)
 {
+	// console.log(`action ${action.type} received with payload`, {payload: action.payload});
 	switch (action.type)
 	{
 		case 'update_socket':

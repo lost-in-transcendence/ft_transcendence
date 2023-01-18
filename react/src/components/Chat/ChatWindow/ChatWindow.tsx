@@ -246,6 +246,18 @@ export function ChatWindow({ className, }: { className?: string, })
 						{
 							displayName = true;
 						}
+						let dateString: string = '';
+						if (displayName === true)
+						{
+							const date = new Date(m.createdAt);
+							const yyyy = date.getFullYear();
+							const mm = String(date.getMonth() + 1).padStart(2, '0');
+							const dd = String(date.getDate()).padStart(2, '0');
+							const hh = String(date.getHours()).padStart(2, '0');
+							const mn = String(date.getMinutes()).padStart(2, '0');
+							const ss = String(date.getSeconds()).padStart(2, '0');
+							dateString = `${dd}/${mm}/${yyyy} at ${hh}:${mn}:${ss}`
+						}
 						return (
 							<li
 								key={i}
@@ -284,12 +296,15 @@ export function ChatWindow({ className, }: { className?: string, })
 												<span className="text-red-900 font-semibold">
 													{m.sender.userName}
 												</span>
+												<p className="text-sm text-gray-300">
+													{dateString}
+												</p>
 											</div>
 										</div>
 									)
 								}
 								<>
-									<div className="ml-10 overfow-x-hidden break-words">
+									<div className="ml-12 overfow-x-hidden break-words">
 										<div className="min-w-[48px] basis-12"></div>
 										<div>
 											<span

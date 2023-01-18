@@ -8,7 +8,6 @@ import { backURL } from "../requests/constants";
 import { getMyMatchHistory, getUserMeFull } from "../requests";
 import SocketContext from "../components/Socket/socket-context";
 import { MatchHistoryCard } from "../components/MatchHistoryCard/MatchHistoryCard";
-import { User } from "../dto/users.dto";
 import { StatTable } from "../components/PlayStats/StatTable";
 
 export async function loader() {
@@ -34,10 +33,10 @@ export function Profile() {
 								w-full mt-10 p-2
 								bg-gray-800 shadow-md">
 				<div className="profileImg">
-					<img className='rounded-full h-24 w-24' src={`${backURL}/users/avatars/${user.userName}?time=${Date.now()}`} />
+					<img className='rounded-full w-24' src={`${backURL}/users/avatars/${user.userName}?time=${Date.now()}`} />
 				</div>
 				<div className="profileInfo">
-					<h3 className="font-bold text-5xl">{user.userName}</h3>
+					<h3 className="font-bold text-5xl break-all">{user.userName}</h3>
 					<p className="text-center">{user.email}</p>
 					<p className="text-center">{status}</p>
 					{
