@@ -298,11 +298,11 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 		if (!ret)
 			return;
 		client.join(room);
-        // const game = await this.gameComputer.findGame(room);
-        // if (!game)
-        //     return;
-        // if (game.readyPlayer1 === true && game.readyPlayer2 === true)
-        //     return;
+        const game = await this.gameComputer.findGame(room);
+        if (!game)
+            return;
+        if (game.readyPlayer1 === true && game.readyPlayer2 === true)
+            return;
 		this.server.to(client.id).emit('matchAccepted');
 	}
 
