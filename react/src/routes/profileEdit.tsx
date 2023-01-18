@@ -56,22 +56,6 @@ export async function action({ request }: any)
 	return ret;
 }
 
-async function handleToggleTwoFa()
-{
-	try
-	{
-		const res = await toggleTwoFa();
-		return res;
-	}
-	catch (e: any)
-	{
-		if (e.status !== 200)
-		{
-			throw new Error('Wrong code!');
-		}
-	}
-}
-
 export function ProfileEdit()
 {
 	const user: any = useLoaderData();
@@ -91,6 +75,24 @@ export function ProfileEdit()
 	const uploadRef = useRef<HTMLInputElement>(null);
 
 	const [isModalOpen, setIsModalOpen] = useState(false);
+
+	async function handleToggleTwoFa()
+	{
+		try
+		{
+			const res = await toggleTwoFa();
+			console.log("about to change TwoFa");
+			masterSocket?.emit('changeTwoFa')
+			return res;
+		}
+		catch (e: any)
+		{
+			if (e.status !== 200)
+			{
+				throw new Error('Wrong code!');
+			}
+		}
+	}
 
 	async function onModalOpen()
 	{
@@ -121,7 +123,7 @@ export function ProfileEdit()
 		try
 		{
 			await handleToggleTwoFa()
-			masterSocket?.emit('changeTwoFa')
+			// masterSocket?.emit('changeTwoFa')
 			// setTwoFa(false);
 		}
 		catch (err: any)
@@ -151,7 +153,6 @@ export function ProfileEdit()
 			try
 			{
 				handleToggleTwoFa();
-				masterSocket?.emit('changeTwoFa')
 				// setTwoFa(true);
 
 			}
@@ -357,7 +358,7 @@ export function ProfileEdit()
 
 						/>
 						<Modal isOpen={isModalOpen} onOpen={onModalOpen} onClose={() => { setIsModalOpen(false); setStatus(prevEvent => { if (prevEvent === 'loading') { return 'waiting' } return prevEvent; }) }}>
-							<TwoFa onSuccess={() => { setIsModalOpen(false); setStatus('success') }} />
+							<TwoFa onSuccess={async () => { setIsModalOpen(false); await handleToggleTwoFa() }} />
 						</Modal>
 						<div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
 					</label>

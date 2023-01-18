@@ -56,7 +56,7 @@ export class TwofaService
     {
         if (user.twoFaEnabled)
         {
-            const res = this.usersService.updateUser({where: {id: user.id}, data: {...user, twoFaEnabled: false}});
+            const res = await this.usersService.updateUser({where: {id: user.id}, data: {...user, twoFaEnabled: false}});
             if (!res)
             {
                 throw new NotFoundException("User not found (2-FA)");
@@ -64,7 +64,7 @@ export class TwofaService
         }
         else
         {
-            const res = this.usersService.updateUser({where: {id: user.id}, data: {...user, twoFaEnabled: true}});
+            const res = await this.usersService.updateUser({where: {id: user.id}, data: {...user, twoFaEnabled: true}});
             if (!res)
             {
                 throw new NotFoundException("User not found (2-FA)");
