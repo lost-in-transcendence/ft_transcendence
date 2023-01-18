@@ -1,27 +1,25 @@
-import { Body, ForbiddenException, Get, Global, Logger, ParseIntPipe, ParseUUIDPipe, UseFilters, UseInterceptors, UsePipes, ValidationPipe } from "@nestjs/common";
-import { BaseWsExceptionFilter, ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer, WsException } from "@nestjs/websockets";
+import { Logger, ParseUUIDPipe, UseFilters, UseInterceptors, UsePipes } from "@nestjs/common";
+import { ConnectedSocket, MessageBody, OnGatewayConnection, SubscribeMessage, WebSocketGateway, WebSocketServer, WsException } from "@nestjs/websockets";
 import { Prisma, User, Channel, ChannelMember, Message, RoleType } from "@prisma/client";
-import { IsString } from "class-validator";
-import { Namespace, Server, Socket } from 'socket.io';
+import { Namespace, Socket } from 'socket.io';
 import * as bcrypt from 'bcrypt';
-import { emit, env } from "process";
+import { env } from "process";
 
 import { GetUserWs } from "src/users/decorator/get-user-ws";
 import { CustomWsFilter } from "src/websocket-server/filters";
 import { WsValidationPipe } from "src/websocket-server/pipes";
 import { ChannelsService } from "./channels.service";
-import { ChannelDto, CreateChannelDto, PartialChannelDto, UpdateChannelDto } from "./dto";
+import { CreateChannelDto, PartialChannelDto, UpdateChannelDto } from "./dto";
 import { joinChannelDto, joinChannelMessageDto } from "./dto/join-channel.dto";
 import { UserInterceptor } from "src/websocket-server/interceptor";
 import { UsersService } from "src/users/users.service";
 import * as events from 'shared/constants';
 import { MessagesService } from "../messages/messages.service";
 import { getManyMessageDto } from "../messages/dto";
-import { SharedBanUserDto, SharedChannelMembersDto, SharedPartialUserDto } from "shared/dtos";
+import { SharedChannelMembersDto} from "shared/dtos";
 import { UserSocketStore } from "../global/user-socket.store";
-import { BanMemberDto, ChannelMemberDto, UpdateChannelMemberDto } from "./channel-member/dto";
+import { BanMemberDto, ChannelInviteDto, ChannelMemberDto, KickUserDto, UpdateChannelMemberDto } from "./channel-member/dto";
 import { ChannelMemberService } from "./channel-member/channel-member.service";
-import e from "express";
 import { TimeoutStore } from "../global/timeout-store";
 
 @UseInterceptors(UserInterceptor)
@@ -241,6 +239,20 @@ export class ChannelsGateway implements OnGatewayConnection
 		this.server.to(client.id).emit(events.GET_BANNED_USERS, banList);
 	}
 
+	@SubscribeMessage(events.KICK_USER)
+	async kickUser(@MessageBody() body: KickUserDto, @GetUserWs() user: User)
+	{
+		const sockets = UserSocketStore.getUserSockets(body.userId);
+		await this.channelMemberService.kickUser(body);
+		sockets.forEach((s: Socket) =>
+		{
+			s.leave(body.channelId);
+			this.server.to(s.id).emit(events.ALERT, { event: events.CHANNELS});
+		})
+		this.server.to(body.channelId).emit(events.NOTIFY, { channelId: body.channelId, content: `${body.userName} has been kicked by ${user.userName}`})
+		this.server.to(body.channelId).emit(events.ALERT, { event: events.USERS, args: { channelId: body.channelId}});
+	}
+
 	@SubscribeMessage(events.BAN_USER)
 	async banUser(@ConnectedSocket() client: Socket, @MessageBody() body: BanMemberDto, @GetUserWs() user: User)
 	{
@@ -293,7 +305,7 @@ export class ChannelsGateway implements OnGatewayConnection
 	}
 
 	@SubscribeMessage(events.CHANNELS)
-	async channels(@ConnectedSocket() client: Socket, @GetUserWs('id', ParseUUIDPipe) userId: string, @GetUserWs() user: User)
+	async channels(@ConnectedSocket() client: Socket, @GetUserWs('id', ParseUUIDPipe) userId: string)
 	{
 		const visibleChans: PartialChannelDto[] = await this.getVisibleChannels(userId);
 		this.server.to(client.id).emit(events.CHANNELS, visibleChans);
@@ -344,7 +356,7 @@ export class ChannelsGateway implements OnGatewayConnection
 	}
 
 	@SubscribeMessage(events.PROMOTE_USER)
-	async promoteUser(@ConnectedSocket() client: Socket, @GetUserWs() user: User, @MessageBody() dto: UpdateChannelMemberDto)
+	async promoteUser(@GetUserWs() user: User, @MessageBody() dto: UpdateChannelMemberDto)
 	{
 		const currentUser = await this.channelMemberService.getOne({ channelId: dto.channelId, userId: user.id });
 		if (currentUser.role !== 'OWNER')
@@ -354,7 +366,7 @@ export class ChannelsGateway implements OnGatewayConnection
 	}
 
 	@SubscribeMessage(events.DEMOTE_USER)
-	async demoteUser(@ConnectedSocket() client: Socket, @GetUserWs() user: User, @MessageBody() dto: UpdateChannelMemberDto)
+	async demoteUser(@GetUserWs() user: User, @MessageBody() dto: UpdateChannelMemberDto)
 	{
 		const currentUser = await this.channelMemberService.getOne({ channelId: dto.channelId, userId: user.id });
 		if (currentUser.role !== 'OWNER')
@@ -364,7 +376,7 @@ export class ChannelsGateway implements OnGatewayConnection
 	}
 
 	@SubscribeMessage(events.INVITE_TO_PRIVATE_CHANNEL)
-	async inviteToPrivateChannel(@MessageBody() body: { usersToInvite: string[], channelId: string }, @ConnectedSocket() client: Socket, @GetUserWs() user: User)
+	async inviteToPrivateChannel(@MessageBody() body: ChannelInviteDto)
 	{
 		for (let invitedUser of body.usersToInvite)
 		{

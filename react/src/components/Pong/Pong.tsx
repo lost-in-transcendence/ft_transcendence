@@ -14,6 +14,8 @@ const themes = {
   classic: {ballColor: 'white', paddleColor: 'white', background: 'bg-black' },
   camouflage: {ballColor: 'green', paddleColor: 'green', background: 'bg-green-600'},
   rolandGarros: {ballColor: 'yellow', paddleColor: 'white', background: 'bg-rolandGarros bg-cover bg-no-repeat'},
+  musicMakesMeLoseControl: {ballColor: 'white', paddleColor: 'white', background: 'bg-musicMakesMeLoseControl bg-cover bg-no-repeat'},
+  catPong: {ballColor: 'white', paddleColor: 'white', background: 'bg-catPong bg-cover bg-no-repeat'},
 };
 
 type GameItems = {
@@ -126,6 +128,12 @@ export function Pong(props: { goBack: any, asSpectator: boolean, gameInfos: {the
         break;
       case 'rolandGarros':
         setTheme(themes.rolandGarros);
+        break;
+      case 'musicMakesMeLoseControl':
+        setTheme(themes.musicMakesMeLoseControl);
+        break;
+      case 'catPong':
+        setTheme(themes.catPong);
         break;
       default:
         setTheme(themes.classic);

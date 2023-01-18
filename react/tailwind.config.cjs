@@ -13,7 +13,9 @@ module.exports = {
 			},
 			backgroundImage:
 			{
-				'rolandGarros': "url('/assets/rolandGarros.jpeg')"
+				'rolandGarros': "url('/assets/rolandGarros.jpeg')",
+				'musicMakesMeLoseControl' : "url('/assets/music-makes-me-lose-control.gif')",
+				'catPong' : "url('/assets/catpong.gif')"
 			},
 		},
 		

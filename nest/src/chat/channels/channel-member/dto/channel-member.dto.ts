@@ -1,7 +1,7 @@
 import { RoleType } from "@prisma/client";
-import { IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID } from "class-validator";
+import { IsArray, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID } from "class-validator";
 
-import { SharedBanUserDto } from "shared/dtos";
+import { SharedBanUserDto, SharedKickUserDto } from "shared/dtos";
 
 export class BanMemberDto implements SharedBanUserDto
 {
@@ -16,6 +16,21 @@ export class BanMemberDto implements SharedBanUserDto
 	@IsNumber()
 	@IsNotEmpty()
 	banTime: number;
+
+	@IsString()
+	@IsNotEmpty()
+	userName: string;
+}
+
+export class KickUserDto implements SharedKickUserDto
+{
+	@IsUUID()
+	@IsNotEmpty()
+	userId: string;
+
+	@IsUUID()
+	@IsNotEmpty()
+	channelId: string;
 
 	@IsString()
 	@IsNotEmpty()
@@ -46,4 +61,15 @@ export class UpdateChannelMemberDto
 	@IsNotEmpty()
 	@IsUUID()
 	userId: string;
+}
+
+export class ChannelInviteDto
+{
+	@IsArray()
+	@IsString()
+	usersToInvite: string[];
+
+	@IsNotEmpty()
+	@IsUUID()
+	channelId: string;
 }

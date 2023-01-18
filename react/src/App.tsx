@@ -7,7 +7,7 @@ import { Callback, loader as callbackLoader } from './routes/callback'
 import { Chat, loader as chatLoader } from './routes/chat'
 import { ErrorPage } from './routes/error'
 import { Game, loader as gameLoader } from './routes/game'
-import { HomePage, loader as homepageLoader } from './routes/home'
+import { HomePage} from './routes/home'
 import { LeaderBoard } from './routes/leaderboard'
 import { Login } from './routes/login'
 import { Profile, loader as profileLoader } from './routes/profile'
@@ -40,7 +40,6 @@ const router = createBrowserRouter(
 								{
 									path: '/',
 									element: <HomePage />,
-									loader: homepageLoader,
 								},
 								{
 									path: '/profile',

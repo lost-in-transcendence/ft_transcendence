@@ -80,7 +80,7 @@ export function Chat()
 		}
 			<div className="flex flex-col md:flex-row">
 				<ChatSidebar user={user} />
-				<div className="text-white basis-full overflow-auto justify-self-center mr-auto bg-gray-800">
+				<div className="text-white flex-1 h-screen overflow-hidden justify-self-center mr-auto bg-gray-800">
 					{
 						state.activeChannel ?	
 						<ChatDisplay currentUser={user}/>

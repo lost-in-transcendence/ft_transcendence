@@ -39,6 +39,7 @@ export function FriendList()
 	return (
 		<>
 			<h1 className="text-5xl text-center">Friends</h1>
+			<div className="overflow-scroll pb-[150px] h-screen">
 			{
 			onlineFriends && onlineFriends.length > 0 ?
 			<>
@@ -61,6 +62,7 @@ export function FriendList()
 			:
 			<> </>
 			}
+			</div>
 		</>
 	)
 }

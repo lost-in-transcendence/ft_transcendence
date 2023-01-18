@@ -162,9 +162,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
 	@SubscribeMessage(events.GET_ALL_USERS)
 	async getAllUser(@ConnectedSocket() client: Socket) {
-		this.logger.debug('in getallUSERSS')
 		const users: User[] = await this.userService.users({ where: {} });
-		this.logger.debug({ users })
 		this.server.to(client.id).emit(events.GET_ALL_USERS, users);
 	}
 

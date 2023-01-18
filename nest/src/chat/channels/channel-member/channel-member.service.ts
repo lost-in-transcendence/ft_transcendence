@@ -4,7 +4,7 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { joinChannelDto } from '../dto';
 
-import { BanMemberDto, ChannelMemberDto } from './dto';
+import { BanMemberDto, ChannelMemberDto, KickUserDto } from './dto';
 
 @Injectable()
 export class ChannelMemberService
@@ -66,6 +66,10 @@ export class ChannelMemberService
 	async banUser(dto: BanMemberDto)
 	{
 		const bannedUser = await this.prisma.channelMember.findUnique({where: {userId_channelId: {userId: dto.userId, channelId: dto.channelId}}});
+		if (!bannedUser)
+		{
+			throw new ForbiddenException('User is not in channel');
+		}
 		if (bannedUser.role === 'OWNER')
 			throw new ForbiddenException(`Cannot ban the owner of a channel`);
 		try {
@@ -91,9 +95,45 @@ export class ChannelMemberService
 		}
 	}
 
+	async kickUser(dto: KickUserDto)
+	{
+		const kickedUser = await this.prisma.channelMember.findUnique({where: {userId_channelId: {userId: dto.userId, channelId: dto.channelId}}});
+		if (!kickedUser)
+		{
+			throw new ForbiddenException('User is not in channel');
+		}
+		if (kickedUser.role === 'OWNER')
+			throw new ForbiddenException('Cannot kick the owner of a channel');
+		try
+		{
+			const ret = await this.prisma.channelMember.delete(
+				{
+					where:
+					{
+						userId_channelId: {userId: dto.userId, channelId: dto.channelId}
+					}
+				}
+			)
+		}
+		catch (err)
+		{
+			if (err instanceof PrismaClientKnownRequestError)
+			{
+				if (err.code === 'P2025')
+					throw new PreconditionFailedException('Record not found');
+			}
+			throw new ImATeapotException('Something unexpected happened');
+		}
+	}
+
+
 	async muteUser(dto: BanMemberDto)
 	{
 		const mutedUser = await this.prisma.channelMember.findUnique({where: {userId_channelId: {userId: dto.userId, channelId: dto.channelId}}});
+		if (!mutedUser)
+		{
+			throw new ForbiddenException('User is not in channel');
+		}
 		if (mutedUser.role === 'OWNER')
 			throw new ForbiddenException(`Cannot mute the owner of a channel`);
 		try {

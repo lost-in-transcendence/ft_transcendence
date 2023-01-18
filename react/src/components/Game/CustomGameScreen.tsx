@@ -122,6 +122,8 @@ export function CustomGameScreen({ goBack, params, setParams }: { goBack: () => 
 								<option value='classic'>Classic</option>
 								<option value='camouflage'>Camouflage</option>
 								<option value='rolandGarros'>Roland Garros</option>
+								<option value='musicMakesMeLoseControl'>Music Makes Me Lose Control</option>
+								<option value='catPong'>Cat Pong</option>
 							</select>
 						</div>
 						<div className="flex justify-between w-full items-center gap-2">
