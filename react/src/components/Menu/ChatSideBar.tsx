@@ -152,11 +152,14 @@ function ChatModal(props: { isOpen: boolean; children: any; onClose: any })
 function CreateChannelForm({ onClose }: any)
 {
 	const [data, setData] = useState<{ channelName: string; mode: string; password?: string; }>({ channelName: "", mode: "PUBLIC" });
+	const [error, setError] = useState<string | null>(null)
 	const ctx = useContext(ChatContext);
 
 	function createChannel(e: any)
 	{
 		e.preventDefault();
+		if (data.channelName.length <= 0)
+			return setError('Channel name cannot be empty')
 		ctx.ChatState.socket?.emit(events.CREATE_CHANNEL, data);
 		ctx.ChatState.socket?.emit(events.CHANNELS);
 		onClose();
@@ -167,11 +170,21 @@ function CreateChannelForm({ onClose }: any)
 			<form className="flex flex-col" onSubmit={createChannel}>
 				<label className="flex flex-row justify-between p-2">
 					<p>Channel Name</p>
-					<input
-						type={"text"}
-						onChange={(e) => setData({ ...data, channelName: e.target.value })}
-						className="basis-1/2 rounded shadow"
-					/>
+					<div>
+						<input
+							type={"text"}
+							onChange={(e) => setData({ ...data, channelName: e.target.value })}
+							className="basis-1/2 rounded shadow"
+						/>
+						{
+							error ?
+								<p className='text-red-500'>
+									{error}
+								</p>
+								:
+								<></>
+						}
+					</div>
 				</label>
 				<label className="flex flex-row justify-between p-2">
 					<p>Mode</p>

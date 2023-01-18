@@ -72,7 +72,7 @@ const wsAuthMiddleWare = (jwt: JwtService, prisma: PrismaService, logger: Logger
 		}
 		catch (err)
 		{
-			logger.error({err});
+			// logger.error({err});
 			next(new Error('Forbidden'));
 		}
 	}

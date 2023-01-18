@@ -48,7 +48,7 @@ export class ChannelMemberService
 				if (error.code === 'P2002')
 					throw new PreconditionFailedException('User already in channel');
 			}
-			this.logger.error({ error });
+			// this.logger.error({ error });
 			throw new ImATeapotException('something unexpected happened');
 		}
 	}
@@ -193,7 +193,7 @@ export class ChannelMemberService
 				if (error.code === 'P2025')
 					throw new PreconditionFailedException('Record to update not found');
 			}
-			this.logger.error(error.code);
+			// this.logger.error(error.code);
 		}
 	}
 
@@ -297,7 +297,7 @@ export class ChannelMemberService
 		});
 		return (banList);
 	}
-	
+
 	async getMuteList(channelId: Prisma.ChannelMemberWhereInput)
 	{
 		const muteList = await this.prisma.channelMember.findMany({
