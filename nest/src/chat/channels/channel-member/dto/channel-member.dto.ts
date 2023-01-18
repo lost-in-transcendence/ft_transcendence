@@ -66,7 +66,7 @@ export class UpdateChannelMemberDto
 export class ChannelInviteDto
 {
 	@IsArray()
-	@IsString()
+	@IsString({each: true})
 	usersToInvite: string[];
 
 	@IsNotEmpty()

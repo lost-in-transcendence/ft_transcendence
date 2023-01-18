@@ -13,7 +13,6 @@ export function displayInviteNotification(inviter: string, inviterId: string, ga
         toastId: '1',
         draggable: false
     })
-    console.log('toast Id:', id);
 }
 
 export function InviteNotification(props: {inviter: string, inviterId: string, gameId: string, socket?: Socket, closeToast?: any, toastProps?: any})
