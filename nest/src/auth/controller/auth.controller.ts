@@ -57,13 +57,13 @@ export class AuthController
 		res.send();
 	}
 
-	@Post('dev-signup')
-	@HttpCode(200)
-	async devAuth(@Body() fakeInfos: {id42: string, userName: string, email: string, avatarPath: any, isGuest: Boolean }, @Res({ passthrough: true }) res )
-	{
-		fakeInfos.avatarPath = FAKE_IMG_URL;
-		fakeInfos.isGuest = true;
-		const {token} = await this.authService.fakeLogin(fakeInfos);
-		await this.authService.setJwtCookies(res, token);
-	}
+	// @Post('dev-signup')
+	// @HttpCode(200)
+	// async devAuth(@Body() fakeInfos: {id42: string, userName: string, email: string, avatarPath: any, isGuest: Boolean }, @Res({ passthrough: true }) res )
+	// {
+	// 	fakeInfos.avatarPath = FAKE_IMG_URL;
+	// 	fakeInfos.isGuest = true;
+	// 	const {token} = await this.authService.fakeLogin(fakeInfos);
+	// 	await this.authService.setJwtCookies(res, token);
+	// }
 }
