@@ -26,6 +26,9 @@ If you're a fellow 42 student using a similar stack and you want some advice, fe
 ## Made by
 
 [Aurélien Cabiac](https://github.com/TsakBoolhak)
+
 [Léo Bourret](https://github.com/LeoBourret)
+
 [Mehdi Chibane](https://github.com/mchibane)
+
 [Martin Lebard](https://github.com/NeronTheTyrant)
