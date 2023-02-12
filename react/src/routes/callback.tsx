@@ -1,7 +1,7 @@
 import { useContext } from "react";
 import { Navigate, redirect, useLoaderData, useRouteLoaderData } from "react-router-dom"
 import { Spinner } from "../components/Spinner/Spinner";
-import { login } from "../requests";
+import { login, setCookie } from "../requests";
 
 export async function loader()
 {
@@ -13,8 +13,8 @@ export async function loader()
 		if (res.status !== 200)
 		{
 			window.opener.postMessage("error", "*");
-			console.log("error");
-			// window.close();
+			// console.log("error");
+			window.close();
 		}
 		return res;
 	}
@@ -27,23 +27,28 @@ export async function loader()
 export function Callback()
 {
 	const something: any = useLoaderData();
+	if (something.token)
+	{
+		setCookie("jwt", something.token, 7 * 24 * 60 * 60 * 1000);
+		setCookie("jwtExpiration", String(7 * 24 * 60 * 60 * 1000), 7 * 24 * 60 * 60 * 1000);
+	}
 	if (something.twoFaEnabled === true)
 	{
 		window.opener.postMessage('next', '*')
-		console.log("next");
-		// window.close();
+		// console.log("next");
+		window.close();
 	}
 	else if (something.newUser === true)
 	{
 		window.opener.postMessage('newUser', '*')
-		console.log("newUser");
-		// window.close();
+		// console.log("newUser");
+		window.close();
 	}
 	else
 	{
 		window.opener.postMessage('success', '*');
-		console.log("success");
-		// window.close();
+		// console.log("success");
+		window.close();
 	}
 
 	return (

@@ -1,6 +1,6 @@
 
 import { backURL } from "../constants";
-import { getCookie } from "../cookies";
+import { getCookie, setCookie } from "../cookies";
 import { v4 as uuidv4 } from 'uuid';
 
 export async function login(params: URLSearchParams)
@@ -29,11 +29,13 @@ export async function logDev()
 
 export async function logout()
 {
-    return fetch(`${backURL}/auth/logout`,
-    {
-        method: 'GET',
-        credentials: 'include',
-    });
+    // return fetch(`${backURL}/auth/logout`,
+    // {
+    //     method: 'GET',
+    //     credentials: 'include',
+    // });
+    setCookie("jwt", "none", 1000);
+    setCookie("jwtExpiration", "none", 1000);
 }
 
 export async function validateToken()

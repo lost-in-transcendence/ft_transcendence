@@ -17,9 +17,10 @@ export class AuthController
 	async login(@Req() req, @Res({ passthrough: true }) res)
 	{
 		const { token, twoFaEnabled, newUser } = await this.authService.login(req.user);
-		await this.authService.setJwtCookies(res, token);
+		// await this.authService.setJwtCookies(res, token);
 		res.send(
 			{
+				token,
 				twoFaEnabled,
 				newUser
 			}
@@ -29,41 +30,43 @@ export class AuthController
 	@UseGuards(FullAuthGuard)
 	@HttpCode(200)
 	@Get('validate')
-	async refresh(@Req() req, @Res() res, @GetUser() user)
+	async refresh(@Req() req, @GetUser() user)
 	{
 		const { jwtExpiration } = req.cookies;
 		const timeRemaining = Number(jwtExpiration) - Date.now();
 		if (timeRemaining < 24 * 60 * 60 * 1000 && timeRemaining > 0)
 		{
 			const token = await this.authService.signToken(user.id);
-			await this.authService.setJwtCookies(res, token);
+			// await this.authService.setJwtCookies(res, token);
+			return {token};
 		}
-		res.send();
+		return {};
 	}
 
-	@Get('logout')
-	async logout(@Res() res)
-	{
-		res.cookie('jwt', 'none',
-			{
-				expires: new Date(Date.now() + 1000 * 1),
-				sameSite: 'lax'
-			});
-		res.cookie('jwtExpiration', 'none',
-			{
-				expires: new Date(Date.now() + 1000 * 1),
-				sameSite: 'lax',
-			});
-		res.send();
-	}
-
-	// @Post('dev-signup')
-	// @HttpCode(200)
-	// async devAuth(@Body() fakeInfos: {id42: string, userName: string, email: string, avatarPath: any, isGuest: Boolean }, @Res({ passthrough: true }) res )
+	// @Get('logout')
+	// async logout(@Res() res)
 	// {
-	// 	fakeInfos.avatarPath = FAKE_IMG_URL;
-	// 	fakeInfos.isGuest = true;
-	// 	const {token} = await this.authService.fakeLogin(fakeInfos);
-	// 	await this.authService.setJwtCookies(res, token);
+	// 	res.cookie('jwt', 'none',
+	// 		{
+	// 			expires: new Date(Date.now() + 1000 * 1),
+	// 			sameSite: 'lax'
+	// 		});
+	// 	res.cookie('jwtExpiration', 'none',
+	// 		{
+	// 			expires: new Date(Date.now() + 1000 * 1),
+	// 			sameSite: 'lax',
+	// 		});
+	// 	res.send();
 	// }
+
+	@Post('dev-signup')
+	@HttpCode(200)
+	async devAuth(@Body() fakeInfos: {id42: string, userName: string, email: string, avatarPath: any, isGuest: Boolean }, @Res({ passthrough: true }) res )
+	{
+		fakeInfos.avatarPath = FAKE_IMG_URL;
+		fakeInfos.isGuest = true;
+		const {token} = await this.authService.fakeLogin(fakeInfos);
+		// await this.authService.setJwtCookies(res, token);
+		return {token}
+	}
 }
