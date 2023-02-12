@@ -1,6 +1,6 @@
 # FT_TRANSCENDENCE
 
-Live demo (COMING SOON)
+[Live demo](http://lost-in-transcendence.duckdns.org) (must be a 42 student to login, guest users coming very soon)
 
 ## To setup
 
