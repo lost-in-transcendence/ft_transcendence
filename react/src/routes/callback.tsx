@@ -13,7 +13,8 @@ export async function loader()
 		if (res.status !== 200)
 		{
 			window.opener.postMessage("error", "*");
-			window.close();
+			console.log("error");
+			// window.close();
 		}
 		return res;
 	}
@@ -29,17 +30,20 @@ export function Callback()
 	if (something.twoFaEnabled === true)
 	{
 		window.opener.postMessage('next', '*')
-		window.close();
+		console.log("next");
+		// window.close();
 	}
 	else if (something.newUser === true)
 	{
 		window.opener.postMessage('newUser', '*')
-		window.close();
+		console.log("newUser");
+		// window.close();
 	}
 	else
 	{
 		window.opener.postMessage('success', '*');
-		window.close();
+		console.log("success");
+		// window.close();
 	}
 
 	return (
