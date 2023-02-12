@@ -27,17 +27,13 @@ services:
       postgres:
         condition: service_healthy
     ports:
-      - ${BACK_PORT}:${BACK_PORT}
+      - ${BACK_VIRTUAL_PORT}
     environment:
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PW}
       - DB_DB=${DB_NAME}
       - NETWORK_NAME=${NETWORK_NAME}
       - DB_PORT=${DB_PORT}
-      - PROTOCOL=${PROTOCOL}
-      - APP_HOST=${APP_HOST}
-      - FRONT_PORT=${FRONT_PORT}
-      - BACK_PORT=${BACK_PORT}
       - FORTYTWO_ID=${FORTYTWO_API_ID}
       - FORTYTWO_SECRET=${FORTYTWO_API_SECRET}
       - FORTYTWO_CALLBACK=${FORTYTWO_API_CALLBACK}
@@ -45,6 +41,9 @@ services:
       - MAILERHOST_USER=${MAILERHOST_USER}
       - MAILERHOST_PW=${MAILERHOST_PW}
       - DATABASE_URL=${DB_URL}
+      - FRONT_URL=${FRONT_URL}
+      - VIRTUAL_HOST=${BACK_VIRTUAL_HOST}
+      - VIRTUAL_PORT=${BACK_VIRTUAL_PORT}
     volumes:
       - ./nest/asset:/usr/src/app/asset
     networks:
@@ -57,12 +56,11 @@ services:
     container_name: react
     restart: always
     environment:
-      - VITE_PROTOCOL=${PROTOCOL}
-      - VITE_APP_HOST=${APP_HOST}
-      - VITE_FRONT_PORT=${FRONT_PORT}
-      - VITE_BACK_PORT=${BACK_PORT}
+      - VITE_BACK_URL=${BACK_URL}
+      - VIRTUAL_HOST=${FRONT_VIRTUAL_HOST}
+      - VIRTUAL_PORT=${FRONT_VIRTUAL_PORT}
     ports:
-      - ${FRONT_PORT}:${FRONT_PORT}
+      - ${FRONT_VIRTUAL_PORT}
     networks:
       - transcendence_network
 

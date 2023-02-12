@@ -5,13 +5,13 @@ import {env} from 'process'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  server: { port: env.VITE_FRONT_PORT },
+  server: { port: env.VIRTUAL_PORT },
   build:
   {
 
   },
   preview:
   {
-	port: env.VITE_FRONT_PORT
+	port: env.VIRTUAL_PORT
   }
 })

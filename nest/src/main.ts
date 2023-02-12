@@ -17,6 +17,6 @@ async function bootstrap()
 	app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
 	app.use(cookieParser());
 	app.useWebSocketAdapter(new SocketIOAdapter(app));
-	await app.listen(env.BACK_PORT);
+	await app.listen(env.VIRTUAL_PORT);
 }
 bootstrap();
