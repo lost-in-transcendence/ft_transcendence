@@ -1,0 +1,76 @@
+services:
+
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    restart: always
+    ports:
+      - ${DB_PORT}:${DB_PORT}
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PW}
+      - POSTGRES_DB=${DB_NAME}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - transcendence_network
+
+  backend:
+    build: 
+      context: ./nest/
+      dockerfile: Dockerfile-dev
+    image: nest
+    container_name: nest
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - ${BACK_VIRTUAL_PORT}:${BACK_VIRTUAL_PORT}
+    environment:
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PW}
+      - DB_DB=${DB_NAME}
+      - NETWORK_NAME=${NETWORK_NAME}
+      - DB_PORT=${DB_PORT}
+      - FORTYTWO_ID=${FORTYTWO_API_ID}
+      - FORTYTWO_SECRET=${FORTYTWO_API_SECRET}
+      - FORTYTWO_CALLBACK=${FORTYTWO_API_CALLBACK}
+      - JWT_SECRET=${JWT_SECRET}
+      - MAILERHOST_USER=${MAILERHOST_USER}
+      - MAILERHOST_PW=${MAILERHOST_PW}
+      - DATABASE_URL=${DB_URL}
+      - FRONT_URL=${FRONT_URL}
+      - VIRTUAL_HOST=${BACK_VIRTUAL_HOST}
+      - VIRTUAL_PORT=${BACK_VIRTUAL_PORT}
+    volumes:
+      - ./nest:/usr/src/app
+      - ./shared:/usr/src/shared
+    networks:
+      - transcendence_network
+
+
+  frontend:
+    build: 
+      context: ./react/
+      dockerfile: Dockerfile-dev
+    image: react
+    container_name: react
+    restart: always
+    environment:
+      - VITE_BACK_URL=${BACK_URL}
+      - VIRTUAL_HOST=${FRONT_VIRTUAL_HOST}
+      - VIRTUAL_PORT=${FRONT_VIRTUAL_PORT}
+    ports:
+      - ${FRONT_VIRTUAL_PORT}:${FRONT_VIRTUAL_PORT}
+    volumes:
+      - ./react:/usr/src/app
+      - ./shared:/usr/src/shared
+    networks:
+      - transcendence_network
+
+networks:
+  transcendence_network:
