@@ -17,7 +17,7 @@ import { PlayStatsService } from "src/playstats/playstats-service";
 @UseInterceptors(UserInterceptor)
 @UseFilters(new CustomWsFilter())
 @UsePipes(new WsValidationPipe({ whitelist: true }))
-@WebSocketGateway({ cors: `${env.PROTOCOL}${env.APP_HOST}:${env.FRONT_PORT}` })
+@WebSocketGateway({ cors: `${env.FRONT_URL}` })
 export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
 	private readonly logger = new Logger(MainGateway.name);
 	private readonly socketStore = new SocketStore();

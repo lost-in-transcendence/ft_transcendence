@@ -25,7 +25,7 @@ import { TimeoutStore } from "../global/timeout-store";
 @UseInterceptors(UserInterceptor)
 @UseFilters(new CustomWsFilter())
 @UsePipes(new WsValidationPipe({ whitelist: true }))
-@WebSocketGateway({ cors: `${env.PROTOCOL}${env.APP_HOST}:${env.FRONT_PORT}`, namespace: 'chat' })
+@WebSocketGateway({ cors: `${env.FRONT_URL}`, namespace: 'chat' })
 export class ChannelsGateway implements OnGatewayConnection
 {
 	private readonly logger = new Logger(ChannelsGateway.name);

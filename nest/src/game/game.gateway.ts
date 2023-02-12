@@ -54,7 +54,7 @@ export class GameWaitingRoom
 @UseInterceptors(UserInterceptor)
 @UseFilters(new CustomWsFilter())
 @UsePipes(new WsValidationPipe({ whitelist: true }))
-@WebSocketGateway({ cors: `${env.PROTOCOL}${env.APP_HOST}:${env.FRONT_PORT}`, namespace: 'game' })
+@WebSocketGateway({ cors: `${env.FRONT_URL}`, namespace: 'game' })
 export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit
 {
 	private readonly logger = new Logger(GameGateway.name);
