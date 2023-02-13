@@ -17,7 +17,7 @@ export function UserList()
 
 	const [users, setUsers] = useState<SharedOtherUserDto[]>([]);
 
-	const onlineUser: SharedOtherUserDto[] = users.filter((u) => u.status === 'ONLINE' && u.id !== currentUser.id)
+	const onlineUser: SharedOtherUserDto[] = users.filter((u) => u.status !== 'OFFLINE' && u.id !== currentUser.id)
 	const offlineUser: SharedOtherUserDto[] = users.filter((u) => u.status === 'OFFLINE' && u.id !== currentUser.id)
 
 	const ref = useRef<HTMLDivElement>(null)
