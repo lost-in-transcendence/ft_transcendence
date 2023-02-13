@@ -61,20 +61,33 @@ export class AuthService
 		return { token, twoFaEnabled, newUser };
 	}
 
-	async fakeLogin(fakeInfos: {id42: string, userName: string, email: string, avatarPath: string })
+	async fakeLogin(fakeInfos: {id42: string, email: string, avatarPath: string })
 	{
-		const {userName, id42, email} = fakeInfos;
-		let user: User = await this.usersService.user({userName});
-		if (!user)
-		{
-			user = await this.usersService.createUser(fakeInfos);
+		const {id42, email} = fakeInfos;
+		// let user: User = await this.usersService.user({userName});
+		// if (!user)
+		// {
+			let validName = "guest_0";
+			for (let valid: Boolean = false, postfix : number = 0; valid !== true || postfix <= 1000 ; postfix++)
+			{
+				let nameDuplicate = await this.usersService.user({userName: validName});
+				if (!nameDuplicate)
+				{
+					valid = true;
+				}
+				else
+				{
+					validName = "guest" + '_' + postfix.toString();
+				}
+			}
+			const user = await this.usersService.createUser({...fakeInfos, userName: validName});
 			const filename = `./asset/Guest.png`;
-			const data: Prisma.UserUpdateInput = { id42, userName, email, avatarPath : filename};
+			const data: Prisma.UserUpdateInput = { id42, userName: validName, email, avatarPath : filename};
 			await this.usersService.updateUser({
 				where: { id : user.id },
 				data
 			});
-		}
+		// }
 		const token = await this.signToken({ id: user.id })
 		return { token };
 	}

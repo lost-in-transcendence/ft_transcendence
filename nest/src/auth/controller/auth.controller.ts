@@ -3,7 +3,6 @@ import { GetUser } from 'src/users/decorator';
 import { AuthService } from '../service/auth.service';
 import { Auth42Guard } from '../guard/auth42.guard';
 import { FAKE_IMG_URL } from 'asset';
-import { env } from 'process';
 import { FullAuthGuard } from '../guard/full-auth.guard';
 
 @Controller('auth')
@@ -61,7 +60,7 @@ export class AuthController
 
 	@Post('dev-signup')
 	@HttpCode(200)
-	async devAuth(@Body() fakeInfos: {id42: string, userName: string, email: string, avatarPath: any, isGuest: Boolean }, @Res({ passthrough: true }) res )
+	async devAuth(@Body() fakeInfos: {id42: string, email: string, avatarPath: any, isGuest: Boolean })
 	{
 		fakeInfos.avatarPath = FAKE_IMG_URL;
 		fakeInfos.isGuest = true;

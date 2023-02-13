@@ -10,8 +10,6 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
-// Voici un commentaire pour expliquer mon THOT process
-
 enum StatusType {
     ONLINE
     OFFLINE
@@ -81,8 +79,6 @@ model PlayStats {
     points             Int    @default(0)
     achievement_points Int    @default(0)
 }
-
-// normalement ca ca marche
 
 model Channel {
     id          String @id @default(uuid())

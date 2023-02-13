@@ -315,6 +315,8 @@ export function ProfileEdit()
 				}
 
 			</div>
+			{ user.isGuest === false ?
+			<>
 			<div className="emailEdit bg-gray-700 w-fit min-w-[320px] m-1 p-1 rounded shadow">
 				<h2 className="text-3xl font-semibold w-fit min-w-[320px] mb-2">Email</h2>
 				{
@@ -371,6 +373,8 @@ export function ProfileEdit()
 				{mailError ? (<><br /><p><b>Could not send mail</b></p></>) : (<></>)}
 
 			</div>
+			</>
+			: null}
 		</div>
 	)
 }

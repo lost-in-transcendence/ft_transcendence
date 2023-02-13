@@ -37,7 +37,7 @@ export function Profile() {
 				</div>
 				<div className="profileInfo">
 					<h3 className="font-bold text-5xl break-all">{user.userName}</h3>
-					<p className="text-center">{user.email}</p>
+					{ user.isGuest === false ? <p className="text-center">{user.email}</p> : null}
 					<p className="text-center">{status}</p>
 					{
 						user.gameStatus !== 'NONE' ?

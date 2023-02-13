@@ -1,6 +1,6 @@
 import { Logger, ParseUUIDPipe, UseFilters, UseInterceptors, UsePipes } from "@nestjs/common";
 import { ConnectedSocket, MessageBody, OnGatewayConnection, SubscribeMessage, WebSocketGateway, WebSocketServer, WsException } from "@nestjs/websockets";
-import { Prisma, User, Channel, ChannelMember, Message, RoleType } from "@prisma/client";
+import { Prisma, User, Channel, ChannelMember, Message, RoleType, ChannelModeType } from "@prisma/client";
 import { Namespace, Socket } from 'socket.io';
 import * as bcrypt from 'bcrypt';
 import { env } from "process";
@@ -21,6 +21,7 @@ import { UserSocketStore } from "../global/user-socket.store";
 import { BanMemberDto, ChannelInviteDto, ChannelMemberDto, KickUserDto, UpdateChannelMemberDto } from "./channel-member/dto";
 import { ChannelMemberService } from "./channel-member/channel-member.service";
 import { TimeoutStore } from "../global/timeout-store";
+import { CleanupService, UserCleanup } from "src/websocket-server/cleanup.service";
 
 @UseInterceptors(UserInterceptor)
 @UseFilters(new CustomWsFilter())
@@ -33,10 +34,16 @@ export class ChannelsGateway implements OnGatewayConnection
 	constructor(private readonly channelService: ChannelsService,
 		private readonly userService: UsersService,
 		private readonly messageService: MessagesService,
-		private readonly channelMemberService: ChannelMemberService) { }
+		private readonly channelMemberService: ChannelMemberService,
+		private readonly cleanupService: CleanupService) { }
 
 	@WebSocketServer()
 	server: Namespace;
+
+	afterInit()
+	{
+		const intervalId = setInterval(() => this.cleanupUsers(), 30 * 1000);
+	}
 
 	async handleConnection(client: Socket)
 	{
@@ -159,77 +166,80 @@ export class ChannelsGateway implements OnGatewayConnection
 	}
 
 	@SubscribeMessage(events.LEAVE_CHANNEL)
-	async leaveChannel(
-		@MessageBody('channelId') channelId: string,
+	async leaveChannelMessage(
+		@MessageBody('channelId', ParseUUIDPipe) channelId: string,
 		@ConnectedSocket() client: Socket,
 		@GetUserWs() user: any)
 	{
-		let deleteChan: boolean = false;
-		const channelMemberDto: ChannelMemberDto = {
-			userId: client.data.user.id,
-			channelId,
-			role: null
-		}
-		const channelMember = await this.channelMemberService.getOne(channelMemberDto);
-
-		if (!channelMember)
-			throw new WsException({ status: 'Error', message: 'Cannot leave channel you are not a part of !' });
-		if (channelMember.role === 'OWNER')
-		{
-			const channel: Channel & { members?: ChannelMember[] } = await this.channelService.channel({
-				where: { id: channelId },
-				include:
-				{
-					members:
-					{
-						orderBy: { role: 'asc' },
-						where:
-						{
-							OR:
-								[
-									{ role: 'ADMIN' },
-									{ role: 'MEMBER' }
-								]
-						}
-					}
-				}
-			});
-			const members: ChannelMember[] = channel.members;
-			if (members.length > 0)
-			{
-				await this.userService.updateUser({
-					where: { id: members[0].userId },
-					data:
-					{
-						channels:
-						{
-							update:
-							{
-								where: { userId_channelId: { userId: members[0].userId, channelId } },
-								data: { role: 'OWNER' }
-							}
-						}
-					}
-				});
-			}
-			else
-			{
-				await this.DstroyChannel(channelId)
-				deleteChan = true;
-			}
-		}
 		client.leave(channelId);
-		if (!deleteChan)
-		{
-			if (channelMember.role !== 'BANNED')
-				await this.channelService.leaveChannel({ userId_channelId: { userId: user.id, channelId } });
-			TimeoutStore.clearTimeoutId({userId: user.id, channelId})
-			this.notify(channelId, `${user.userName} has left the channel`);
-			this.server.to(channelId).emit(events.ALERT, { event: events.USERS, args: { channelId: channelId} });
-		}
-		else
-			this.alert({ event: events.CHANNELS });
+		this.leaveChannel(channelId, user.id, user.userName);
 		this.server.to(client.id).emit(events.ALERT, { event: events.CHANNELS })
+		// let deleteChan: boolean = false;
+		// const channelMemberDto: ChannelMemberDto = {
+		// 	userId: client.data.user.id,
+		// 	channelId,
+		// 	role: null
+		// }
+		// const channelMember = await this.channelMemberService.getOne(channelMemberDto);
+
+		// if (!channelMember)
+		// 	throw new WsException({ status: 'Error', message: 'Cannot leave channel you are not a part of !' });
+		// if (channelMember.role === 'OWNER')
+		// {
+		// 	const channel: Channel & { members?: ChannelMember[] } = await this.channelService.channel({
+		// 		where: { id: channelId },
+		// 		include:
+		// 		{
+		// 			members:
+		// 			{
+		// 				orderBy: { role: 'asc' },
+		// 				where:
+		// 				{
+		// 					OR:
+		// 						[
+		// 							{ role: 'ADMIN' },
+		// 							{ role: 'MEMBER' }
+		// 						]
+		// 				}
+		// 			}
+		// 		}
+		// 	});
+		// 	const members: ChannelMember[] = channel.members;
+		// 	if (members.length > 0)
+		// 	{
+		// 		await this.userService.updateUser({
+		// 			where: { id: members[0].userId },
+		// 			data:
+		// 			{
+		// 				channels:
+		// 				{
+		// 					update:
+		// 					{
+		// 						where: { userId_channelId: { userId: members[0].userId, channelId } },
+		// 						data: { role: 'OWNER' }
+		// 					}
+		// 				}
+		// 			}
+		// 		});
+		// 	}
+		// 	else
+		// 	{
+		// 		await this.DstroyChannel(channelId)
+		// 		deleteChan = true;
+		// 	}
+		// }
+		// client.leave(channelId);
+		// if (!deleteChan)
+		// {
+		// 	if (channelMember.role !== 'BANNED')
+		// 		await this.channelService.leaveChannel({ userId_channelId: { userId: user.id, channelId } });
+		// 	TimeoutStore.clearTimeoutId({userId: user.id, channelId})
+		// 	this.notify(channelId, `${user.userName} has left the channel`);
+		// 	this.server.to(channelId).emit(events.ALERT, { event: events.USERS, args: { channelId: channelId} });
+		// }
+		// else
+		// 	this.alert({ event: events.CHANNELS });
+		// this.server.to(client.id).emit(events.ALERT, { event: events.CHANNELS })
 	}
 
 	@SubscribeMessage(events.GET_BANNED_USERS)
@@ -502,12 +512,79 @@ export class ChannelsGateway implements OnGatewayConnection
 		return (otherChans);
 	}
 
+	async leaveChannel(channelId: string, userId: string, userName: string)
+	{
+		let deleteChan: boolean = false;
+		const channelMemberDto: ChannelMemberDto = {
+			userId,
+			channelId,
+			role: null
+		}
+		const channelMember = await this.channelMemberService.getOne(channelMemberDto);
+
+		if (!channelMember)
+			throw new WsException({ status: 'Error', message: 'Cannot leave channel you are not a part of !' });
+		if (channelMember.role === 'OWNER')
+		{
+			const channel: Channel & { members?: ChannelMember[] } = await this.channelService.channel({
+				where: { id: channelId },
+				include:
+				{
+					members:
+					{
+						orderBy: { role: 'asc' },
+						where:
+						{
+							OR:
+								[
+									{ role: 'ADMIN' },
+									{ role: 'MEMBER' }
+								]
+						}
+					}
+				}
+			});
+			const members: ChannelMember[] = channel.members;
+			if (members.length > 0)
+			{
+				await this.userService.updateUser({
+					where: { id: members[0].userId },
+					data:
+					{
+						channels:
+						{
+							update:
+							{
+								where: { userId_channelId: { userId: members[0].userId, channelId } },
+								data: { role: 'OWNER' }
+							}
+						}
+					}
+				});
+			}
+			else
+			{
+				await this.DstroyChannel(channelId)
+				deleteChan = true;
+			}
+		}
+		if (!deleteChan)
+		{
+			if (channelMember.role !== 'BANNED')
+				await this.channelService.leaveChannel({ userId_channelId: { userId: userId, channelId } });
+			TimeoutStore.clearTimeoutId({userId: userId, channelId})
+			this.notify(channelId, `${userName} has left the channel`);
+			this.server.to(channelId).emit(events.ALERT, { event: events.USERS, args: { channelId: channelId} });
+		}
+	}
+
 	async DstroyChannel(channelId: string)
 	{
 		// TODO Handle destroy message
 
 		const banList = await this.channelMemberService.getBanList({channelId});
 		const muteList = await this.channelMemberService.getMuteList({channelId});
+		// const fullList = await this.channelMemberService.findMany({where: {channelId}});
 		banList.forEach((v) =>
 		{
 			TimeoutStore.clearTimeoutId({userId: v.user.id, channelId})
@@ -518,6 +595,34 @@ export class ChannelsGateway implements OnGatewayConnection
 		});
 		await this.channelService.remove(channelId);
 		this.server.socketsLeave(channelId);
+		this.alert({event: events.CHANNELS})
+	}
+
+	async cleanupUsers()
+	{
+		const usersToDelete: UserCleanup[] = this.cleanupService.getUsersToDelete();
+		this.logger.debug("User Cleanup");
+		if (usersToDelete.length === 0)
+			return;
+		usersToDelete.forEach(async (v) =>
+		{
+			const {user, ready} = v;
+			if (ready === true)
+				return;
+			// get user's joined channel list
+			// call this.leaveChannel() on each channel
+			// delete each channel whose mode === ChannelModeType.PRIVMSG
+			const chans: PartialChannelDto[] = await this.getJoinedChannels(user.id);
+			for (const channel of chans)
+			{
+				await this.leaveChannel(channel.id, user.id, user.userName);
+				if (channel.mode === ChannelModeType.PRIVMSG)
+					await this.DstroyChannel(channel.id);
+			}
+			// this.cleanupService.markUserAsReady(user.id);
+			await this.userService.deleteUser({id: user.id});
+			this.cleanupService.removeUserToDelete(user.id);
+		})
 	}
 
 	notify(channelId: string, content: string)

@@ -222,14 +222,14 @@ export class ChannelMemberService
 		return await this.prisma.channelMember.findMany(params);
 	}
 
-	async usersFromChannel(params: Prisma.ChannelMemberFindManyArgs)
-	{
-		const { where, select } = params;
-		return this.prisma.channelMember.findMany({
-			where,
-			select
-		})
-	}
+	// async usersFromChannel(params: Prisma.ChannelMemberFindManyArgs)
+	// {
+	// 	const { where, select } = params;
+	// 	return this.prisma.channelMember.findMany({
+	// 		where,
+	// 		select
+	// 	})
+	// }
 
 	async getBannedFromChannels(userId: Prisma.ChannelMemberWhereInput)
 	{

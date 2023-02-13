@@ -13,6 +13,7 @@ import * as events from 'shared/constants/'
 import { SocketStore } from "./socket-store";
 import { ChannelsService } from "src/chat/channels/channels.service";
 import { PlayStatsService } from "src/playstats/playstats-service";
+import { CleanupService, UserCleanup } from "./cleanup.service";
 
 @UseInterceptors(UserInterceptor)
 @UseFilters(new CustomWsFilter())
@@ -25,7 +26,10 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	private previousRanking: PlayStats[];
 	private rankInterval: number = 1000 * 30;
 
-	constructor(private readonly userService: UsersService, private readonly playStatsService: PlayStatsService, private readonly channelService: ChannelsService) { }
+	constructor(private readonly userService: UsersService,
+		private readonly playStatsService: PlayStatsService,
+		private readonly channelService: ChannelsService,
+		private readonly cleanupService: CleanupService) { }
 
 	@WebSocketServer()
 	server: Server;
@@ -35,7 +39,8 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		this.logger.log('Main Gateway initialized');
 
 		this.doRanking();
-		const intervalId = setInterval(() => this.doRanking(), this.rankInterval)
+		const intervalId = setInterval(() => this.doRanking(), this.rankInterval);
+		// const intervalId2 = setInterval(() => this.cleanupUsers(), 30 * 1000);
 	}
 
 	handleConnection(client: Socket)
@@ -54,11 +59,41 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		{
 			await this.userService.updateUser({ where: { id: ret.id }, data: { status: StatusType.OFFLINE, gameStatus: GameStatusType.NONE } });
 			await this.updateUser(client, ret, { status: StatusType.OFFLINE, gameStatus: GameStatusType.NONE });
+			if (client.data.user.isGuest === true)
+			{
+				// Before deleting, make user leave all channels. Maybe send a message to channel gateway?
+				// Also delete all privmsg channels they were in manually before deleting the user
+				// maybe, just maybe use an updateUser message to tell friends that this user no longer exists?
+				// Also check what happens if a guest is deleted mid-game. Does the game disconnect happen first?
+				// uhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh
+				
+				this.logger.log(`Client ${client.data.user.userName} is a guest, adding to delete list`)
+				this.cleanupService.pushUserToDelete(client.data.user);
+				// await this.userService.deleteUser({id: client.data.user.id});
+			}
 		}
 		else if (ret.gameStatus === 'NONE')
 		{
 			await this.updateUser(client, ret, { gameStatus: GameStatusType.NONE });
 		}
+	}
+
+	async cleanupUsers()
+	{
+		const usersToDelete: UserCleanup[] = this.cleanupService.getUsersToDelete();
+		console.log("usersToDelete MainGateway:", usersToDelete);
+		// if (usersToDelete.length === 0)
+		// 	return;
+		// usersToDelete.forEach(async (v) =>
+		// {
+		// 	const {user, ready} = v;
+		// 	if (ready === true)
+		// 	{
+		// 		await this.userService.deleteUser({id: user.id});
+		// 		this.cleanupService.removeUserToDelete(user.id);
+		// 	}
+
+		// })
 	}
 
 	async doRanking()
@@ -78,6 +113,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		this.previousRanking = await Promise.all(usersByPoints.map(async (v: PlayStats, i: number) =>
 		{
 			const { userId } = v;
+			try {
 			const playStat = await this.playStatsService.update(
 			{
 				where: { userId },
@@ -85,6 +121,11 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 				include: {user: {select: {userName: true}}}
 			})
 			return playStat;
+			}
+			catch (e: any)
+			{
+				return undefined;
+			}
 		}))
 		this.server.emit("nextRanking", { nextRanking: this.nextRankingTimer, previousRanking: this.previousRanking });
 	}

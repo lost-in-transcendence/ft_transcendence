@@ -1,6 +1,6 @@
-import { Link, Navigate, Outlet, redirect, useLocation, useNavigate } from "react-router-dom";
-import { useContext, useEffect, useState } from "react";
-import { appURL, backURL, generateTwoFa, getCookie, logDev, validateToken } from "../requests";
+import { Navigate, useLocation } from "react-router-dom";
+import { useState } from "react";
+import { backURL, generateTwoFa, getCookie, logDev, setCookie, validateToken } from "../requests";
 import Modal from "../components/Modal/modal";
 import { TwoFa } from "../components/TwoFa/twofa";
 import { Spinner } from "../components/Spinner/Spinner";
@@ -19,11 +19,17 @@ async function tryValidateToken()
 		return false;
 	}
 	const res = await validateToken();
-	if (res.status !== 200)
+	if (res.status === 200)
 	{
-		return false;
+		const json = await res.json();
+		if (json.token)
+		{
+			setCookie("jwt", json.token, 7 * 24 * 60 * 60 * 1000);
+			setCookie("jwtExpiration", String(7 * 24 * 60 * 60 * 1000), 7 * 24 * 60 * 60 * 1000);
+		}
+		return true;
 	}
-	return true;
+	return false;
 }
 
 export function Login()
@@ -62,9 +68,16 @@ export function Login()
 
 	async function logAsGuest()
 	{
+		setStatus("loading");
 		const res = await logDev();
 		if (res.status === 200)
 		{
+			const json = await res.json();
+			if (json.token)
+			{
+				setCookie("jwt", json.token, 7 * 24 * 60 * 60 * 1000);
+				setCookie("jwtExpiration", String(7 * 24 * 60 * 60 * 1000), 7 * 24 * 60 * 60 * 1000);
+			}
 			setStatus('success');
 		}
 	}
@@ -153,6 +166,7 @@ export function Login()
 					status === 'loading' ?
 					<Spinner />
 					:
+					<>
 					<div className="basis-full w-full flex items-center justify-center mb-4">
 							<button
 								onClick={login}
@@ -161,10 +175,11 @@ export function Login()
 								Log in with 42
 							</button>
 						</div>
+					<button onClick={logAsGuest}>
+						Log as Guest
+					</button>
+					</>
 				}
-				{/* <button onClick={logAsGuest}>
-					Log as Guest
-				</button> */}
 			</div>
 		</div>
 	)
