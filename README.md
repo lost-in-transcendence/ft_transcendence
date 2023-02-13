@@ -8,7 +8,9 @@ Clone the repo, then simply run:
 ```
 docker compose up --build
 ```
-... in the root of the repository
+... in the root of the repository.
+A .env file is required, you can probably figure most things out by looking at the docker-compose.yml file.
+
 
 ## What is this?
 
