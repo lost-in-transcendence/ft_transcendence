@@ -16,7 +16,7 @@ export async function loader()
 	const res = await getUserMeModal(new URLSearchParams({ 'channels': 'true' }));
 	if (res.status !== 200)
 	{
-		return redirect('/login');
+		throw res;
 	}
 	const user = await res.json();
 	return ({ user });

@@ -4,11 +4,17 @@ import { GiStarsStack as LeaderBoardIcon } from 'react-icons/gi'
 import SocketContext from "../components/Socket/socket-context";
 import { Spinner } from "../components/Spinner/Spinner";
 import { PlayStats } from "../dto/game.dto";
-import { backURL, getUserMe } from "../requests";
-import { getLeaderBoard } from "../requests/http/other-requests";
+import { validateToken } from "../requests";
 import { CountDownTimer } from "../components/commons/CountDownTimer";
 import { HallOfFame } from "../components/Leaderboard/HallOfFame";
 import { Ranking } from "../components/Leaderboard/Ranking";
+
+export async function loader()
+{
+	const res = await validateToken();
+	if (res.status !== 200)
+		throw res;
+}
 
 export function LeaderBoard()
 {

@@ -2,7 +2,7 @@ import { Logger, ParseEnumPipe, ParseIntPipe, ParseUUIDPipe, UseFilters, UseInte
 import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer, WsException } from "@nestjs/websockets";
 import { Socket, Server, Namespace } from 'socket.io';
 import { env } from "process";
-import { StatusType, GameStatusType, User, RoleType, PlayStats } from "@prisma/client";
+import { StatusType, GameStatusType, User, RoleType, PlayStats, ChannelModeType } from "@prisma/client";
 
 import { UsersService } from "src/users/users.service";
 import { CustomWsFilter } from "./filters";
@@ -14,6 +14,8 @@ import { SocketStore } from "./socket-store";
 import { ChannelsService } from "src/chat/channels/channels.service";
 import { PlayStatsService } from "src/playstats/playstats-service";
 import { CleanupService, UserCleanup } from "./cleanup.service";
+import { ChannelsGateway } from "src/chat/channels/channels.gateway";
+import { PartialChannelDto } from "src/chat/channels/dto";
 
 @UseInterceptors(UserInterceptor)
 @UseFilters(new CustomWsFilter())
@@ -24,23 +26,26 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	private readonly socketStore = new SocketStore();
 	private nextRankingTimer: Date;
 	private previousRanking: PlayStats[];
-	private rankInterval: number = 1000 * 30;
+	private interval: number = 30 * 1000;
 
 	constructor(private readonly userService: UsersService,
 		private readonly playStatsService: PlayStatsService,
 		private readonly channelService: ChannelsService,
-		private readonly cleanupService: CleanupService) { }
+		private readonly cleanupService: CleanupService,
+		private readonly channelsGateway: ChannelsGateway) { }
 
 	@WebSocketServer()
 	server: Server;
 
-	afterInit(server: Server)
+	async afterInit(server: Server)
 	{
 		this.logger.log('Main Gateway initialized');
 
-		this.doRanking();
-		const intervalId = setInterval(() => this.doRanking(), this.rankInterval);
-		// const intervalId2 = setInterval(() => this.cleanupUsers(), 30 * 1000);
+		await this.doCleanup();
+		await this.doRanking();
+		const intervalId = setInterval(() => this.doTimers(), this.interval)
+		// const intervalId = setInterval(() => this.doRanking(), this.rankInterval);
+		// const intervalId2 = setInterval(() => this.cleanupUsers(), 60 * 60 * 1000);
 	}
 
 	handleConnection(client: Socket)
@@ -59,18 +64,6 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		{
 			await this.userService.updateUser({ where: { id: ret.id }, data: { status: StatusType.OFFLINE, gameStatus: GameStatusType.NONE } });
 			await this.updateUser(client, ret, { status: StatusType.OFFLINE, gameStatus: GameStatusType.NONE });
-			if (client.data.user.isGuest === true)
-			{
-				// Before deleting, make user leave all channels. Maybe send a message to channel gateway?
-				// Also delete all privmsg channels they were in manually before deleting the user
-				// maybe, just maybe use an updateUser message to tell friends that this user no longer exists?
-				// Also check what happens if a guest is deleted mid-game. Does the game disconnect happen first?
-				// uhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh
-				
-				this.logger.log(`Client ${client.data.user.userName} is a guest, adding to delete list`)
-				this.cleanupService.pushUserToDelete(client.data.user);
-				// await this.userService.deleteUser({id: client.data.user.id});
-			}
 		}
 		else if (ret.gameStatus === 'NONE')
 		{
@@ -78,27 +71,44 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		}
 	}
 
-	async cleanupUsers()
+	async doTimers()
 	{
-		const usersToDelete: UserCleanup[] = this.cleanupService.getUsersToDelete();
-		console.log("usersToDelete MainGateway:", usersToDelete);
-		// if (usersToDelete.length === 0)
-		// 	return;
-		// usersToDelete.forEach(async (v) =>
-		// {
-		// 	const {user, ready} = v;
-		// 	if (ready === true)
-		// 	{
-		// 		await this.userService.deleteUser({id: user.id});
-		// 		this.cleanupService.removeUserToDelete(user.id);
-		// 	}
+		await this.doCleanup();
+		await this.doRanking();
+	}
 
-		// })
+	async doCleanup()
+	{
+		// const usersToDelete: UserCleanup[] = this.cleanupService.getUsersToDelete();
+		const temp = await this.userService.users({where: {isGuest: true}});
+		if (!temp || temp.length === 0)
+			return;
+		const usersToDelete = temp.filter((v) =>
+		{
+			return this.socketStore.getUserSockets(v.id).length === 0
+
+		})
+		for (const user of usersToDelete)
+		{
+			// get user's joined channel list
+			// call this.leaveChannel() on each channel
+			// delete each channel whose mode === ChannelModeType.PRIVMSG
+			const chans: PartialChannelDto[] = await this.channelsGateway.getJoinedChannels(user.id);
+			for (const channel of chans)
+			{
+				await this.channelsGateway.leaveChannel(channel.id, user.id, user.userName);
+				if (channel.mode === ChannelModeType.PRIVMSG)
+					await this.channelsGateway.DstroyChannel(channel.id);
+			}
+			// this.cleanupService.markUserAsReady(user.id);
+			await this.userService.deleteUser({id: user.id});
+			this.cleanupService.removeUserToDelete(user.id);
+		}
 	}
 
 	async doRanking()
 	{
-		this.nextRankingTimer = new Date(Date.now() + this.rankInterval)
+		this.nextRankingTimer = new Date(Date.now() + this.interval)
 		let usersByPoints: PlayStats[];
 		try {
 

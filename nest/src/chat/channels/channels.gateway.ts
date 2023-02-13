@@ -42,7 +42,7 @@ export class ChannelsGateway implements OnGatewayConnection
 
 	afterInit()
 	{
-		const intervalId = setInterval(() => this.cleanupUsers(), 30 * 1000);
+		// const intervalId = setInterval(() => this.cleanupUsers(), 30 * 1000);
 	}
 
 	async handleConnection(client: Socket)
@@ -598,32 +598,32 @@ export class ChannelsGateway implements OnGatewayConnection
 		this.alert({event: events.CHANNELS})
 	}
 
-	async cleanupUsers()
-	{
-		const usersToDelete: UserCleanup[] = this.cleanupService.getUsersToDelete();
-		this.logger.debug("User Cleanup");
-		if (usersToDelete.length === 0)
-			return;
-		usersToDelete.forEach(async (v) =>
-		{
-			const {user, ready} = v;
-			if (ready === true)
-				return;
-			// get user's joined channel list
-			// call this.leaveChannel() on each channel
-			// delete each channel whose mode === ChannelModeType.PRIVMSG
-			const chans: PartialChannelDto[] = await this.getJoinedChannels(user.id);
-			for (const channel of chans)
-			{
-				await this.leaveChannel(channel.id, user.id, user.userName);
-				if (channel.mode === ChannelModeType.PRIVMSG)
-					await this.DstroyChannel(channel.id);
-			}
-			// this.cleanupService.markUserAsReady(user.id);
-			await this.userService.deleteUser({id: user.id});
-			this.cleanupService.removeUserToDelete(user.id);
-		})
-	}
+	// async cleanupUsers()
+	// {
+	// 	const usersToDelete: UserCleanup[] = this.cleanupService.getUsersToDelete();
+	// 	this.logger.debug("User Cleanup");
+	// 	if (usersToDelete.length === 0)
+	// 		return;
+	// 	usersToDelete.forEach(async (v) =>
+	// 	{
+	// 		const {user, ready} = v;
+	// 		if (ready === true)
+	// 			return;
+	// 		// get user's joined channel list
+	// 		// call this.leaveChannel() on each channel
+	// 		// delete each channel whose mode === ChannelModeType.PRIVMSG
+	// 		const chans: PartialChannelDto[] = await this.getJoinedChannels(user.id);
+	// 		for (const channel of chans)
+	// 		{
+	// 			await this.leaveChannel(channel.id, user.id, user.userName);
+	// 			if (channel.mode === ChannelModeType.PRIVMSG)
+	// 				await this.DstroyChannel(channel.id);
+	// 		}
+	// 		// this.cleanupService.markUserAsReady(user.id);
+	// 		await this.userService.deleteUser({id: user.id});
+	// 		this.cleanupService.removeUserToDelete(user.id);
+	// 	})
+	// }
 
 	notify(channelId: string, content: string)
 	{

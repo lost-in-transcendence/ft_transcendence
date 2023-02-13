@@ -1,8 +1,14 @@
 import { SiNestjs, SiPostgresql, SiTailwindcss, SiSocketdotio, SiTypescript } from 'react-icons/si'
 import { FaReact, FaGithubSquare as GithubIcon } from "react-icons/fa";
 import { IoPrism } from "react-icons/io5";
+import { validateToken } from '../requests';
 
-
+export async function loader()
+{
+	const res = await validateToken();
+	if (res.status !== 200)
+		throw res;
+}
 
 export function HomePage()
 {

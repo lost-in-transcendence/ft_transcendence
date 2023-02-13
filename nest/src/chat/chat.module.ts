@@ -9,6 +9,7 @@ import { MessagesModule } from './messages/messages.module';
 import { ChannelMemberModule } from './channels/channel-member/channel-member.module';
 import { WebsocketModule } from 'src/websocket-server/websocket.module';
 import { CleanupModule } from 'src/websocket-server/cleanup.module';
+import { ChannelsGateway } from './channels/channels.gateway';
 
 @Module({
   providers: [ChatGateway, ChatService],

@@ -23,7 +23,7 @@ export function Ranking({ranking} : {ranking: PlayStats[]})
 				{
 					ranking.map((v: PlayStats, i: number) =>
 					{
-						if (v === null)
+						if (v === null || i === null)
 							return;
 						return <RankingItem key={v.userId} v={v} i={i} />
 					})

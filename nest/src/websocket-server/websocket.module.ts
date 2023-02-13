@@ -1,4 +1,5 @@
 import { Module } from "@nestjs/common";
+import { ChannelsGateway } from "src/chat/channels/channels.gateway";
 import { ChannelsModule } from "src/chat/channels/channels.module";
 import { PlayStatsService } from "src/playstats/playstats-service";
 import { UsersModule } from "src/users/users.module";

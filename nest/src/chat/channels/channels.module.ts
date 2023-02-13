@@ -11,7 +11,7 @@ import { CleanupModule } from 'src/websocket-server/cleanup.module';
 @Module({
 	controllers: [ChannelsController],
 	providers: [ChannelsService, ChannelsGateway],
-	exports: [ChannelsService],
+	exports: [ChannelsService, ChannelsGateway],
 	imports: [UsersModule, MessagesModule, ChannelMemberModule, CleanupModule]
 })
 export class ChannelsModule { }
