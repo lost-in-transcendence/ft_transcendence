@@ -99,17 +99,25 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	async doRanking()
 	{
 		this.nextRankingTimer = new Date(Date.now() + this.rankInterval)
-		const usersByPoints = await this.playStatsService.findMany(
+		let usersByPoints: PlayStats[];
+		try {
+
+			usersByPoints = await this.playStatsService.findMany(
+				{
+					orderBy:
+					{
+						points: 'desc',
+					},
+					include:
+					{
+						user: true,
+					}
+				});
+		}
+		catch (e: any)
 		{
-			orderBy:
-			{
-				points: 'desc',
-			},
-			include:
-			{
-				user: true,
-			}
-		});
+			usersByPoints = [];
+		}
 		this.previousRanking = await Promise.all(usersByPoints.map(async (v: PlayStats, i: number) =>
 		{
 			const { userId } = v;
