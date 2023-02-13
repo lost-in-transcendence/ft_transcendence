@@ -129,9 +129,9 @@ export function Pong(props: { goBack: any, asSpectator: boolean, gameInfos: {the
       var key = e.key;
       setKeys((prev) => 
       {
-        if (key === 'w' && prev.up === true)
+        if ((key.toUpperCase() === 'W' || key.toUpperCase() === "Z" || key === "ArrowUp") && prev.up === true)
           return {...prev, up: false}
-        else if (key === 's' && prev.down === true)
+        else if ((key.toUpperCase() === 'S' || key === "ArrowDown") && prev.down === true)
           return {...prev, down: false};
         return prev;
      });
@@ -143,9 +143,9 @@ export function Pong(props: { goBack: any, asSpectator: boolean, gameInfos: {the
       var key = e.key;
       setKeys((prev) => 
       {
-        if (key === 'w' && prev.up === false)
+        if ((key.toUpperCase() === 'W' || key.toUpperCase() === "Z" || key === "ArrowUp") && prev.up === false)
           return {...prev, up: true}
-        else if (key === 's' && prev.down === false)
+        else if ((key.toUpperCase() === 'S' || key === "ArrowDown") && prev.down === false)
           return {...prev, down: true};
         return prev;
       });
