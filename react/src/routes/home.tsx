@@ -29,7 +29,7 @@ export function HomePage()
 				</p>
 				<ul className="text-left list-disc ml-[25px] mb-4">
 					<li>
-						A multiplayer, customizable Pong game
+						An online, customizable Pong game
 					</li>
 					<li>
 						A live chat interface, complete with channel creation and administration
@@ -68,7 +68,7 @@ export function HomePage()
 			</div>
 			<div>
 				<h2 className="text-2xl mb-2 text-center">Github repo of the project:</h2>
-				<a className="text-green-600 hover:text-green-500" href="https://github.com/mchibane/ft_transcendence">https://github.com/mchibane/ft_transcendence</a>
+				<a className="text-green-600 hover:text-green-500" href="https://github.com/mchibane/ft_transcendence">https://github.com/lost-in-transcendence/ft_transcendence</a>
 			</div>
 			<div>
 				<h2 className="text-2xl my-6 text-center">Made by these four handsome men</h2>
