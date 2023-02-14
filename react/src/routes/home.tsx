@@ -50,20 +50,6 @@ export function HomePage()
 				<p className='text-left text-sm'>
 					Message Neruko#6289 on Discord if you find any bugs please :)
 				</p>
-				{/* <p className="my-5 text-center bg-gray-700 rounded-lg shadow p-2 mx-12">
-					This is a student project that hosts a multiplayer Pong game.
-					<br />
-					You will find a chat made from scratch where you will be able to create different channels, manage a friend list and invite different users.
-					<br />
-					
-					There is an integrated 2FA system, yet not mandatory to use to website.
-					<br />
-					You can continue to read if you want to learn more about the stack we used to build the project.
-					<br />
-					Otherwise the sidebar on the left will take you where you want to be !
-					<br />
-					Have fun !
-				</p> */}
 				</div>
 			</div>
 			<div>
