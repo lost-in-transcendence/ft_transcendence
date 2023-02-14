@@ -17,7 +17,7 @@ A .env file is required, you can probably figure most things out by looking at t
 This is the final assignment for 42 School of Code's Common Core, ft_transcendence.
 A React and NestJS-based full-stack app written in Typescript featuring...
 
-  - A multiplayer, customizable Pong game
+  - An online, customizable Pong game
   - A live chat interface, complete with channel creation and administration
   - User profiles, friendlists, blacklists...
   - Live rankings and a leaderboard
