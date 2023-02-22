@@ -24,7 +24,7 @@ export function UserAvatarStatusProfile({userName, status, border = 'border-gray
 	return (
 	    <>
 			<div className={"m-auto inline-block relative"}>
-				<img className={`w-[80px] rounded-full border-[6px] ` + border} src={`${backURL}/users/avatars/${userName}?time=${Date.now()}`} />
+				<img className={`w-[80px] h-[80px] rounded-full border-[6px] ` + border} src={`${backURL}/users/avatars/${userName}?time=${Date.now()}`} />
 				<CurrentStatus className={"z-[100] w-[35%] absolute bottom-0 right-0 rounded-full border-[6px] " + border} status={status} />
 			</div>
         </>
