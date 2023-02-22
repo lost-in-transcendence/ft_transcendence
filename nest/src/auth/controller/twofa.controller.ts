@@ -49,9 +49,9 @@ export class TwofaController
         {
             const payload : JwtPayload = {id: user.id, isTwoFaAuthenticated: true}
             const token = await this.authService.signToken(payload);
-            await this.authService.setJwtCookies(res, token);
+            return {token}
+            // await this.authService.setJwtCookies(res, token);
         }
-        res.send();
     }
 
     @UseGuards(FullAuthGuard)

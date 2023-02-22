@@ -3,6 +3,8 @@ import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect,
 import { Socket, Server, Namespace } from 'socket.io';
 import { env } from "process";
 import { StatusType, GameStatusType, User, RoleType, PlayStats, ChannelModeType } from "@prisma/client";
+import * as fs from 'fs'
+
 
 import { UsersService } from "src/users/users.service";
 import { CustomWsFilter } from "./filters";
@@ -102,6 +104,8 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			}
 			// this.cleanupService.markUserAsReady(user.id);
 			await this.userService.deleteUser({id: user.id});
+			if (user.avatarPath && user.avatarPath !== './asset/Guest.png')
+				fs.unlinkSync(user.avatarPath);
 			this.cleanupService.removeUserToDelete(user.id);
 		}
 	}

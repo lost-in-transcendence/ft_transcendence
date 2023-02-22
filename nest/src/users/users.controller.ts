@@ -123,7 +123,8 @@ export class UsersController {
 			where: { id : user.id },
 			data
 		});
-		fs.unlinkSync(oldAvatar);
+		if (oldAvatar !== './asset/Guest.png')
+			fs.unlinkSync(oldAvatar);
 	}
 
 	@Get('/avatars/:userName')
