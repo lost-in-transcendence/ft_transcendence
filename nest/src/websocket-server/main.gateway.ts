@@ -104,7 +104,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 			}
 			// this.cleanupService.markUserAsReady(user.id);
 			await this.userService.deleteUser({id: user.id});
-			if (user.avatar && user.avatarPath !== './asset/Guest.png')
+			if (user.avatarPath && user.avatarPath !== './asset/Guest.png')
 				fs.unlinkSync(user.avatarPath);
 			this.cleanupService.removeUserToDelete(user.id);
 		}
