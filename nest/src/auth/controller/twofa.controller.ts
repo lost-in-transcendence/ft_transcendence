@@ -38,7 +38,7 @@ export class TwofaController
     @UseGuards(FirstStepAuthGuard)
     @Post('authenticate')
     @HttpCode(200)
-    async authenticate(@Res() res, @GetUser() user, @Body() twofaAuthenticationDto: TwofaAuthenticationDto)
+    async authenticate(@GetUser() user, @Body() twofaAuthenticationDto: TwofaAuthenticationDto)
     {
         const authenticated = await this.twofaService.authenticate(twofaAuthenticationDto.token, user.twoFaSecret);
         if (!authenticated)
@@ -49,9 +49,9 @@ export class TwofaController
         {
             const payload : JwtPayload = {id: user.id, isTwoFaAuthenticated: true}
             const token = await this.authService.signToken(payload);
-            await this.authService.setJwtCookies(res, token);
+            return {token}
+            // await this.authService.setJwtCookies(res, token);
         }
-        res.send();
     }
 
     @UseGuards(FullAuthGuard)

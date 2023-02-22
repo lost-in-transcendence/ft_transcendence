@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { generateTwoFa, authenticateTwoFa } from "../../requests"
+import { generateTwoFa, authenticateTwoFa, setCookie } from "../../requests"
 
 async function submitTwoFa(code: string)
 {
@@ -8,6 +8,12 @@ async function submitTwoFa(code: string)
 	if (res.status !== 200)
 	{
 		throw new Error('Wrong code !');
+	}
+	const json = await res.json();
+	if (json.token)
+	{
+		setCookie("jwt", json.token, 7 * 24 * 60 * 60 * 1000);
+		setCookie("jwtExpiration", String(7 * 24 * 60 * 60 * 1000), 7 * 24 * 60 * 60 * 1000);
 	}
 }
 
