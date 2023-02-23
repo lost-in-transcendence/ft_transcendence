@@ -51,7 +51,7 @@ export function Podium({ number, player }: { number: number, player: PlayStats |
 		<div className={`flex-1 flex flex-col text-center ${player ? 'cursor-pointer' : ''} bg-gray-800`}
 			onClick={onClick}>
 			<div className="mb-[5px]" style={{ marginTop: imageMargin + 'px' }}>
-				<img className="w-[80px] rounded-full m-auto" src={imgSrc} />
+				<img className="w-[80px] h-[80px] rounded-full m-auto" src={imgSrc} />
 			</div>
 			<div className={`${divBg} flex flex-col justify-between items-center w-full h-full border-y-[3px] ${border} border-yellow-600 rounded-sm text-xl ${textColor} `} >
 				<p className="text-4xl pt-2">{number}</p>
