@@ -1,6 +1,6 @@
 # FT_TRANSCENDENCE
 
-[Live demo](http://lost-in-transcendence.duckdns.org) (Currently unavailable, setting up HTTPS) (must be a 42 student to login, but you can also log in as a guest)
+[Live demo](http://lost-in-transcendence.duckdns.org) (must be a 42 student to login, but you can also log in as a guest)
 
 ## To setup
 
